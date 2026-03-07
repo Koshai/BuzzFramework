@@ -1,0 +1,21 @@
+@page "/"
+@rendermode InteractiveServer
+
+<PageTitle>Home</PageTitle>
+
+<h1>Buzz Framework - Iteration 3</h1>
+
+<p>This slice includes OpenAI + Ollama provider routing with fallback and persistent textbox history suggestions.</p>
+
+<BuzzTextBox
+    Label="Customer Notes"
+    @bind-InputText="_textValue"
+    SuggestionCount="6"
+    AddToHistoryOnEnter="true"
+    Placeholder="Type and press Enter to store history..." />
+
+<p><strong>Current value:</strong> @_textValue</p>
+
+@code {
+    private string _textValue = "Please draft a follow-up email for today meeting";
+}

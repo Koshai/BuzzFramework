@@ -1,0 +1,184 @@
+@using Buzz.Blazor.Services
+@inject IBuzzSuggestionService SuggestionService
+@inject NavigationManager NavigationManager
+@implements IDisposable
+
+<div class="buzz-card">
+    <label class="buzz-label">@Label</label>
+    <input
+        class="buzz-input"
+        type="@ResolvedInputType"
+        list="@DatalistTarget"
+        value="@InputText"
+        placeholder="@Placeholder"
+        @oninput="HandleInputChanged"
+        @onkeydown="HandleKeyDown" />
+
+    <datalist id="@_datalistId">
+        @foreach (var suggestion in _suggestions)
+        {
+            <option value="@suggestion"></option>
+        }
+    </datalist>
+</div>
+
+@code {
+    [Parameter]
+    public string Label { get; set; } = "Buzz Text Box";
+
+    [Parameter]
+    public string InputText { get; set; } = string.Empty;
+
+    [Parameter]
+    public EventCallback<string> InputTextChanged { get; set; }
+
+    [Parameter]
+    public string Placeholder { get; set; } = "Type here...";
+
+    [Parameter]
+    public string InputType { get; set; } = "text";
+
+    [Parameter]
+    public int SuggestionCount { get; set; } = 5;
+
+    [Parameter]
+    public bool AddToHistoryOnEnter { get; set; } = true;
+
+    [Parameter]
+    public bool AddToHistoryOnTab { get; set; } = true;
+
+    [Parameter]
+    public bool EnableAiSuggestions { get; set; } = true;
+
+    [Parameter]
+    public int AiDebounceMilliseconds { get; set; } = 800;
+
+    [Parameter]
+    public string? MemorySubject { get; set; }
+
+    [Parameter]
+    public string? ReferenceText { get; set; }
+
+    private readonly string _datalistId = $"buzz-suggestions-{Guid.NewGuid():N}";
+    private readonly List<string> _suggestions = [];
+    private CancellationTokenSource? _debounceCancellationTokenSource;
+    private bool IsSensitiveInput => string.Equals(ResolvedInputType, "password", StringComparison.OrdinalIgnoreCase);
+    private string ResolvedInputType => string.IsNullOrWhiteSpace(InputType) ? "text" : InputType.Trim().ToLowerInvariant();
+    private string? DatalistTarget => IsSensitiveInput ? null : _datalistId;
+
+    private async Task HandleInputChanged(ChangeEventArgs args)
+    {
+        InputText = args.Value?.ToString() ?? string.Empty;
+        await InputTextChanged.InvokeAsync(InputText);
+        if (IsSensitiveInput)
+        {
+            _debounceCancellationTokenSource?.Cancel();
+            _suggestions.Clear();
+            return;
+        }
+
+        await LoadSuggestionsAsync(includeAi: false);
+        ScheduleDebouncedAiSuggestions();
+    }
+
+    private async Task HandleKeyDown(KeyboardEventArgs args)
+    {
+        var isEnter = string.Equals(args.Key, "Enter", StringComparison.Ordinal);
+        var isTab = string.Equals(args.Key, "Tab", StringComparison.Ordinal);
+        var shouldRemember = (isEnter && AddToHistoryOnEnter) || (isTab && AddToHistoryOnTab);
+        if (!shouldRemember)
+        {
+            return;
+        }
+
+        if (IsSensitiveInput)
+        {
+            return;
+        }
+
+        await SuggestionService.RememberEntryAsync(
+            InputText,
+            Label,
+            CurrentPagePath(),
+            ResolvedMemorySubject(),
+            ReferenceText);
+        await LoadSuggestionsAsync(includeAi: false);
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task LoadSuggestionsAsync(bool includeAi, CancellationToken cancellationToken = default)
+    {
+        _suggestions.Clear();
+        if (string.IsNullOrWhiteSpace(InputText))
+        {
+            return;
+        }
+
+        var suggestions = await SuggestionService.GetSuggestionsAsync(
+            InputText,
+            Label,
+            CurrentPagePath(),
+            SuggestionCount,
+            includeAi,
+            ResolvedMemorySubject(),
+            ReferenceText,
+            cancellationToken);
+        _suggestions.AddRange(suggestions);
+    }
+
+    private string? ResolvedMemorySubject()
+    {
+        if (!string.IsNullOrWhiteSpace(MemorySubject))
+        {
+            return MemorySubject.Trim();
+        }
+
+        return $"{CurrentPagePath()}::{Label}";
+    }
+
+    private void ScheduleDebouncedAiSuggestions()
+    {
+        if (IsSensitiveInput || !EnableAiSuggestions || string.IsNullOrWhiteSpace(InputText))
+        {
+            return;
+        }
+
+        _debounceCancellationTokenSource?.Cancel();
+        _debounceCancellationTokenSource?.Dispose();
+        _debounceCancellationTokenSource = new CancellationTokenSource();
+        var token = _debounceCancellationTokenSource.Token;
+        var snapshot = InputText;
+        _ = DebouncedAiSuggestionRefreshAsync(snapshot, token);
+    }
+
+    private async Task DebouncedAiSuggestionRefreshAsync(string expectedInput, CancellationToken cancellationToken)
+    {
+        try
+        {
+            await Task.Delay(AiDebounceMilliseconds, cancellationToken);
+            if (!string.Equals(InputText, expectedInput, StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            await LoadSuggestionsAsync(includeAi: true, cancellationToken);
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (OperationCanceledException)
+        {
+            // User continued typing; skip stale AI request.
+        }
+    }
+
+    private string CurrentPagePath()
+    {
+        var relative = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
+        return string.IsNullOrWhiteSpace(relative) ? "/" : $"/{relative}";
+    }
+
+    public void Dispose()
+    {
+        _debounceCancellationTokenSource?.Cancel();
+        _debounceCancellationTokenSource?.Dispose();
+    }
+}

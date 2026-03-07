@@ -1,0 +1,26 @@
+.buzz-card {
+    border: 1px solid #d0d7de;
+    border-radius: 8px;
+    padding: 1rem;
+    background: #ffffff;
+}
+
+.buzz-label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.buzz-input {
+    width: 100%;
+    border: 1px solid #c5ccd3;
+    border-radius: 6px;
+    padding: 0.5rem;
+    font-family: inherit;
+}
+
+.buzz-input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.18);
+}
