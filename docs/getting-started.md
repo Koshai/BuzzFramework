@@ -63,3 +63,18 @@ In development config:
 
 - set logging level for `Buzz.Blazor` to `Debug`
 - watch provider attempts, failover logs, and suggestion logs in terminal
+
+## 6) Design Tokens (2026-ready)
+
+Buzz components use CSS variables so you can keep one modern design language across current and future components.
+
+Starter token names:
+
+- `--buzz-surface`, `--buzz-surface-dark`
+- `--buzz-text-primary`, `--buzz-text-muted`
+- `--buzz-border`, `--buzz-border-strong`
+- `--buzz-accent`, `--buzz-focus-ring`
+- `--buzz-radius-md`, `--buzz-radius-lg`
+- `--buzz-shadow-sm`, `--buzz-shadow-md`
+
+Define these in your app-level stylesheet (`wwwroot/app.css`) and every Buzz component can inherit the same visual system.

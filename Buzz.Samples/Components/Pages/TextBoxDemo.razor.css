@@ -1,0 +1,35 @@
+.textbox-demo-intro {
+    max-width: 78ch;
+    color: var(--buzz-text-muted, #64748b);
+    margin-bottom: 1rem;
+}
+
+.textbox-demo-grid {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+}
+
+.textbox-demo-panel {
+    border: 1px solid var(--buzz-border, #d0d7de);
+    border-radius: var(--buzz-radius-lg, 14px);
+    background: var(--buzz-surface, #ffffff);
+    box-shadow: var(--buzz-shadow-sm, 0 1px 2px rgba(15, 23, 42, 0.05));
+    padding: 0.9rem;
+}
+
+.textbox-demo-panel h3 {
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+    color: var(--buzz-text-primary, #0f172a);
+}
+
+.textbox-demo-current-values {
+    margin-top: 1rem;
+    border-top: 1px solid var(--buzz-border, #d0d7de);
+    padding-top: 0.9rem;
+}
+
+.textbox-demo-current-values p {
+    margin: 0.35rem 0;
+}

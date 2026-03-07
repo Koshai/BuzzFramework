@@ -5,69 +5,71 @@
 
 <h1>BuzzTextBox Demo: Support Reply Workflow</h1>
 
-<p>
+<p class="textbox-demo-intro">
     Scenario: a support agent writes repeated responses throughout the day.
     Press <strong>Enter</strong> after each final input so Buzz can remember it.
     Over time, each field should suggest better phrases while you type.
 </p>
 
-<section>
-    <h3>1) Issue Summary</h3>
-    <BuzzTextBox
-        Label="Issue Summary"
-        @bind-InputText="_issueSummary"
-        MemorySubject="@_sharedSubject"
-        SuggestionCount="6"
-        AddToHistoryOnEnter="true"
-        AddToHistoryOnTab="true"
-        Placeholder="Example: Login fails after password reset..." />
-</section>
+<div class="textbox-demo-grid">
+    <section class="textbox-demo-panel">
+        <h3>1) Issue Summary</h3>
+        <BuzzTextBox
+            Label="Issue Summary"
+            @bind-InputText="_issueSummary"
+            MemorySubject="@_sharedSubject"
+            SuggestionCount="6"
+            AddToHistoryOnEnter="true"
+            AddToHistoryOnTab="true"
+            Placeholder="Example: Login fails after password reset..." />
+    </section>
 
-<section>
-    <h3>2) Resolution Notes</h3>
-    <BuzzTextBox
-        Label="Resolution Notes"
-        @bind-InputText="_resolutionNotes"
-        MemorySubject="@_sharedSubject"
-        ReferenceText="@_issueSummary"
-        SuggestionCount="6"
-        AddToHistoryOnEnter="true"
-        AddToHistoryOnTab="true"
-        Placeholder="Example: Cleared stale session and reissued token..." />
-</section>
+    <section class="textbox-demo-panel">
+        <h3>2) Resolution Notes</h3>
+        <BuzzTextBox
+            Label="Resolution Notes"
+            @bind-InputText="_resolutionNotes"
+            MemorySubject="@_sharedSubject"
+            ReferenceText="@_issueSummary"
+            SuggestionCount="6"
+            AddToHistoryOnEnter="true"
+            AddToHistoryOnTab="true"
+            Placeholder="Example: Cleared stale session and reissued token..." />
+    </section>
 
-<section>
-    <h3>3) Follow-up Message</h3>
-    <BuzzTextBox
-        Label="Follow-up Message"
-        @bind-InputText="_followUpMessage"
-        MemorySubject="@_sharedSubject"
-        ReferenceText="@_issueSummary"
-        SuggestionCount="6"
-        AddToHistoryOnEnter="true"
-        AddToHistoryOnTab="true"
-        Placeholder="Example: Please confirm if you can access the account now..." />
-</section>
+    <section class="textbox-demo-panel">
+        <h3>3) Follow-up Message</h3>
+        <BuzzTextBox
+            Label="Follow-up Message"
+            @bind-InputText="_followUpMessage"
+            MemorySubject="@_sharedSubject"
+            ReferenceText="@_issueSummary"
+            SuggestionCount="6"
+            AddToHistoryOnEnter="true"
+            AddToHistoryOnTab="true"
+            Placeholder="Example: Please confirm if you can access the account now..." />
+    </section>
 
-<section>
-    <h3>4) Temporary Password (secure input)</h3>
-    <BuzzTextBox
-        Label="Temporary Password"
-        @bind-InputText="_temporaryPassword"
-        InputType="password"
-        AddToHistoryOnEnter="false"
-        AddToHistoryOnTab="false"
-        EnableAiSuggestions="false"
-        Placeholder="Password is masked and never suggested..." />
-</section>
+    <section class="textbox-demo-panel">
+        <h3>4) Temporary Password (secure input)</h3>
+        <BuzzTextBox
+            Label="Temporary Password"
+            @bind-InputText="_temporaryPassword"
+            InputType="password"
+            AddToHistoryOnEnter="false"
+            AddToHistoryOnTab="false"
+            EnableAiSuggestions="false"
+            Placeholder="Password is masked and never suggested..." />
+    </section>
+</div>
 
-<hr />
-
-<h3>Current form values</h3>
-<p><strong>Issue Summary:</strong> @_issueSummary</p>
-<p><strong>Resolution Notes:</strong> @_resolutionNotes</p>
-<p><strong>Follow-up Message:</strong> @_followUpMessage</p>
-<p><strong>Temporary Password Length:</strong> @_temporaryPassword.Length</p>
+<div class="textbox-demo-current-values">
+    <h3>Current form values</h3>
+    <p><strong>Issue Summary:</strong> @_issueSummary</p>
+    <p><strong>Resolution Notes:</strong> @_resolutionNotes</p>
+    <p><strong>Follow-up Message:</strong> @_followUpMessage</p>
+    <p><strong>Temporary Password Length:</strong> @_temporaryPassword.Length</p>
+</div>
 
 @code {
     private const string _sharedSubject = "support-login-cases";

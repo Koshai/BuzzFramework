@@ -1,26 +1,73 @@
 .buzz-card {
-    border: 1px solid #d0d7de;
-    border-radius: 8px;
+    border: 1px solid var(--buzz-border, #d0d7de);
+    border-radius: var(--buzz-radius-lg, 14px);
     padding: 1rem;
-    background: #ffffff;
+    background: var(--buzz-surface, #ffffff);
+    box-shadow: var(--buzz-shadow-sm, 0 1px 2px rgba(15, 23, 42, 0.05));
+    transition: box-shadow 180ms ease, border-color 180ms ease, transform 180ms ease;
+}
+
+.buzz-card:hover {
+    border-color: var(--buzz-border-strong, #b7c1cc);
+    box-shadow: var(--buzz-shadow-md, 0 8px 20px rgba(15, 23, 42, 0.09));
 }
 
 .buzz-label {
     display: block;
-    font-weight: 600;
-    margin-bottom: 0.5rem;
+    font-weight: 650;
+    font-size: 0.9rem;
+    letter-spacing: 0.01em;
+    margin-bottom: 0.45rem;
+    color: var(--buzz-text-primary, #0f172a);
 }
 
 .buzz-input {
     width: 100%;
-    border: 1px solid #c5ccd3;
-    border-radius: 6px;
-    padding: 0.5rem;
+    border: 1px solid var(--buzz-input-border, #c5ccd3);
+    border-radius: var(--buzz-radius-md, 10px);
+    padding: 0.62rem 0.72rem;
+    color: var(--buzz-text-primary, #0f172a);
+    background: var(--buzz-input-surface, #ffffff);
     font-family: inherit;
+    font-size: 0.95rem;
+    line-height: 1.4;
+    transition: border-color 150ms ease, box-shadow 150ms ease, background-color 150ms ease;
 }
 
 .buzz-input:focus {
     outline: none;
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.18);
+    border-color: var(--buzz-accent, #3b82f6);
+    box-shadow: 0 0 0 3px var(--buzz-focus-ring, rgba(59, 130, 246, 0.2));
+}
+
+.buzz-input::placeholder {
+    color: var(--buzz-text-muted, #64748b);
+}
+
+@media (prefers-color-scheme: dark) {
+    .buzz-card {
+        border-color: var(--buzz-border-dark, #2a3342);
+        background: var(--buzz-surface-dark, #0f172a);
+    }
+
+    .buzz-label {
+        color: var(--buzz-text-primary-dark, #e2e8f0);
+    }
+
+    .buzz-input {
+        border-color: var(--buzz-input-border-dark, #334155);
+        background: var(--buzz-input-surface-dark, #111827);
+        color: var(--buzz-text-primary-dark, #e2e8f0);
+    }
+
+    .buzz-input::placeholder {
+        color: var(--buzz-text-muted-dark, #93a3b8);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .buzz-card,
+    .buzz-input {
+        transition: none;
+    }
 }

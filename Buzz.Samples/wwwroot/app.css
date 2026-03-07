@@ -2,6 +2,28 @@ html, body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
+:root {
+    --buzz-surface: #ffffff;
+    --buzz-surface-dark: #0f172a;
+    --buzz-input-surface: #ffffff;
+    --buzz-input-surface-dark: #111827;
+    --buzz-text-primary: #0f172a;
+    --buzz-text-primary-dark: #e2e8f0;
+    --buzz-text-muted: #64748b;
+    --buzz-text-muted-dark: #93a3b8;
+    --buzz-border: #d0d7de;
+    --buzz-border-strong: #b7c1cc;
+    --buzz-border-dark: #2a3342;
+    --buzz-input-border: #c5ccd3;
+    --buzz-input-border-dark: #334155;
+    --buzz-accent: #3b82f6;
+    --buzz-focus-ring: rgba(59, 130, 246, 0.2);
+    --buzz-radius-md: 10px;
+    --buzz-radius-lg: 14px;
+    --buzz-shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.05);
+    --buzz-shadow-md: 0 8px 20px rgba(15, 23, 42, 0.09);
+}
+
 a, .btn-link {
     color: #006bb7;
 }
