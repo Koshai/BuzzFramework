@@ -73,6 +73,25 @@
             MaxVisibleOptions="6"
             Placeholder="Select or type a category..." />
     </section>
+
+    <section class="textbox-demo-panel">
+        <h3>6) Escalation Level (BuzzSelectBox)</h3>
+        <BuzzSelectBox
+            Label="Escalation Level"
+            @bind-Value="_escalationLevel"
+            MemorySubject="@_sharedSubject"
+            ReferenceText="@_issueSummary"
+            Options="@_escalationLevels"
+            MaxVisibleOptions="5"
+            PlaceholderOptionText="Choose escalation level..."
+            Required="true"
+            HelperText="Pick the level used to route this ticket to the right queue."
+            ErrorText="@_escalationLevelError"
+            ShowRecommendationHint="true" />
+        <button class="btn btn-sm btn-outline-primary mt-2" @onclick="ValidateEscalation">
+            Validate Escalation Selection
+        </button>
+    </section>
 </div>
 
 <div class="textbox-demo-current-values">
@@ -81,6 +100,7 @@
     <p><strong>Resolution Notes:</strong> @_resolutionNotes</p>
     <p><strong>Follow-up Message:</strong> @_followUpMessage</p>
     <p><strong>Resolution Category:</strong> @_resolutionCategory</p>
+    <p><strong>Escalation Level:</strong> @_escalationLevel</p>
     <p><strong>Temporary Password Length:</strong> @_temporaryPassword.Length</p>
 </div>
 
@@ -90,6 +110,8 @@
     private string _resolutionNotes = string.Empty;
     private string _followUpMessage = string.Empty;
     private string _resolutionCategory = string.Empty;
+    private string _escalationLevel = string.Empty;
+    private string? _escalationLevelError;
     private string _temporaryPassword = string.Empty;
     private readonly IReadOnlyList<string> _resolutionCategories =
     [
@@ -104,4 +126,19 @@
         "Frontend validation issue",
         "Backend auth service issue"
     ];
+    private readonly IReadOnlyList<string> _escalationLevels =
+    [
+        "L1 - Self-service",
+        "L2 - Support engineer",
+        "L3 - Identity specialist",
+        "L4 - Platform on-call",
+        "Critical incident"
+    ];
+
+    private void ValidateEscalation()
+    {
+        _escalationLevelError = string.IsNullOrWhiteSpace(_escalationLevel)
+            ? "Escalation Level is required for routing."
+            : null;
+    }
 }

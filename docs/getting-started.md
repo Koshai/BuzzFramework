@@ -58,6 +58,7 @@ Open:
 - `/textbox-demo`
 
 Try the `Resolution Category` field on `/textbox-demo` to validate `BuzzComboBox` ranking behavior.
+Try the `Escalation Level` field on `/textbox-demo` to validate `BuzzSelectBox` ranking behavior.
 
 ## 5) Debug Tips
 
