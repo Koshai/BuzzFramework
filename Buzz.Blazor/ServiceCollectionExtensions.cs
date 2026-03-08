@@ -19,6 +19,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IBuzzCaseMemoryStore, InMemoryBuzzCaseMemoryStore>();
         services.AddScoped<IBuzzHistoryStore, LocalStorageBuzzHistoryStore>();
         services.AddScoped<IBuzzSuggestionService, BuzzSuggestionService>();
+        services.AddScoped<IBuzzOptionRanker, BuzzOptionRanker>();
         services.AddScoped<IBuzzClient, BuzzClient>();
         return services;
     }

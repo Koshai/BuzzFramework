@@ -57,6 +57,8 @@ Open:
 - `/`
 - `/textbox-demo`
 
+Try the `Resolution Category` field on `/textbox-demo` to validate `BuzzComboBox` ranking behavior.
+
 ## 5) Debug Tips
 
 In development config:
@@ -78,3 +80,5 @@ Starter token names:
 - `--buzz-shadow-sm`, `--buzz-shadow-md`
 
 Define these in your app-level stylesheet (`wwwroot/app.css`) and every Buzz component can inherit the same visual system.
+
+Dark styles are opt-in. Light mode is default unless you explicitly apply `data-buzz-theme="dark"` on a parent container.

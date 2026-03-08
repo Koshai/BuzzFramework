@@ -11,6 +11,7 @@ This folder contains documentation for developers integrating Buzz UI components
 
 - `getting-started.md`
 - `components/buzztextbox.md`
+- `components/buzzcombobox.md`
 
 ## Publishing Plan
 

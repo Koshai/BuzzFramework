@@ -61,6 +61,18 @@
             EnableAiSuggestions="false"
             Placeholder="Password is masked and never suggested..." />
     </section>
+
+    <section class="textbox-demo-panel">
+        <h3>5) Resolution Category (BuzzComboBox)</h3>
+        <BuzzComboBox
+            Label="Resolution Category"
+            @bind-Value="_resolutionCategory"
+            MemorySubject="@_sharedSubject"
+            ReferenceText="@_issueSummary"
+            Options="@_resolutionCategories"
+            MaxVisibleOptions="6"
+            Placeholder="Select or type a category..." />
+    </section>
 </div>
 
 <div class="textbox-demo-current-values">
@@ -68,6 +80,7 @@
     <p><strong>Issue Summary:</strong> @_issueSummary</p>
     <p><strong>Resolution Notes:</strong> @_resolutionNotes</p>
     <p><strong>Follow-up Message:</strong> @_followUpMessage</p>
+    <p><strong>Resolution Category:</strong> @_resolutionCategory</p>
     <p><strong>Temporary Password Length:</strong> @_temporaryPassword.Length</p>
 </div>
 
@@ -76,5 +89,19 @@
     private string _issueSummary = string.Empty;
     private string _resolutionNotes = string.Empty;
     private string _followUpMessage = string.Empty;
+    private string _resolutionCategory = string.Empty;
     private string _temporaryPassword = string.Empty;
+    private readonly IReadOnlyList<string> _resolutionCategories =
+    [
+        "Password reset flow",
+        "Session/token refresh",
+        "Multi-factor verification",
+        "Account unlock",
+        "Browser cache and cookies",
+        "User role/permission fix",
+        "Identity provider sync",
+        "Network/VPN policy",
+        "Frontend validation issue",
+        "Backend auth service issue"
+    ];
 }

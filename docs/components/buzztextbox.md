@@ -19,6 +19,42 @@
     Placeholder="Describe the issue..." />
 ```
 
+## Implementation Example
+
+Use this full example in a `.razor` page:
+
+```razor
+@page "/ticket-entry"
+
+<h3>Ticket Entry</h3>
+
+<BuzzTextBox
+    Label="Issue Summary"
+    @bind-InputText="_issueSummary"
+    MemorySubject="support-ticket-cases"
+    SuggestionCount="6"
+    AddToHistoryOnEnter="true"
+    AddToHistoryOnTab="true"
+    EnableAiSuggestions="true"
+    Placeholder="Describe the issue..." />
+
+<BuzzTextBox
+    Label="Resolution Notes"
+    @bind-InputText="_resolutionNotes"
+    MemorySubject="support-ticket-cases"
+    ReferenceText="@_issueSummary"
+    SuggestionCount="6"
+    AddToHistoryOnEnter="true"
+    AddToHistoryOnTab="true"
+    EnableAiSuggestions="true"
+    Placeholder="Write the resolution..." />
+
+@code {
+    private string _issueSummary = string.Empty;
+    private string _resolutionNotes = string.Empty;
+}
+```
+
 ## Subject-Aware Shared Memory
 
 To share suggestions across related components, use the same `MemorySubject`.
@@ -48,6 +84,23 @@ To share suggestions across related components, use the same `MemorySubject`.
     EnableAiSuggestions="false"
     AddToHistoryOnEnter="false"
     AddToHistoryOnTab="false" />
+```
+
+Password implementation example:
+
+```razor
+<BuzzTextBox
+    Label="Temporary Password"
+    @bind-InputText="_temporaryPassword"
+    InputType="password"
+    EnableAiSuggestions="false"
+    AddToHistoryOnEnter="false"
+    AddToHistoryOnTab="false"
+    Placeholder="Password is masked..." />
+
+@code {
+    private string _temporaryPassword = string.Empty;
+}
 ```
 
 Password mode behavior:
