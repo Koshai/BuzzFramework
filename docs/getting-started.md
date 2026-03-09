@@ -59,6 +59,7 @@ Open:
 
 Try the `Resolution Category` field on `/textbox-demo` to validate `BuzzComboBox` ranking behavior.
 Try the `Escalation Level` field on `/textbox-demo` to validate `BuzzSelectBox` ranking behavior.
+Try the `Require MFA reset` checkbox on `/textbox-demo` to validate `BuzzCheckBox` recommendation behavior.
 
 ## 5) Debug Tips
 

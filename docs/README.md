@@ -13,6 +13,7 @@ This folder contains documentation for developers integrating Buzz UI components
 - `components/buzztextbox.md`
 - `components/buzzcombobox.md`
 - `components/buzzselectbox.md`
+- `components/buzzcheckbox.md`
 
 ## Publishing Plan
 

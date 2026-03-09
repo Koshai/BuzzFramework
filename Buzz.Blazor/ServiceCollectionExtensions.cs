@@ -20,6 +20,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IBuzzHistoryStore, LocalStorageBuzzHistoryStore>();
         services.AddScoped<IBuzzSuggestionService, BuzzSuggestionService>();
         services.AddScoped<IBuzzOptionRanker, BuzzOptionRanker>();
+        services.AddScoped<IBuzzToggleAdvisor, BuzzToggleAdvisor>();
         services.AddScoped<IBuzzClient, BuzzClient>();
         return services;
     }

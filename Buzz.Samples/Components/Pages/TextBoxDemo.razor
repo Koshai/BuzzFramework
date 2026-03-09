@@ -92,6 +92,22 @@
             Validate Escalation Selection
         </button>
     </section>
+
+    <section class="textbox-demo-panel">
+        <h3>7) Require MFA Reset (BuzzCheckBox)</h3>
+        <BuzzCheckBox
+            Label="Require MFA reset on next login"
+            @bind-Value="_requireMfaReset"
+            MemorySubject="@_sharedSubject"
+            ReferenceText="@_issueSummary"
+            Required="true"
+            HelperText="Enable this for compromised accounts or high-risk login anomalies."
+            ErrorText="@_mfaResetError"
+            ShowRecommendationHint="true" />
+        <button class="btn btn-sm btn-outline-primary mt-2" @onclick="ValidateMfaReset">
+            Validate MFA Reset Selection
+        </button>
+    </section>
 </div>
 
 <div class="textbox-demo-current-values">
@@ -101,6 +117,7 @@
     <p><strong>Follow-up Message:</strong> @_followUpMessage</p>
     <p><strong>Resolution Category:</strong> @_resolutionCategory</p>
     <p><strong>Escalation Level:</strong> @_escalationLevel</p>
+    <p><strong>Require MFA Reset:</strong> @_requireMfaReset</p>
     <p><strong>Temporary Password Length:</strong> @_temporaryPassword.Length</p>
 </div>
 
@@ -112,6 +129,8 @@
     private string _resolutionCategory = string.Empty;
     private string _escalationLevel = string.Empty;
     private string? _escalationLevelError;
+    private bool _requireMfaReset;
+    private string? _mfaResetError;
     private string _temporaryPassword = string.Empty;
     private readonly IReadOnlyList<string> _resolutionCategories =
     [
@@ -139,6 +158,13 @@
     {
         _escalationLevelError = string.IsNullOrWhiteSpace(_escalationLevel)
             ? "Escalation Level is required for routing."
+            : null;
+    }
+
+    private void ValidateMfaReset()
+    {
+        _mfaResetError = !_requireMfaReset
+            ? "Set MFA reset when issue indicates account risk."
             : null;
     }
 }
