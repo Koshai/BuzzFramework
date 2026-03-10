@@ -61,6 +61,7 @@ Try the `Resolution Category` field on `/textbox-demo` to validate `BuzzComboBox
 Try the `Escalation Level` field on `/textbox-demo` to validate `BuzzSelectBox` ranking behavior.
 Try the `Require MFA reset` checkbox on `/textbox-demo` to validate `BuzzCheckBox` recommendation behavior.
 Try the `Case Summary` card on `/textbox-demo` to validate `BuzzCard` AI summarization behavior.
+Try the `Resolution Path` radio group on `/textbox-demo` to validate `BuzzRadioGroup` ranking behavior.
 
 ## 5) Debug Tips
 

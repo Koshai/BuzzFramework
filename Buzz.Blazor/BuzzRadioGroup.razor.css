@@ -1,0 +1,71 @@
+.buzz-radio-group {
+    display: grid;
+    gap: 0.45rem;
+}
+
+.buzz-radio-group-fieldset {
+    border: 1px solid var(--buzz-input-border, #c5ccd3);
+    border-radius: var(--buzz-radius-md, 10px);
+    padding: 0.6rem 0.7rem 0.7rem;
+    margin: 0;
+    display: grid;
+    gap: 0.45rem;
+}
+
+.buzz-radio-group-legend {
+    font-weight: 650;
+    font-size: 0.9rem;
+    padding: 0 0.2rem;
+    color: var(--buzz-text-primary, #0f172a);
+}
+
+.buzz-radio-option {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-size: 0.9rem;
+    color: var(--buzz-text-primary, #0f172a);
+}
+
+.buzz-radio-option-input {
+    inline-size: 1rem;
+    block-size: 1rem;
+    accent-color: var(--buzz-accent, #3b82f6);
+}
+
+.buzz-radio-option-reason,
+.buzz-radio-recommendation,
+.buzz-radio-helper,
+.buzz-radio-error {
+    margin: 0;
+    font-size: 0.82rem;
+}
+
+.buzz-radio-option-reason,
+.buzz-radio-recommendation,
+.buzz-radio-helper {
+    color: var(--buzz-text-muted, #64748b);
+}
+
+.buzz-radio-error {
+    color: #b42318;
+}
+
+[data-buzz-theme="dark"] .buzz-radio-group-fieldset {
+    border-color: var(--buzz-input-border-dark, #334155);
+}
+
+[data-buzz-theme="dark"] .buzz-radio-group-legend,
+[data-buzz-theme="dark"] .buzz-radio-option {
+    color: var(--buzz-text-primary-dark, #e2e8f0);
+}
+
+[data-buzz-theme="dark"] .buzz-radio-option-reason,
+[data-buzz-theme="dark"] .buzz-radio-recommendation,
+[data-buzz-theme="dark"] .buzz-radio-helper {
+    color: var(--buzz-text-muted-dark, #93a3b8);
+}
+
+[data-buzz-theme="dark"] .buzz-radio-error {
+    color: #fca5a5;
+}

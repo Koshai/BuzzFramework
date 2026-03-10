@@ -15,6 +15,7 @@ This folder contains documentation for developers integrating Buzz UI components
 - `components/buzzselectbox.md`
 - `components/buzzcheckbox.md`
 - `components/buzzcard.md`
+- `components/buzzradiogroup.md`
 
 ## Publishing Plan
 
