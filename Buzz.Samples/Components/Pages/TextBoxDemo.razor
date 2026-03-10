@@ -108,6 +108,28 @@
             Validate MFA Reset Selection
         </button>
     </section>
+
+    <section class="textbox-demo-panel">
+        <h3>8) Case Summary (BuzzCard)</h3>
+        <BuzzCard
+            Title="Support Case Summary"
+            Subtitle="Generated from current form state"
+            SourceText="@CaseSummarySource"
+            EnableAiSummary="true"
+            ShowGenerateButton="true">
+            <ChildContent>
+                <p><strong>Issue:</strong> @_issueSummary</p>
+                <p><strong>Category:</strong> @_resolutionCategory</p>
+                <p><strong>Escalation:</strong> @_escalationLevel</p>
+                <p><strong>Require MFA Reset:</strong> @_requireMfaReset</p>
+            </ChildContent>
+            <Actions>
+                <button class="btn btn-sm btn-outline-secondary" @onclick="CopySummarySeed">
+                    Use Current State As Seed
+                </button>
+            </Actions>
+        </BuzzCard>
+    </section>
 </div>
 
 <div class="textbox-demo-current-values">
@@ -166,5 +188,18 @@
         _mfaResetError = !_requireMfaReset
             ? "Set MFA reset when issue indicates account risk."
             : null;
+    }
+
+    private string CaseSummarySource =>
+        $"Issue Summary: {_issueSummary}\n" +
+        $"Resolution Notes: {_resolutionNotes}\n" +
+        $"Follow-up Message: {_followUpMessage}\n" +
+        $"Resolution Category: {_resolutionCategory}\n" +
+        $"Escalation Level: {_escalationLevel}\n" +
+        $"Require MFA Reset: {_requireMfaReset}";
+
+    private void CopySummarySeed()
+    {
+        _followUpMessage = $"Case snapshot -> Category: {_resolutionCategory}, Escalation: {_escalationLevel}, MFA reset: {_requireMfaReset}.";
     }
 }

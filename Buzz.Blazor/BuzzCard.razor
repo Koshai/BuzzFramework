@@ -1,0 +1,237 @@
+@using Buzz.Core
+@using Microsoft.Extensions.Logging
+@implements IDisposable
+@inject IBuzzClient BuzzClient
+@inject ILogger<BuzzCard> Logger
+
+<article class="buzz-card">
+    <header class="buzz-card-header">
+        @if (!string.IsNullOrWhiteSpace(Title))
+        {
+            <h3 class="buzz-card-title">@Title</h3>
+        }
+
+        @if (!string.IsNullOrWhiteSpace(Subtitle))
+        {
+            <p class="buzz-card-subtitle">@Subtitle</p>
+        }
+    </header>
+
+    @if (ChildContent is not null)
+    {
+        <section class="buzz-card-content">
+            @ChildContent
+        </section>
+    }
+
+    @if (EnableAiSummary)
+    {
+        <section class="buzz-card-ai">
+            <div class="buzz-card-ai-actions">
+                @if (ShowGenerateButton)
+                {
+                    <button
+                        type="button"
+                        class="buzz-card-button"
+                        @onclick="GenerateInsightsAsync"
+                        disabled="@_isGenerating">
+                        @(_isGenerating ? "Generating..." : GenerateButtonText)
+                    </button>
+                }
+            </div>
+
+            @if (!string.IsNullOrWhiteSpace(_summary))
+            {
+                <p class="buzz-card-ai-summary"><strong>AI Summary:</strong> @_summary</p>
+            }
+
+            @if (!string.IsNullOrWhiteSpace(_nextStep))
+            {
+                <p class="buzz-card-ai-next-step"><strong>Suggested Next Step:</strong> @_nextStep</p>
+            }
+
+            @if (!string.IsNullOrWhiteSpace(_error))
+            {
+                <p class="buzz-card-ai-error">@_error</p>
+            }
+        </section>
+    }
+
+    @if (Actions is not null)
+    {
+        <footer class="buzz-card-footer">
+            @Actions
+        </footer>
+    }
+</article>
+
+@code {
+    [Parameter]
+    public string Title { get; set; } = "Buzz Card";
+
+    [Parameter]
+    public string? Subtitle { get; set; }
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    [Parameter]
+    public RenderFragment? Actions { get; set; }
+
+    [Parameter]
+    public bool EnableAiSummary { get; set; } = true;
+
+    [Parameter]
+    public bool AutoGenerateOnChange { get; set; }
+
+    [Parameter]
+    public bool ShowGenerateButton { get; set; } = true;
+
+    [Parameter]
+    public string GenerateButtonText { get; set; } = "Generate AI Summary";
+
+    [Parameter]
+    public string SourceText { get; set; } = string.Empty;
+
+    [Parameter]
+    public int MaxInputCharacters { get; set; } = 1400;
+
+    [Parameter]
+    public bool UseLocalFallbackSummary { get; set; } = true;
+
+    private bool _isGenerating;
+    private string? _summary;
+    private string? _nextStep;
+    private string? _error;
+    private string _lastAutoHash = string.Empty;
+    private CancellationTokenSource? _generationCancellation;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (!EnableAiSummary || !AutoGenerateOnChange)
+        {
+            return;
+        }
+
+        var hash = BuildInputHash(SourceText);
+        if (hash == _lastAutoHash)
+        {
+            return;
+        }
+
+        _lastAutoHash = hash;
+        await GenerateInsightsAsync();
+    }
+
+    private async Task GenerateInsightsAsync()
+    {
+        _generationCancellation?.Cancel();
+        _generationCancellation?.Dispose();
+        _generationCancellation = new CancellationTokenSource();
+        var cancellationToken = _generationCancellation.Token;
+
+        _isGenerating = true;
+        _error = null;
+
+        var trimmedSource = (SourceText ?? string.Empty).Trim();
+        if (string.IsNullOrWhiteSpace(trimmedSource))
+        {
+            _summary = null;
+            _nextStep = null;
+            _error = "Provide source text to generate AI insights.";
+            _isGenerating = false;
+            return;
+        }
+
+        var constrainedInput = trimmedSource.Length > MaxInputCharacters
+            ? trimmedSource[..MaxInputCharacters]
+            : trimmedSource;
+
+        try
+        {
+            var response = await BuzzClient.GenerateAsync(
+                new BuzzRequest(
+                    constrainedInput,
+                    "Create a one-sentence case summary and one concrete next step. Return exactly two lines: SUMMARY: ... and NEXT_STEP: ... with no markdown.",
+                    $"CardTitle: {Title}\nCardSubtitle: {Subtitle}"),
+                cancellationToken);
+
+            ParseInsights(response.OutputText);
+            Logger.LogDebug("BuzzCard insights generated.");
+        }
+        catch (OperationCanceledException)
+        {
+            Logger.LogDebug("BuzzCard insight generation cancelled.");
+        }
+        catch (Exception ex)
+        {
+            Logger.LogWarning(ex, "BuzzCard failed to generate AI insights.");
+            _error = "AI provider is unavailable right now.";
+
+            if (UseLocalFallbackSummary)
+            {
+                _summary = BuildLocalFallbackSummary(constrainedInput);
+                _nextStep = "Review this case summary and confirm escalation and follow-up actions.";
+            }
+        }
+        finally
+        {
+            _isGenerating = false;
+        }
+    }
+
+    private void ParseInsights(string? responseText)
+    {
+        _summary = null;
+        _nextStep = null;
+        var safeResponse = responseText ?? string.Empty;
+
+        var lines = safeResponse
+            .Split('\n', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+
+        foreach (var line in lines)
+        {
+            if (line.StartsWith("SUMMARY:", StringComparison.OrdinalIgnoreCase))
+            {
+                _summary = line["SUMMARY:".Length..].Trim();
+            }
+            else if (line.StartsWith("NEXT_STEP:", StringComparison.OrdinalIgnoreCase))
+            {
+                _nextStep = line["NEXT_STEP:".Length..].Trim();
+            }
+        }
+
+        if (string.IsNullOrWhiteSpace(_summary))
+        {
+            _summary = safeResponse.Trim();
+        }
+    }
+
+    private static string BuildLocalFallbackSummary(string sourceText)
+    {
+        var normalized = sourceText.Replace('\n', ' ').Replace('\r', ' ').Trim();
+        if (normalized.Length <= 220)
+        {
+            return normalized;
+        }
+
+        return $"{normalized[..220]}...";
+    }
+
+    private static string BuildInputHash(string? input)
+    {
+        if (string.IsNullOrWhiteSpace(input))
+        {
+            return string.Empty;
+        }
+
+        var safeInput = input.Trim();
+        return $"{safeInput.Length}:{safeInput[..Math.Min(80, safeInput.Length)]}";
+    }
+
+    public void Dispose()
+    {
+        _generationCancellation?.Cancel();
+        _generationCancellation?.Dispose();
+    }
+}
