@@ -130,6 +130,24 @@
             </Actions>
         </BuzzCard>
     </section>
+
+    <section class="textbox-demo-panel">
+        <h3>9) Resolution Path (BuzzRadioGroup)</h3>
+        <BuzzRadioGroup
+            Label="Preferred Resolution Path"
+            @bind-Value="_resolutionPath"
+            Options="@_resolutionPaths"
+            MemorySubject="@_sharedSubject"
+            ReferenceText="@_issueSummary"
+            Required="true"
+            HelperText="Choose the path most likely to close this case with minimal risk."
+            ErrorText="@_resolutionPathError"
+            ShowRecommendationHint="true"
+            ShowRankingReasons="true" />
+        <button class="btn btn-sm btn-outline-primary mt-2" @onclick="ValidateResolutionPath">
+            Validate Resolution Path
+        </button>
+    </section>
 </div>
 
 <div class="textbox-demo-current-values">
@@ -140,6 +158,7 @@
     <p><strong>Resolution Category:</strong> @_resolutionCategory</p>
     <p><strong>Escalation Level:</strong> @_escalationLevel</p>
     <p><strong>Require MFA Reset:</strong> @_requireMfaReset</p>
+    <p><strong>Resolution Path:</strong> @_resolutionPath</p>
     <p><strong>Temporary Password Length:</strong> @_temporaryPassword.Length</p>
 </div>
 
@@ -153,6 +172,8 @@
     private string? _escalationLevelError;
     private bool _requireMfaReset;
     private string? _mfaResetError;
+    private string _resolutionPath = string.Empty;
+    private string? _resolutionPathError;
     private string _temporaryPassword = string.Empty;
     private readonly IReadOnlyList<string> _resolutionCategories =
     [
@@ -174,6 +195,14 @@
         "L3 - Identity specialist",
         "L4 - Platform on-call",
         "Critical incident"
+    ];
+    private readonly IReadOnlyList<string> _resolutionPaths =
+    [
+        "Immediate password reset and re-login",
+        "Force token/session refresh",
+        "MFA reset and identity re-verification",
+        "Role and permission synchronization",
+        "Escalate to identity specialist"
     ];
 
     private void ValidateEscalation()
@@ -201,5 +230,12 @@
     private void CopySummarySeed()
     {
         _followUpMessage = $"Case snapshot -> Category: {_resolutionCategory}, Escalation: {_escalationLevel}, MFA reset: {_requireMfaReset}.";
+    }
+
+    private void ValidateResolutionPath()
+    {
+        _resolutionPathError = string.IsNullOrWhiteSpace(_resolutionPath)
+            ? "Resolution Path is required before final handoff."
+            : null;
     }
 }
