@@ -63,6 +63,7 @@ Try the `Require MFA reset` checkbox on `/textbox-demo` to validate `BuzzCheckBo
 Try the `Case Summary` card on `/textbox-demo` to validate `BuzzCard` AI summarization behavior.
 Try the `Resolution Path` radio group on `/textbox-demo` to validate `BuzzRadioGroup` ranking behavior.
 Try the `Follow-up Date` field on `/textbox-demo` to validate `BuzzDatePicker` quick-suggestion behavior.
+Try the `Case Review Dialog` on `/textbox-demo` to validate `BuzzModal` AI insight behavior.
 
 ## 5) Debug Tips
 

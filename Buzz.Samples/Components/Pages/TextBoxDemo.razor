@@ -165,6 +165,28 @@
             Validate Follow-up Date
         </button>
     </section>
+
+    <section class="textbox-demo-panel">
+        <h3>11) Case Review Dialog (BuzzModal)</h3>
+        <p>Open a dialog before final submission to review context and generate a quick AI insight.</p>
+        <button class="btn btn-sm btn-outline-primary" @onclick="OpenCaseReviewModal">
+            Open Case Review Dialog
+        </button>
+        <BuzzModal
+            Title="Final Case Review"
+            @bind-IsOpen="_isCaseReviewModalOpen"
+            SourceText="@CaseSummarySource"
+            EnableAiInsight="true"
+            AutoGenerateOnOpen="true">
+            <ChildContent>
+                <p><strong>Issue:</strong> @_issueSummary</p>
+                <p><strong>Resolution Category:</strong> @_resolutionCategory</p>
+                <p><strong>Escalation:</strong> @_escalationLevel</p>
+                <p><strong>Resolution Path:</strong> @_resolutionPath</p>
+                <p><strong>Follow-up Date:</strong> @_followUpDate</p>
+            </ChildContent>
+        </BuzzModal>
+    </section>
 </div>
 
 <div class="textbox-demo-current-values">
@@ -194,6 +216,7 @@
     private string? _resolutionPathError;
     private string _followUpDate = string.Empty;
     private string? _followUpDateError;
+    private bool _isCaseReviewModalOpen;
     private string _temporaryPassword = string.Empty;
     private readonly IReadOnlyList<string> _resolutionCategories =
     [
@@ -264,5 +287,10 @@
         _followUpDateError = string.IsNullOrWhiteSpace(_followUpDate)
             ? "Follow-up Date is required before closing this draft."
             : null;
+    }
+
+    private void OpenCaseReviewModal()
+    {
+        _isCaseReviewModalOpen = true;
     }
 }
