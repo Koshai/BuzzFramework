@@ -148,6 +148,23 @@
             Validate Resolution Path
         </button>
     </section>
+
+    <section class="textbox-demo-panel">
+        <h3>10) Follow-up Date (BuzzDatePicker)</h3>
+        <BuzzDatePicker
+            Label="Follow-up Date"
+            @bind-Value="_followUpDate"
+            MemorySubject="@_sharedSubject"
+            ReferenceText="@_issueSummary"
+            Required="true"
+            HelperText="Pick the date when the user should be contacted again."
+            ErrorText="@_followUpDateError"
+            ShowQuickSuggestions="true"
+            ShowRecommendationHint="true" />
+        <button class="btn btn-sm btn-outline-primary mt-2" @onclick="ValidateFollowUpDate">
+            Validate Follow-up Date
+        </button>
+    </section>
 </div>
 
 <div class="textbox-demo-current-values">
@@ -159,6 +176,7 @@
     <p><strong>Escalation Level:</strong> @_escalationLevel</p>
     <p><strong>Require MFA Reset:</strong> @_requireMfaReset</p>
     <p><strong>Resolution Path:</strong> @_resolutionPath</p>
+    <p><strong>Follow-up Date:</strong> @_followUpDate</p>
     <p><strong>Temporary Password Length:</strong> @_temporaryPassword.Length</p>
 </div>
 
@@ -174,6 +192,8 @@
     private string? _mfaResetError;
     private string _resolutionPath = string.Empty;
     private string? _resolutionPathError;
+    private string _followUpDate = string.Empty;
+    private string? _followUpDateError;
     private string _temporaryPassword = string.Empty;
     private readonly IReadOnlyList<string> _resolutionCategories =
     [
@@ -236,6 +256,13 @@
     {
         _resolutionPathError = string.IsNullOrWhiteSpace(_resolutionPath)
             ? "Resolution Path is required before final handoff."
+            : null;
+    }
+
+    private void ValidateFollowUpDate()
+    {
+        _followUpDateError = string.IsNullOrWhiteSpace(_followUpDate)
+            ? "Follow-up Date is required before closing this draft."
             : null;
     }
 }
