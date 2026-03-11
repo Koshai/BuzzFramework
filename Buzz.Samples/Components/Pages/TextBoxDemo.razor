@@ -209,6 +209,30 @@
             UseAdaptiveAutoHide="true"
             AutoHideMilliseconds="5000" />
     </section>
+
+    <section class="textbox-demo-panel">
+        <h3>13) Field Help (BuzzTooltip)</h3>
+        <p>
+            Hover or focus the items below.
+            First tooltip uses a developer message, second one uses AI to explain raw technical text.
+        </p>
+        <div class="d-flex flex-column gap-2">
+            <BuzzTooltip
+                Message="Escalation controls how quickly this case is routed to specialized teams."
+                Placement="right">
+                <span class="badge text-bg-secondary">Escalation Help</span>
+            </BuzzTooltip>
+
+            <BuzzTooltip
+                Message=""
+                SourceText="HTTP 200 OK indicates that the request succeeded and the server returned the expected response payload."
+                EnableAiMessageWhenEmpty="true"
+                AutoGenerateAiWhenEmpty="true"
+                Placement="right">
+                <span class="badge text-bg-info">Explain Technical Status</span>
+            </BuzzTooltip>
+        </div>
+    </section>
 </div>
 
 <div class="textbox-demo-current-values">

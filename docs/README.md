@@ -19,6 +19,7 @@ This folder contains documentation for developers integrating Buzz UI components
 - `components/buzzdatepicker.md`
 - `components/buzzmodal.md`
 - `components/buzztoast.md`
+- `components/buzztooltip.md`
 
 ## Publishing Plan
 

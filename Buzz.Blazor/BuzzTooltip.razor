@@ -1,0 +1,129 @@
+@using Buzz.Core
+@using Microsoft.Extensions.Logging
+@inject IBuzzClient BuzzClient
+@inject ILogger<BuzzTooltip> Logger
+
+<span
+    class="buzz-tooltip-trigger"
+    tabindex="@TabIndex"
+    @onmouseenter="HandleOpenAsync"
+    @onmouseleave="HandleClose"
+    @onfocusin="HandleOpenAsync"
+    @onfocusout="HandleClose">
+    @if (ChildContent is not null)
+    {
+        @ChildContent
+    }
+    else
+    {
+        <span class="buzz-tooltip-default-trigger">i</span>
+    }
+
+    @if (_isOpen)
+    {
+        <span class="buzz-tooltip @PlacementClass" role="tooltip">
+            @if (!string.IsNullOrWhiteSpace(ResolvedMessage))
+            {
+                @ResolvedMessage
+            }
+            else if (_isGenerating)
+            {
+                <span>Generating explanation...</span>
+            }
+            else
+            {
+                <span>@AiFallbackMessage</span>
+            }
+        </span>
+    }
+</span>
+
+@code {
+    [Parameter]
+    public string Message { get; set; } = string.Empty;
+
+    [Parameter]
+    public string SourceText { get; set; } = string.Empty;
+
+    [Parameter]
+    public string Placement { get; set; } = "top";
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    [Parameter]
+    public bool EnableAiMessageWhenEmpty { get; set; } = false;
+
+    [Parameter]
+    public bool AutoGenerateAiWhenEmpty { get; set; } = true;
+
+    [Parameter]
+    public string AiFallbackMessage { get; set; } = "No additional explanation is available.";
+
+    [Parameter]
+    public int TabIndex { get; set; } = 0;
+
+    private bool _isOpen;
+    private bool _isGenerating;
+    private string? _generatedMessage;
+
+    private string? ResolvedMessage =>
+        !string.IsNullOrWhiteSpace(Message) ? Message : _generatedMessage;
+
+    private string PlacementClass => Placement.Trim().ToLowerInvariant() switch
+    {
+        "bottom" => "buzz-tooltip-bottom",
+        "left" => "buzz-tooltip-left",
+        "right" => "buzz-tooltip-right",
+        _ => "buzz-tooltip-top"
+    };
+
+    private async Task HandleOpenAsync()
+    {
+        _isOpen = true;
+        if (string.IsNullOrWhiteSpace(Message) &&
+            EnableAiMessageWhenEmpty &&
+            AutoGenerateAiWhenEmpty &&
+            string.IsNullOrWhiteSpace(_generatedMessage))
+        {
+            await GenerateMessageAsync();
+        }
+    }
+
+    private void HandleClose()
+    {
+        _isOpen = false;
+    }
+
+    private async Task GenerateMessageAsync()
+    {
+        var source = SourceText?.Trim() ?? string.Empty;
+        if (string.IsNullOrWhiteSpace(source))
+        {
+            _generatedMessage = AiFallbackMessage;
+            return;
+        }
+
+        _isGenerating = true;
+        try
+        {
+            var response = await BuzzClient.GenerateAsync(
+                new BuzzRequest(
+                    source,
+                    "Explain this technical value in one short tooltip sentence for a non-technical end user.",
+                    "UI: Tooltip"));
+            _generatedMessage = string.IsNullOrWhiteSpace(response.OutputText)
+                ? AiFallbackMessage
+                : response.OutputText.Trim();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogWarning(ex, "BuzzTooltip AI explanation failed.");
+            _generatedMessage = AiFallbackMessage;
+        }
+        finally
+        {
+            _isGenerating = false;
+        }
+    }
+}
