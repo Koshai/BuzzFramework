@@ -65,6 +65,7 @@ Try the `Resolution Path` radio group on `/textbox-demo` to validate `BuzzRadioG
 Try the `Follow-up Date` field on `/textbox-demo` to validate `BuzzDatePicker` quick-suggestion behavior.
 Try the `Case Review Dialog` on `/textbox-demo` to validate `BuzzModal` AI insight behavior.
 Try the `Save Notification` section on `/textbox-demo` to validate `BuzzToast` behavior.
+Try the `Field Help` section on `/textbox-demo` to validate `BuzzTooltip` behavior.
 
 ## 5) Debug Tips
 
