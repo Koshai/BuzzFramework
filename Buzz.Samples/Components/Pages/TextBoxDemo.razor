@@ -187,6 +187,28 @@
             </ChildContent>
         </BuzzModal>
     </section>
+
+    <section class="textbox-demo-panel">
+        <h3>12) Save Notification (BuzzToast)</h3>
+        <p>Developers can provide a direct message, or leave it empty and let AI explain raw outcomes.</p>
+        <button class="btn btn-sm btn-outline-primary me-2" @onclick="ShowSuccessToast">
+            Show Success Toast
+        </button>
+        <button class="btn btn-sm btn-outline-danger" @onclick="ShowErrorToast">
+            Show Error Toast (AI explanation)
+        </button>
+        <BuzzToast
+            Title="@_toastTitle"
+            Message="@_toastMessage"
+            @bind-IsVisible="_isToastVisible"
+            Severity="@_toastSeverity"
+            SourceText="@_toastSourceText"
+            EnableAiMessageWhenEmpty="@_toastUseAiWhenEmpty"
+            AutoGenerateAiWhenEmpty="true"
+            AutoHide="true"
+            UseAdaptiveAutoHide="true"
+            AutoHideMilliseconds="5000" />
+    </section>
 </div>
 
 <div class="textbox-demo-current-values">
@@ -217,6 +239,12 @@
     private string _followUpDate = string.Empty;
     private string? _followUpDateError;
     private bool _isCaseReviewModalOpen;
+    private bool _isToastVisible;
+    private string _toastTitle = "Case Saved";
+    private string _toastMessage = "Case draft has been saved successfully.";
+    private string _toastSeverity = "success";
+    private string _toastSourceText = string.Empty;
+    private bool _toastUseAiWhenEmpty;
     private string _temporaryPassword = string.Empty;
     private readonly IReadOnlyList<string> _resolutionCategories =
     [
@@ -292,5 +320,25 @@
     private void OpenCaseReviewModal()
     {
         _isCaseReviewModalOpen = true;
+    }
+
+    private void ShowSuccessToast()
+    {
+        _toastTitle = "Case Saved";
+        _toastMessage = "Case draft has been saved successfully.";
+        _toastSeverity = "success";
+        _toastSourceText = "HTTP 200 OK. Case draft persisted and workflow state updated.";
+        _toastUseAiWhenEmpty = false;
+        _isToastVisible = true;
+    }
+
+    private void ShowErrorToast()
+    {
+        _toastTitle = "Save Failed (Raw Log)";
+        _toastMessage = string.Empty;
+        _toastSeverity = "error";
+        _toastSourceText = "System.Data.SqlClient.SqlException (0x80131904): Timeout expired. The timeout period elapsed prior to completion of the operation while updating CaseDraft table.";
+        _toastUseAiWhenEmpty = true;
+        _isToastVisible = true;
     }
 }
