@@ -18,6 +18,7 @@ This folder contains documentation for developers integrating Buzz UI components
 - `components/buzzradiogroup.md`
 - `components/buzzdatepicker.md`
 - `components/buzzmodal.md`
+- `components/buzztoast.md`
 
 ## Publishing Plan
 

@@ -64,6 +64,7 @@ Try the `Case Summary` card on `/textbox-demo` to validate `BuzzCard` AI summari
 Try the `Resolution Path` radio group on `/textbox-demo` to validate `BuzzRadioGroup` ranking behavior.
 Try the `Follow-up Date` field on `/textbox-demo` to validate `BuzzDatePicker` quick-suggestion behavior.
 Try the `Case Review Dialog` on `/textbox-demo` to validate `BuzzModal` AI insight behavior.
+Try the `Save Notification` section on `/textbox-demo` to validate `BuzzToast` behavior.
 
 ## 5) Debug Tips
 
