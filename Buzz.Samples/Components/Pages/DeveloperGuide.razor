@@ -1,0 +1,464 @@
+@page "/developer-guide"
+@rendermode InteractiveServer
+
+<PageTitle>Buzz Developer Guide</PageTitle>
+
+<div class="guide-layout">
+    <aside class="guide-nav">
+        <h5>On This Page</h5>
+        <a href="#buzztextbox">BuzzTextBox</a>
+        <a href="#buzzcombobox">BuzzComboBox</a>
+        <a href="#buzzselectbox">BuzzSelectBox</a>
+        <a href="#buzzcheckbox">BuzzCheckBox</a>
+        <a href="#buzzcard">BuzzCard</a>
+        <a href="#buzzradiogroup">BuzzRadioGroup</a>
+        <a href="#buzzdatepicker">BuzzDatePicker</a>
+        <a href="#buzzmodal">BuzzModal</a>
+        <a href="#buzztoast">BuzzToast</a>
+        <a href="#buzztooltip">BuzzTooltip</a>
+    </aside>
+
+    <main class="guide-content">
+        <h1>Buzz Framework Developer Guide</h1>
+        <p>
+            Every section follows the same format:
+            <strong>component name</strong>,
+            <strong>purpose</strong>,
+            <strong>how to implement</strong>,
+            <strong>parameters and effects</strong>,
+            <strong>example usage</strong>,
+            and <strong>code used for the example</strong>.
+        </p>
+
+        <section id="buzztextbox" class="guide-section">
+            <h2 class="guide-component-title">1. BuzzTextBox</h2>
+            <h3>Purpose</h3>
+            <p>Collects free-form text and improves typing experience with history and optional AI suggestions.</p>
+            <h3>How to implement</h3>
+            <pre><code>&lt;BuzzTextBox
+    Label="Issue Summary"
+    @@bind-InputText="_issueSummary"
+    Placeholder="Type issue details..."
+    InputType="text"
+    SuggestionCount="6"
+    AddToHistoryOnEnter="true"
+    AddToHistoryOnTab="true"
+    EnableAiSuggestions="true"
+    AiDebounceMilliseconds="800"
+    MemorySubject="support-login-cases"
+    ReferenceText="@_guideText" /&gt;</code></pre>
+            <h3>Parameters to consider and effects</h3>
+            <ul>
+                <li><code>SuggestionCount</code>: controls max shown suggestions.</li>
+                <li><code>MemorySubject</code>: shares context across related fields.</li>
+                <li><code>InputType="password"</code>: masks input and disables suggestion behavior.</li>
+            </ul>
+            <h3>Example usage (actual component)</h3>
+            <BuzzTextBox Label="Guide Text Input" @bind-InputText="_guideText" Placeholder="Type a short issue summary..." SuggestionCount="5" AddToHistoryOnEnter="true" AddToHistoryOnTab="true" />
+            <h3>Code used to display the component</h3>
+            <pre><code>&lt;BuzzTextBox
+    Label="Guide Text Input"
+    @@bind-InputText="_guideText"
+    Placeholder="Type a short issue summary..."
+    SuggestionCount="5"
+    AddToHistoryOnEnter="true"
+    AddToHistoryOnTab="true" /&gt;
+
+@@code {
+    private string _guideText = string.Empty;
+}</code></pre>
+        </section>
+
+        <section id="buzzcombobox" class="guide-section">
+            <h2 class="guide-component-title">2. BuzzComboBox</h2>
+            <h3>Purpose</h3>
+            <p>Lets users select ranked options or enter custom values in one control.</p>
+            <h3>How to implement</h3>
+            <pre><code>&lt;BuzzComboBox
+    Label="Resolution Category"
+    Options="@_guideOptions"
+    @@bind-Value="_guideCombo"
+    Placeholder="Select or type..."
+    MaxVisibleOptions="7"
+    MemorySubject="support-login-cases"
+    ReferenceText="@_guideText"
+    ShowRankingReasons="true"
+    AllowCustomValues="true" /&gt;</code></pre>
+            <h3>Parameters to consider and effects</h3>
+            <ul>
+                <li><code>AllowCustomValues</code>: allows values outside options list.</li>
+                <li><code>ShowRankingReasons</code>: displays ranking rationale.</li>
+                <li><code>MaxVisibleOptions</code>: limits dropdown list length.</li>
+            </ul>
+            <h3>Example usage (actual component)</h3>
+            <BuzzComboBox Label="Guide Combo" @bind-Value="_guideCombo" Options="@_guideOptions" ShowRankingReasons="true" AllowCustomValues="true" />
+            <h3>Code used to display the component</h3>
+            <pre><code>&lt;BuzzComboBox
+    Label="Guide Combo"
+    @@bind-Value="_guideCombo"
+    Options="@@_guideOptions"
+    ShowRankingReasons="true"
+    AllowCustomValues="true" /&gt;
+
+@@code {
+    private string _guideCombo = string.Empty;
+    private readonly IReadOnlyList&lt;string&gt; _guideOptions = ["Password reset", "Session refresh", "MFA reset"];
+}</code></pre>
+        </section>
+
+        <section id="buzzselectbox" class="guide-section">
+            <h2 class="guide-component-title">3. BuzzSelectBox</h2>
+            <h3>Purpose</h3>
+            <p>Provides controlled single selection with validation, helper text, and recommendation hinting.</p>
+            <h3>How to implement</h3>
+            <pre><code>&lt;BuzzSelectBox
+    Label="Escalation Level"
+    Options="@_guideSelectOptions"
+    @@bind-Value="_guideSelect"
+    Disabled="false"
+    Required="true"
+    ShowPlaceholderOption="true"
+    PlaceholderOptionText="Select escalation..."
+    MaxVisibleOptions="10"
+    MemorySubject="support-login-cases"
+    ReferenceText="@_guideText"
+    ShowRecommendationHint="true"
+    HelperText="Select one level."
+    ErrorText="@_guideSelectError"
+    DescribedBy="custom-help-id" /&gt;</code></pre>
+            <h3>Parameters to consider and effects</h3>
+            <ul>
+                <li><code>Required</code>: adds semantic and validation requirement.</li>
+                <li><code>ErrorText</code>: displays validation failures.</li>
+                <li><code>ShowRecommendationHint</code>: shows ranked recommendation.</li>
+            </ul>
+            <h3>Example usage (actual component)</h3>
+            <BuzzSelectBox Label="Guide Select" @bind-Value="_guideSelect" Options="@_guideSelectOptions" Required="true" HelperText="Select one level." ErrorText="@_guideSelectError" />
+            <h3>Code used to display the component</h3>
+            <pre><code>&lt;BuzzSelectBox
+    Label="Guide Select"
+    @@bind-Value="_guideSelect"
+    Options="@@_guideSelectOptions"
+    Required="true"
+    HelperText="Select one level."
+    ErrorText="@@_guideSelectError" /&gt;</code></pre>
+        </section>
+
+        <section id="buzzcheckbox" class="guide-section">
+            <h2 class="guide-component-title">4. BuzzCheckBox</h2>
+            <h3>Purpose</h3>
+            <p>Captures yes/no decisions with optional recommendation guidance.</p>
+            <h3>How to implement</h3>
+            <pre><code>&lt;BuzzCheckBox
+    Label="Require MFA reset"
+    @@bind-Value="_guideCheck"
+    Disabled="false"
+    Required="false"
+    ShowRecommendationHint="true"
+    MemorySubject="support-login-cases"
+    ReferenceText="@_guideText"
+    HelperText="Enable for risk-based cases."
+    ErrorText="@_guideSelectError"
+    DescribedBy="custom-check-help" /&gt;</code></pre>
+            <h3>Parameters to consider and effects</h3>
+            <ul>
+                <li><code>Required</code>: marks field as mandatory in workflows.</li>
+                <li><code>ShowRecommendationHint</code>: shows confidence hint.</li>
+            </ul>
+            <h3>Example usage (actual component)</h3>
+            <BuzzCheckBox Label="Guide Checkbox" @bind-Value="_guideCheck" HelperText="Enable for risk-based cases." ShowRecommendationHint="true" />
+            <h3>Code used to display the component</h3>
+            <pre><code>&lt;BuzzCheckBox
+    Label="Guide Checkbox"
+    @@bind-Value="_guideCheck"
+    HelperText="Enable for risk-based cases."
+    ShowRecommendationHint="true" /&gt;</code></pre>
+        </section>
+
+        <section id="buzzcard" class="guide-section">
+            <h2 class="guide-component-title">5. BuzzCard</h2>
+            <h3>Purpose</h3>
+            <p>Displays grouped case content and optional AI summary/next action guidance.</p>
+            <h3>How to implement</h3>
+            <pre><code>&lt;BuzzCard
+    Title="Case Summary"
+    Subtitle="Generated overview"
+    SourceText="@_guideCardSource"
+    EnableAiSummary="true"
+    AutoGenerateOnChange="false"
+    ShowGenerateButton="true"
+    GenerateButtonText="Generate AI Summary"
+    MaxInputCharacters="1400"
+    UseLocalFallbackSummary="true"&gt;
+    &lt;ChildContent&gt;...&lt;/ChildContent&gt;
+    &lt;Actions&gt;...&lt;/Actions&gt;
+&lt;/BuzzCard&gt;</code></pre>
+            <h3>Parameters to consider and effects</h3>
+            <ul>
+                <li><code>EnableAiSummary</code>: toggles AI section.</li>
+                <li><code>AutoGenerateOnChange</code>: runs automatically on source updates.</li>
+            </ul>
+            <h3>Example usage (actual component)</h3>
+            <BuzzCard Title="Guide Card" SourceText="@_guideCardSource" EnableAiSummary="true" ShowGenerateButton="true">
+                <ChildContent>
+                    <p>Case: @_guideText</p>
+                </ChildContent>
+            </BuzzCard>
+            <h3>Code used to display the component</h3>
+            <pre><code>&lt;BuzzCard Title="Guide Card" SourceText="@@_guideCardSource" EnableAiSummary="true" ShowGenerateButton="true"&gt;
+    &lt;ChildContent&gt;
+        &lt;p&gt;Case: @@_guideText&lt;/p&gt;
+    &lt;/ChildContent&gt;
+&lt;/BuzzCard&gt;</code></pre>
+        </section>
+
+        <section id="buzzradiogroup" class="guide-section">
+            <h2 class="guide-component-title">6. BuzzRadioGroup</h2>
+            <h3>Purpose</h3>
+            <p>Captures one choice from multiple ranked alternatives.</p>
+            <h3>How to implement</h3>
+            <pre><code>&lt;BuzzRadioGroup
+    Label="Resolution Path"
+    Options="@_guideRadioOptions"
+    @@bind-Value="_guideRadio"
+    Disabled="false"
+    Required="false"
+    MaxVisibleOptions="8"
+    MemorySubject="support-login-cases"
+    ReferenceText="@_guideText"
+    ShowRecommendationHint="true"
+    ShowRankingReasons="true"
+    HelperText="Choose one path."
+    ErrorText="@_guideSelectError"
+    DescribedBy="custom-radio-help" /&gt;</code></pre>
+            <h3>Parameters to consider and effects</h3>
+            <ul>
+                <li><code>ShowRankingReasons</code>: helps users understand ordering.</li>
+                <li><code>Required</code>: enforces user choice.</li>
+            </ul>
+            <h3>Example usage (actual component)</h3>
+            <BuzzRadioGroup Label="Guide Radio Group" @bind-Value="_guideRadio" Options="@_guideRadioOptions" ShowRankingReasons="true" />
+            <h3>Code used to display the component</h3>
+            <pre><code>&lt;BuzzRadioGroup
+    Label="Guide Radio Group"
+    @@bind-Value="_guideRadio"
+    Options="@@_guideRadioOptions"
+    ShowRankingReasons="true" /&gt;</code></pre>
+        </section>
+
+        <section id="buzzdatepicker" class="guide-section">
+            <h2 class="guide-component-title">7. BuzzDatePicker</h2>
+            <h3>Purpose</h3>
+            <p>Selects dates with optional quick suggestions and ranking guidance.</p>
+            <h3>How to implement</h3>
+            <pre><code>&lt;BuzzDatePicker
+    Label="Follow-up Date"
+    @@bind-Value="_guideDate"
+    Disabled="false"
+    Required="false"
+    Min="2026-01-01"
+    Max="2026-12-31"
+    MemorySubject="support-login-cases"
+    ReferenceText="@_guideText"
+    ShowQuickSuggestions="true"
+    ShowRecommendationHint="true"
+    SuggestionCount="5"
+    HelperText="Choose the follow-up date."
+    ErrorText="@_guideSelectError"
+    DescribedBy="custom-date-help" /&gt;</code></pre>
+            <h3>Parameters to consider and effects</h3>
+            <ul>
+                <li><code>ShowQuickSuggestions</code>: shows shortcut date chips.</li>
+                <li><code>Min</code>/<code>Max</code>: constrains selectable range.</li>
+            </ul>
+            <h3>Example usage (actual component)</h3>
+            <BuzzDatePicker Label="Guide Date" @bind-Value="_guideDate" ShowQuickSuggestions="true" ShowRecommendationHint="true" />
+            <h3>Code used to display the component</h3>
+            <pre><code>&lt;BuzzDatePicker
+    Label="Guide Date"
+    @@bind-Value="_guideDate"
+    ShowQuickSuggestions="true"
+    ShowRecommendationHint="true" /&gt;</code></pre>
+        </section>
+
+        <section id="buzzmodal" class="guide-section">
+            <h2 class="guide-component-title">8. BuzzModal</h2>
+            <h3>Purpose</h3>
+            <p>Provides focused review flow in a dialog with optional AI insight.</p>
+            <h3>How to implement</h3>
+            <pre><code>&lt;BuzzModal
+    Title="Final Review"
+    @@bind-IsOpen="_guideModalOpen"
+    CloseOnBackdropClick="true"
+    EnableAiInsight="true"
+    AutoGenerateOnOpen="true"
+    SourceText="@_guideCardSource"
+    CloseButtonText="Close"&gt;
+    &lt;ChildContent&gt;...&lt;/ChildContent&gt;
+    &lt;Actions&gt;...&lt;/Actions&gt;
+&lt;/BuzzModal&gt;</code></pre>
+            <h3>Parameters to consider and effects</h3>
+            <ul>
+                <li><code>CloseOnBackdropClick</code>: controls outside-click dismiss.</li>
+                <li><code>AutoGenerateOnOpen</code>: runs AI insight automatically.</li>
+            </ul>
+            <h3>Example usage (actual component)</h3>
+            <button class="btn btn-sm btn-outline-primary mb-2" @onclick="() => _guideModalOpen = true">Open Guide Modal</button>
+            <BuzzModal Title="Guide Modal" @bind-IsOpen="_guideModalOpen" SourceText="@_guideCardSource" EnableAiInsight="true" AutoGenerateOnOpen="true">
+                <ChildContent>
+                    <p>Review guide data before confirming.</p>
+                </ChildContent>
+            </BuzzModal>
+            <h3>Code used to display the component</h3>
+            <pre><code>&lt;BuzzModal
+    Title="Guide Modal"
+    @@bind-IsOpen="_guideModalOpen"
+    SourceText="@@_guideCardSource"
+    EnableAiInsight="true"
+    AutoGenerateOnOpen="true"&gt;
+    &lt;ChildContent&gt;
+        &lt;p&gt;Review guide data before confirming.&lt;/p&gt;
+    &lt;/ChildContent&gt;
+&lt;/BuzzModal&gt;</code></pre>
+        </section>
+
+        <section id="buzztoast" class="guide-section">
+            <h2 class="guide-component-title">9. BuzzToast</h2>
+            <h3>Purpose</h3>
+            <p>Shows transient status feedback with optional AI explanation mode for raw technical messages.</p>
+            <h3>How to implement</h3>
+            <pre><code>&lt;BuzzToast
+    Title="Status"
+    Message=""
+    @@bind-IsVisible="_guideToastVisible"
+    Severity="error"
+    EnableAiMessageWhenEmpty="true"
+    AutoGenerateAiWhenEmpty="true"
+    AutoHide="true"
+    AutoHideMilliseconds="4500"
+    UseAdaptiveAutoHide="true"
+    AdaptiveMinMilliseconds="2500"
+    AdaptiveMaxMilliseconds="10000"
+    AdaptiveBaseMilliseconds="1200"
+    AdaptiveWordReadMilliseconds="280"
+    ShowCloseButton="true"
+    SourceText="@_guideToastSource"
+    AiFallbackMessage="Unable to generate explanation." /&gt;</code></pre>
+            <h3>Parameters to consider and effects</h3>
+            <ul>
+                <li><code>EnableAiMessageWhenEmpty</code>: AI runs only when message is empty and this flag is true.</li>
+                <li><code>UseAdaptiveAutoHide</code>: adjusts dismiss timing based on message length.</li>
+                <li><code>Severity</code>: visual tone (success/info/warning/error).</li>
+            </ul>
+            <h3>Example usage (actual component)</h3>
+            <button class="btn btn-sm btn-outline-primary mb-2" @onclick="ShowGuideToast">Show Guide Toast</button>
+            <BuzzToast
+                Title="@_guideToastTitle"
+                Message="@_guideToastMessage"
+                @bind-IsVisible="_guideToastVisible"
+                Severity="@_guideToastSeverity"
+                SourceText="@_guideToastSource"
+                EnableAiMessageWhenEmpty="@_guideToastAiWhenEmpty"
+                AutoGenerateAiWhenEmpty="true"
+                UseAdaptiveAutoHide="true"
+                AutoHide="true" />
+            <h3>Code used to display the component</h3>
+            <pre><code>&lt;BuzzToast
+    Title="@@_guideToastTitle"
+    Message="@@_guideToastMessage"
+    @@bind-IsVisible="_guideToastVisible"
+    Severity="@@_guideToastSeverity"
+    SourceText="@@_guideToastSource"
+    EnableAiMessageWhenEmpty="@@_guideToastAiWhenEmpty"
+    AutoGenerateAiWhenEmpty="true"
+    UseAdaptiveAutoHide="true"
+    AutoHide="true" /&gt;</code></pre>
+        </section>
+
+        <section id="buzztooltip" class="guide-section">
+            <h2 class="guide-component-title">10. BuzzTooltip</h2>
+            <h3>Purpose</h3>
+            <p>Provides inline hover/focus help, with optional AI explanation for technical text.</p>
+            <h3>How to implement</h3>
+            <pre><code>&lt;BuzzTooltip
+    Message=""
+    SourceText="HTTP 200 OK indicates request success."
+    Placement="right"
+    EnableAiMessageWhenEmpty="true"
+    AutoGenerateAiWhenEmpty="true"
+    AiFallbackMessage="No explanation available."
+    TabIndex="0"&gt;
+    &lt;span class="badge text-bg-info"&gt;Explain Status&lt;/span&gt;
+&lt;/BuzzTooltip&gt;</code></pre>
+            <h3>Parameters to consider and effects</h3>
+            <ul>
+                <li><code>Placement</code>: controls direction of tooltip.</li>
+                <li><code>EnableAiMessageWhenEmpty</code>: enables explain-from-source mode.</li>
+            </ul>
+            <h3>Example usage (actual component)</h3>
+            <BuzzTooltip Message="" SourceText="HTTP 200 OK means request success and expected response returned." EnableAiMessageWhenEmpty="true" Placement="right">
+                <span class="badge text-bg-info">Explain 200 OK</span>
+            </BuzzTooltip>
+            <h3>Code used to display the component</h3>
+            <pre><code>&lt;BuzzTooltip
+    Message=""
+    SourceText="HTTP 200 OK means request success and expected response returned."
+    EnableAiMessageWhenEmpty="true"
+    Placement="right"&gt;
+    &lt;span class="badge text-bg-info"&gt;Explain 200 OK&lt;/span&gt;
+&lt;/BuzzTooltip&gt;</code></pre>
+        </section>
+    </main>
+</div>
+
+@code {
+    private string _guideText = string.Empty;
+    private string _guideCombo = string.Empty;
+    private string _guideSelect = string.Empty;
+    private string? _guideSelectError = null;
+    private bool _guideCheck;
+    private string _guideRadio = string.Empty;
+    private string _guideDate = string.Empty;
+    private bool _guideModalOpen;
+
+    private bool _guideToastVisible;
+    private string _guideToastTitle = "Guide Toast";
+    private string _guideToastMessage = "Saved successfully.";
+    private string _guideToastSeverity = "success";
+    private string _guideToastSource = string.Empty;
+    private bool _guideToastAiWhenEmpty;
+
+    private readonly IReadOnlyList<string> _guideOptions =
+    [
+        "Password reset",
+        "Session refresh",
+        "MFA reset"
+    ];
+
+    private readonly IReadOnlyList<string> _guideSelectOptions =
+    [
+        "L1 - Self-service",
+        "L2 - Support engineer",
+        "L3 - Identity specialist"
+    ];
+
+    private readonly IReadOnlyList<string> _guideRadioOptions =
+    [
+        "Immediate password reset and re-login",
+        "Force token/session refresh",
+        "Escalate to identity specialist"
+    ];
+
+    private string _guideCardSource =>
+        $"Issue Summary: {_guideText}\nCategory: {_guideCombo}\nEscalation: {_guideSelect}";
+
+    private void ShowGuideToast()
+    {
+        _guideToastTitle = "Save Failed (Raw Log)";
+        _guideToastMessage = string.Empty;
+        _guideToastSeverity = "error";
+        _guideToastSource = "System.Data.SqlClient.SqlException: Timeout expired while updating record.";
+        _guideToastAiWhenEmpty = true;
+        _guideToastVisible = true;
+    }
+}
