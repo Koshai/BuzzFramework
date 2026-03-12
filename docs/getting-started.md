@@ -66,6 +66,7 @@ Try the `Follow-up Date` field on `/textbox-demo` to validate `BuzzDatePicker` q
 Try the `Case Review Dialog` on `/textbox-demo` to validate `BuzzModal` AI insight behavior.
 Try the `Save Notification` section on `/textbox-demo` to validate `BuzzToast` behavior.
 Try the `Field Help` section on `/textbox-demo` to validate `BuzzTooltip` behavior.
+Try the `Troubleshooting Playbook` section on `/textbox-demo` to validate `BuzzAccordion` behavior.
 
 ## 5) Debug Tips
 
