@@ -20,6 +20,7 @@ This folder contains documentation for developers integrating Buzz UI components
 - `components/buzzmodal.md`
 - `components/buzztoast.md`
 - `components/buzztooltip.md`
+- `components/buzzaccordion.md`
 
 ## Publishing Plan
 

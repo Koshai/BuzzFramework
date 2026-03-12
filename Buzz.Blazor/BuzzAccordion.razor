@@ -1,0 +1,186 @@
+@using Buzz.Blazor.Models
+@using Buzz.Core
+@using Microsoft.Extensions.Logging
+@inject IBuzzClient BuzzClient
+@inject ILogger<BuzzAccordion> Logger
+
+<div class="buzz-accordion">
+    @if (!string.IsNullOrWhiteSpace(Label))
+    {
+        <h3 class="buzz-accordion-label">@Label</h3>
+    }
+
+    @if (ShowRecommendationHint && !string.IsNullOrWhiteSpace(_recommendedHeader))
+    {
+        <p class="buzz-accordion-recommendation">
+            Recommended section: <strong>@_recommendedHeader</strong>
+        </p>
+    }
+
+    @for (var i = 0; i < Sections.Count; i++)
+    {
+        var currentIndex = i;
+        var item = Sections[i];
+        var isOpen = _openSections.Contains(currentIndex);
+        var sectionId = $"buzz-accordion-section-{_instanceId}-{currentIndex}";
+        var contentId = $"buzz-accordion-content-{_instanceId}-{currentIndex}";
+
+        <section class="buzz-accordion-item">
+            <button
+                id="@sectionId"
+                type="button"
+                class="buzz-accordion-trigger"
+                aria-expanded="@isOpen"
+                aria-controls="@contentId"
+                @onclick="() => ToggleSection(currentIndex)">
+                <span>@item.Header</span>
+                <span class="buzz-accordion-trigger-icon">@((isOpen) ? "-" : "+")</span>
+            </button>
+
+            @if (isOpen)
+            {
+                <div id="@contentId" class="buzz-accordion-content" role="region" aria-labelledby="@sectionId">
+                    @item.Content
+                </div>
+            }
+        </section>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public string Label { get; set; } = "Buzz Accordion";
+
+    [Parameter]
+    public IReadOnlyList<BuzzAccordionItem> Sections { get; set; } = [];
+
+    [Parameter]
+    public bool AllowMultipleOpen { get; set; } = true;
+
+    [Parameter]
+    public bool ShowRecommendationHint { get; set; } = true;
+
+    [Parameter]
+    public bool EnableAiRecommendedSection { get; set; } = true;
+
+    [Parameter]
+    public bool AutoRecommendOnLoad { get; set; } = true;
+
+    [Parameter]
+    public string SourceText { get; set; } = string.Empty;
+
+    [Parameter]
+    public int MaxInputCharacters { get; set; } = 1200;
+
+    private readonly string _instanceId = Guid.NewGuid().ToString("N");
+    private readonly HashSet<int> _openSections = [];
+    private string? _recommendedHeader;
+    private bool _recommendedLoaded;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        InitializeOpenSections();
+
+        if (!EnableAiRecommendedSection || !AutoRecommendOnLoad || _recommendedLoaded || Sections.Count == 0)
+        {
+            return;
+        }
+
+        await TryLoadRecommendationAsync();
+        _recommendedLoaded = true;
+    }
+
+    private void InitializeOpenSections()
+    {
+        if (_openSections.Count > 0 || Sections.Count == 0)
+        {
+            return;
+        }
+
+        for (var i = 0; i < Sections.Count; i++)
+        {
+            if (Sections[i].IsInitiallyExpanded)
+            {
+                _openSections.Add(i);
+                if (!AllowMultipleOpen)
+                {
+                    break;
+                }
+            }
+        }
+    }
+
+    private void ToggleSection(int index)
+    {
+        if (_openSections.Contains(index))
+        {
+            _openSections.Remove(index);
+            return;
+        }
+
+        if (!AllowMultipleOpen)
+        {
+            _openSections.Clear();
+        }
+
+        _openSections.Add(index);
+    }
+
+    private async Task TryLoadRecommendationAsync()
+    {
+        var source = (SourceText ?? string.Empty).Trim();
+        if (string.IsNullOrWhiteSpace(source))
+        {
+            return;
+        }
+
+        var constrainedInput = source.Length > MaxInputCharacters
+            ? source[..MaxInputCharacters]
+            : source;
+
+        var headers = Sections.Select(item => item.Header.Trim()).Where(item => item.Length > 0).ToList();
+        if (headers.Count == 0)
+        {
+            return;
+        }
+
+        try
+        {
+            var response = await BuzzClient.GenerateAsync(
+                new BuzzRequest(
+                    constrainedInput,
+                    "Choose exactly one best matching section header from the provided list. Return only that header text with no explanation.",
+                    $"SectionHeaders: {string.Join(" | ", headers)}"));
+
+            var candidate = (response.OutputText ?? string.Empty).Trim();
+            var match = headers.FirstOrDefault(header => header.Equals(candidate, StringComparison.OrdinalIgnoreCase))
+                ?? headers.FirstOrDefault(header => candidate.Contains(header, StringComparison.OrdinalIgnoreCase));
+            if (string.IsNullOrWhiteSpace(match))
+            {
+                return;
+            }
+
+            _recommendedHeader = match;
+            var recommendedIndex = Sections
+                .Select((item, idx) => new { item.Header, idx })
+                .FirstOrDefault(item => item.Header.Equals(match, StringComparison.OrdinalIgnoreCase))
+                ?.idx;
+
+            if (recommendedIndex is null)
+            {
+                return;
+            }
+
+            if (!AllowMultipleOpen)
+            {
+                _openSections.Clear();
+            }
+
+            _openSections.Add(recommendedIndex.Value);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogWarning(ex, "BuzzAccordion recommendation generation failed.");
+        }
+    }
+}

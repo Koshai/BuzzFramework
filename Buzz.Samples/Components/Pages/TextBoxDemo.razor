@@ -1,5 +1,6 @@
 @page "/textbox-demo"
 @rendermode InteractiveServer
+@using Buzz.Blazor.Models
 
 <PageTitle>BuzzTextBox Demo</PageTitle>
 
@@ -233,6 +234,19 @@
             </BuzzTooltip>
         </div>
     </section>
+
+    <section class="textbox-demo-panel">
+        <h3>14) Troubleshooting Playbook (BuzzAccordion)</h3>
+        <p>Expand sections manually, or let AI suggest which section is most relevant to the current case.</p>
+        <BuzzAccordion
+            Label="Support Case Playbook"
+            Sections="@_playbookSections"
+            AllowMultipleOpen="false"
+            EnableAiRecommendedSection="true"
+            AutoRecommendOnLoad="true"
+            ShowRecommendationHint="true"
+            SourceText="@CaseSummarySource" />
+    </section>
 </div>
 
 <div class="textbox-demo-current-values">
@@ -298,6 +312,22 @@
         "MFA reset and identity re-verification",
         "Role and permission synchronization",
         "Escalate to identity specialist"
+    ];
+    private readonly IReadOnlyList<BuzzAccordionItem> _playbookSections =
+    [
+        new(
+            "Credential and account checks",
+            "Validate account lock status, password expiry, and directory sync health. Confirm user can complete reset flow without stale credentials.",
+            true),
+        new(
+            "Session and token invalidation",
+            "Clear stale sessions and revoke old refresh tokens. Reissue token after re-authentication to prevent replay of invalid state."),
+        new(
+            "MFA and risk controls",
+            "Enforce MFA reset for suspicious sign-ins and verify trusted device state. Add temporary step-up auth if anomaly persists."),
+        new(
+            "Escalation and communication",
+            "Escalate to identity specialist when repeated failures continue after standard remediation. Send concise user follow-up and timeline.")
     ];
 
     private void ValidateEscalation()

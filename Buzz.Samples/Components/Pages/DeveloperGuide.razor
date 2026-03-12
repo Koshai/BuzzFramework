@@ -1,5 +1,6 @@
 @page "/developer-guide"
 @rendermode InteractiveServer
+@using Buzz.Blazor.Models
 
 <PageTitle>Buzz Developer Guide</PageTitle>
 
@@ -16,6 +17,7 @@
         <a href="#buzzmodal">BuzzModal</a>
         <a href="#buzztoast">BuzzToast</a>
         <a href="#buzztooltip">BuzzTooltip</a>
+        <a href="#buzzaccordion">BuzzAccordion</a>
     </aside>
 
     <main class="guide-content">
@@ -408,6 +410,57 @@
     &lt;span class="badge text-bg-info"&gt;Explain 200 OK&lt;/span&gt;
 &lt;/BuzzTooltip&gt;</code></pre>
         </section>
+
+        <section id="buzzaccordion" class="guide-section">
+            <h2 class="guide-component-title">11. BuzzAccordion</h2>
+            <h3>Purpose</h3>
+            <p>Organizes long troubleshooting/help content into expandable sections and can optionally recommend which section to open first.</p>
+            <h3>How to implement</h3>
+            <pre><code>&lt;BuzzAccordion
+    Label="Support Case Playbook"
+    Sections="@_guideAccordionSections"
+    AllowMultipleOpen="false"
+    ShowRecommendationHint="true"
+    EnableAiRecommendedSection="true"
+    AutoRecommendOnLoad="true"
+    SourceText="@_guideAccordionSource"
+    MaxInputCharacters="1200" /&gt;</code></pre>
+            <h3>Parameters to consider and effects</h3>
+            <ul>
+                <li><code>AllowMultipleOpen</code>: set to <code>false</code> to keep only one section open and collapse all others.</li>
+                <li><code>EnableAiRecommendedSection</code>: enables AI section recommendation behavior.</li>
+                <li><code>AutoRecommendOnLoad</code>: auto-runs recommendation when component loads.</li>
+                <li><code>Sections</code>: each entry uses <code>BuzzAccordionItem(Header, Content, IsInitiallyExpanded)</code>.</li>
+            </ul>
+            <h3>Example usage (actual component)</h3>
+            <BuzzAccordion
+                Label="Guide Accordion"
+                Sections="@_guideAccordionSections"
+                AllowMultipleOpen="false"
+                EnableAiRecommendedSection="true"
+                AutoRecommendOnLoad="true"
+                ShowRecommendationHint="true"
+                SourceText="@_guideAccordionSource" />
+            <h3>Code used to display the component</h3>
+            <pre><code>&lt;BuzzAccordion
+    Label="Guide Accordion"
+    Sections="@_guideAccordionSections"
+    AllowMultipleOpen="false"
+    EnableAiRecommendedSection="true"
+    AutoRecommendOnLoad="true"
+    ShowRecommendationHint="true"
+    SourceText="@_guideAccordionSource" /&gt;
+
+@@code {
+    private readonly IReadOnlyList&lt;BuzzAccordionItem&gt; _guideAccordionSections =
+    [
+        new("Credential and account checks", "Validate lock state and reset flow.", true),
+        new("Session and token invalidation", "Clear stale sessions and reissue token."),
+        new("MFA and risk controls", "Enforce MFA reset for suspicious sign-ins."),
+        new("Escalation and communication", "Escalate and notify user with timeline.")
+    ];
+}</code></pre>
+        </section>
     </main>
 </div>
 
@@ -427,6 +480,13 @@
     private string _guideToastSeverity = "success";
     private string _guideToastSource = string.Empty;
     private bool _guideToastAiWhenEmpty;
+    private readonly IReadOnlyList<BuzzAccordionItem> _guideAccordionSections =
+    [
+        new("Credential and account checks", "Validate lock state and reset flow.", true),
+        new("Session and token invalidation", "Clear stale sessions and reissue token."),
+        new("MFA and risk controls", "Enforce MFA reset for suspicious sign-ins."),
+        new("Escalation and communication", "Escalate and notify user with timeline.")
+    ];
 
     private readonly IReadOnlyList<string> _guideOptions =
     [
@@ -451,6 +511,9 @@
 
     private string _guideCardSource =>
         $"Issue Summary: {_guideText}\nCategory: {_guideCombo}\nEscalation: {_guideSelect}";
+
+    private string _guideAccordionSource =>
+        $"Issue Summary: {_guideText}\nResolution Category: {_guideCombo}\nEscalation: {_guideSelect}";
 
     private void ShowGuideToast()
     {
