@@ -1,0 +1,8 @@
+.demo-marketing-section {
+    margin-top: 1rem;
+}
+
+.demo-marketing-note {
+    margin-top: 0.45rem;
+    color: var(--buzz-text-muted, #64748b);
+}

@@ -1,0 +1,50 @@
+@if (Ordered)
+{
+    <ol class="buzz-list">
+        @foreach (var item in Items)
+        {
+            <li class="buzz-list-item">
+                <button type="button" class="buzz-list-item-button" disabled="@(!Selectable)" @onclick="() => SelectItemAsync(item)">
+                    @item
+                </button>
+            </li>
+        }
+    </ol>
+}
+else
+{
+    <ul class="buzz-list">
+        @foreach (var item in Items)
+        {
+            <li class="buzz-list-item">
+                <button type="button" class="buzz-list-item-button" disabled="@(!Selectable)" @onclick="() => SelectItemAsync(item)">
+                    @item
+                </button>
+            </li>
+        }
+    </ul>
+}
+
+@code {
+    [Parameter]
+    public IReadOnlyList<string> Items { get; set; } = Array.Empty<string>();
+
+    [Parameter]
+    public bool Ordered { get; set; }
+
+    [Parameter]
+    public bool Selectable { get; set; }
+
+    [Parameter]
+    public EventCallback<string> OnItemSelected { get; set; }
+
+    private async Task SelectItemAsync(string item)
+    {
+        if (!Selectable)
+        {
+            return;
+        }
+
+        await OnItemSelected.InvokeAsync(item);
+    }
+}

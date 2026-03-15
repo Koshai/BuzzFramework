@@ -1,0 +1,14 @@
+.demo-page-grid {
+    display: grid;
+    gap: 0.85rem;
+    margin-bottom: 1rem;
+}
+
+.demo-simple-list {
+    margin: 0;
+    padding-left: 1rem;
+}
+
+.demo-simple-list li {
+    margin-bottom: 0.25rem;
+}

@@ -1,0 +1,105 @@
+@page "/demo-feedback"
+@rendermode InteractiveServer
+@using Buzz.Blazor.Models
+
+<PageTitle>Demo Feedback</PageTitle>
+
+<h1>Feedback Demo</h1>
+<p>Status communication patterns with optional AI context.</p>
+
+<DemoAiContextBanner SampleText="@_sampleText" />
+
+<BuzzStack Direction="horizontal" Gap="0.5rem" Wrap="true" Align="center">
+    <BuzzButton Text="Show success toast" Variant="primary" OnClick="AddSuccessToastAsync" />
+    <BuzzButton Text="Toggle alert" Variant="outline" OnClick="ToggleAlertAsync" />
+    <BuzzButton Text="Reset banner" Variant="secondary" OnClick="ResetBannerAsync" />
+</BuzzStack>
+
+<div class="demo-feedback-section">
+    <BuzzAlert Title="Deployment monitor"
+               Message="Canary rollout healthy across all regions."
+               Variant="success"
+               Dismissible="true"
+               IsVisible="@_alertVisible"
+               IsVisibleChanged="@OnAlertVisibleChanged" />
+</div>
+
+<div class="demo-feedback-section">
+    <BuzzResultBanner Title="Sync completed"
+                      Message="Data is now aligned with upstream systems."
+                      Variant="info"
+                      Dismissible="true"
+                      ActionText="Run again"
+                      IsVisible="@_bannerVisible"
+                      IsVisibleChanged="@OnBannerVisibleChanged"
+                      OnAction="AddInfoToastAsync" />
+</div>
+
+<div class="demo-feedback-section">
+    <BuzzCard Title="AI case summary"
+              Subtitle="Uses the same sample context as the rest of the page."
+              EnableAiSummary="true"
+              SourceText="@_sampleText" />
+</div>
+
+<BuzzToastCenter Items="@_toastItems" ItemsChanged="@OnToastItemsChanged" />
+
+@code {
+    private readonly string _sampleText =
+        "Customer issue: Login intermittently fails for SSO users in APAC after password reset.\n" +
+        "Observed impact: 6.2% failed login attempts in the last 24h.\n" +
+        "Requested outcome: concise root-cause hypotheses and a next-step plan.";
+
+    private bool _alertVisible = true;
+    private bool _bannerVisible = true;
+    private IReadOnlyList<BuzzToastItem> _toastItems =
+    [
+        new("Environment status", "Staging and production are responding normally.", "success")
+    ];
+
+    private Task ToggleAlertAsync()
+    {
+        _alertVisible = !_alertVisible;
+        return Task.CompletedTask;
+    }
+
+    private Task ResetBannerAsync()
+    {
+        _bannerVisible = true;
+        return Task.CompletedTask;
+    }
+
+    private Task AddSuccessToastAsync()
+    {
+        _toastItems = _toastItems
+            .Append(new BuzzToastItem("Deploy status", "Release completed without regressions.", "success", _sampleText))
+            .ToList();
+        return Task.CompletedTask;
+    }
+
+    private Task AddInfoToastAsync()
+    {
+        _toastItems = _toastItems
+            .Append(new BuzzToastItem("Sync started", "Background sync was requested.", "info", _sampleText))
+            .ToList();
+        return Task.CompletedTask;
+    }
+
+    private Task OnAlertVisibleChanged(bool value)
+    {
+        _alertVisible = value;
+        return Task.CompletedTask;
+    }
+
+    private Task OnBannerVisibleChanged(bool value)
+    {
+        _bannerVisible = value;
+        return Task.CompletedTask;
+    }
+
+    private Task OnToastItemsChanged(IReadOnlyList<BuzzToastItem> items)
+    {
+        _toastItems = items;
+        return Task.CompletedTask;
+    }
+}

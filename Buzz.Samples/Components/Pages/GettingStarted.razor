@@ -1,0 +1,105 @@
+@page "/getting-started"
+@rendermode InteractiveServer
+@using Buzz.Blazor.Models
+
+<PageTitle>Getting Started - Buzz Framework</PageTitle>
+
+<div class="gs-page">
+    <header class="gs-hero">
+        <BuzzBadge Text="Onboarding" Variant="info" />
+        <h1>Getting Started</h1>
+        <p>From zero to first implementation in a practical, developer-friendly flow.</p>
+    </header>
+
+    <section class="gs-card">
+        <BuzzStepper Label="Implementation Path"
+                     Steps="@_steps"
+                     AllowStepNavigation="true"
+                     ShowRecommendationHint="false"
+                     EnableAiRecommendedStep="true"
+                     SourceText="@_sourceContext" />
+    </section>
+
+    <section class="gs-grid">
+        <article class="gs-card">
+            <h2>1) Setup Provider and Services</h2>
+            <BuzzCodeBlock Code="@_setupSnippet" Language="csharp" ShowLineNumbers="false" EnableCopyButton="true" />
+        </article>
+
+        <article class="gs-card">
+            <h2>2) Add Components to a Page</h2>
+            <BuzzCodeBlock Code="@_pageSnippet" Language="razor" ShowLineNumbers="false" EnableCopyButton="true" />
+        </article>
+    </section>
+
+    <section class="gs-grid">
+        <article class="gs-card">
+            <h2>3) Validate UI Quality</h2>
+            <BuzzList Items="@_validationChecklist" Ordered="false" />
+        </article>
+        <article class="gs-card">
+            <h2>4) Continue Learning</h2>
+            <BuzzList Items="@_nextSteps" Ordered="false" />
+        </article>
+    </section>
+
+    <section class="gs-cta">
+        <h2>Next Stop: Installation and Demos</h2>
+        <p>Once setup is complete, validate behavior against focused demos and the full developer guide.</p>
+        <BuzzStack Direction="horizontal" Gap="0.45rem" Wrap="true" Align="center">
+            <BuzzButton Text="Open Installation" Variant="primary" OnClick="OpenInstallation" />
+            <BuzzButton Text="Open Demo Hub" Variant="outline" OnClick="OpenDemoHub" />
+            <BuzzButton Text="Open Developer Guide" Variant="secondary" OnClick="OpenGuide" />
+        </BuzzStack>
+    </section>
+</div>
+
+@code {
+    [Inject] private NavigationManager Navigation { get; set; } = default!;
+
+    private readonly string _sourceContext =
+        "Objective: launch a modern Blazor UI with accessible defaults, optional AI help, and consistent theme behavior.";
+
+    private readonly IReadOnlyList<BuzzStepItem> _steps =
+    [
+        new("Configure services", "Add Buzz services and provider failover in Program.cs.", true),
+        new("Use core components", "Build a first page with inputs and feedback patterns."),
+        new("Validate quality", "Check themes, keyboard accessibility, and content clarity."),
+        new("Scale implementation", "Use demos and guide sections to expand coverage.")
+    ];
+
+    private readonly string _setupSnippet =
+        "builder.Services.AddBuzzFramework(options =>\\n" +
+        "{\\n" +
+        "    options.DefaultProviderName = \\\"openai\\\";\\n" +
+        "    options.ProviderFailoverOrder = [\\\"openai\\\", \\\"ollama\\\", \\\"mock\\\"];\\n" +
+        "    options.EnableAiSuggestions = true;\\n" +
+        "});";
+
+    private readonly string _pageSnippet =
+        "<BuzzTextBox\\n" +
+        "    Label=\\\"Issue Summary\\\"\\n" +
+        "    @bind-InputText=\\\"_issueSummary\\\"\\n" +
+        "    ReferenceText=\\\"@_sampleContext\\\" />\\n\\n" +
+        "<BuzzCard Title=\\\"Case Overview\\\"\\n" +
+        "          EnableAiSummary=\\\"true\\\"\\n" +
+        "          SourceText=\\\"@_sampleContext\\\" />";
+
+    private readonly IReadOnlyList<string> _validationChecklist =
+    [
+        "Switch all 5 themes from the navbar and confirm visible surface/text/accent changes.",
+        "Tab through controls to verify focus indicators and keyboard behavior.",
+        "Check the Accessibility Checklist page for final pass items."
+    ];
+
+    private readonly IReadOnlyList<string> _nextSteps =
+    [
+        "Open Demo Hub for category-focused examples.",
+        "Use Developer Guide for parameter-level implementation details.",
+        "When ready, move to Installation page for package/references setup."
+    ];
+
+    private void OpenInstallation() => Navigation.NavigateTo("/installation");
+    private void OpenDemoHub() => Navigation.NavigateTo("/demo");
+    private void OpenGuide() => Navigation.NavigateTo("/developer-guide");
+}

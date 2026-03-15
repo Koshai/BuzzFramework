@@ -1,21 +1,217 @@
 @page "/"
 @rendermode InteractiveServer
+@using Buzz.Blazor.Models
+@inject NavigationManager Navigation
 
-<PageTitle>Home</PageTitle>
+<PageTitle>Buzz Framework</PageTitle>
 
-<h1>Buzz Framework - Iteration 3</h1>
+<div class="home-page">
+    <BuzzHero Badge="Blazor + AI UI Framework"
+              Title="Modern, AI-ready Blazor UI for production teams"
+              Subtitle="Build beautiful support and product experiences faster with reusable components, strong theming, and practical AI assistance."
+              PrimaryCtaText="Get Started"
+              SecondaryCtaText="Open Demo Hub"
+              OnPrimaryCta="OpenGettingStarted"
+              OnSecondaryCta="OpenDemoHub"
+              EnableAiTagline="true"
+              SourceContext="@_heroSource" />
 
-<p>This slice includes OpenAI + Ollama provider routing with fallback and persistent textbox history suggestions.</p>
+    <section class="home-trust-row">
+        <BuzzBadge Text="Native Blazor" Variant="info" />
+        <BuzzBadge Text="Accessible Patterns" Variant="success" />
+        <BuzzBadge Text="5 Global Themes" Variant="warning" />
+        <BuzzBadge Text="AI-Enhanced Workflows" Variant="danger" />
+    </section>
 
-<BuzzTextBox
-    Label="Customer Notes"
-    @bind-InputText="_textValue"
-    SuggestionCount="6"
-    AddToHistoryOnEnter="true"
-    Placeholder="Type and press Enter to store history..." />
+    <section class="home-metrics-grid">
+        <BuzzStatCard Label="Components"
+                      Value="50+"
+                      TrendText="Growing"
+                      Description="Inputs, layout, workflow, and feedback primitives."
+                      Variant="accent" />
+        <BuzzStatCard Label="Theme Presets"
+                      Value="5"
+                      TrendText="System-wide"
+                      Description="Consistent token-based styling across library and samples."
+                      Variant="success" />
+        <BuzzStatCard Label="Demo Experiences"
+                      Value="6"
+                      TrendText="Focused pages"
+                      Description="Category-specific demo flows for faster evaluation."
+                      Variant="warning" />
+        <BuzzStatCard Label="In-app Documentation"
+                      Value="1"
+                      TrendText="Always available"
+                      Description="Developer Guide with examples and copy-ready snippets."
+                      Variant="neutral" />
+    </section>
 
-<p><strong>Current value:</strong> @_textValue</p>
+    <section class="home-panel-grid">
+        <article class="home-panel">
+            <h2>Start Building in Minutes</h2>
+            <p>Use a clean setup path, then move directly into interactive demos and implementation docs.</p>
+            <BuzzStack Direction="horizontal" Gap="0.45rem" Wrap="true" Align="center">
+                <BuzzButton Text="Getting Started" Variant="primary" OnClick="OpenGettingStarted" />
+                <BuzzButton Text="Installation" Variant="outline" OnClick="OpenInstallation" />
+                <BuzzButton Text="Developer Guide" Variant="secondary" OnClick="OpenGuide" />
+            </BuzzStack>
+        </article>
+
+        <article class="home-panel">
+            <h2>Core Components Spotlight</h2>
+            <div class="home-core-components-grid">
+                @foreach (var item in _coreComponents)
+                {
+                    <BuzzCard Title="@item.Name" Subtitle="@item.Description" EnableAiSummary="false">
+                        <BuzzStack Direction="horizontal" Gap="0.4rem" Align="center" Wrap="true">
+                            <BuzzBadge Text="@item.Group" Variant="info" />
+                            <BuzzButton Text="Open demo"
+                                        Variant="outline"
+                                        Size="sm"
+                                        OnClick="() => OpenRoute(item.DemoPath)" />
+                        </BuzzStack>
+                    </BuzzCard>
+                }
+            </div>
+        </article>
+    </section>
+
+    <section class="home-showcase-grid">
+        <BuzzCard Title="Developer-first Experience"
+                  Subtitle="Clear path from onboarding to production usage."
+                  EnableAiSummary="false">
+            <BuzzList Items="@_developerExperiencePoints" Ordered="false" />
+        </BuzzCard>
+
+        <BuzzCard Title="Workflow-aware Components"
+                  Subtitle="Designed for support operations and product dashboards."
+                  EnableAiSummary="false">
+            <BuzzList Items="@_workflowPoints" Ordered="false" />
+        </BuzzCard>
+    </section>
+
+    <section class="home-panel-grid">
+        <article class="home-panel">
+            <h2>Recommended Demo Flow</h2>
+            <BuzzList Items="@_recommendedDemoFlow" Ordered="true" />
+        </article>
+
+        <article class="home-panel">
+            <h2>Quick Install</h2>
+            <BuzzCodeBlock Code="@_quickInstallSnippet"
+                           Language="bash"
+                           ShowLineNumbers="false"
+                           EnableCopyButton="true" />
+            <p class="home-muted">NuGet packaging is the final phase. The sample currently uses project reference integration.</p>
+        </article>
+    </section>
+
+    <section class="home-pricing-block">
+        <div class="home-pricing-header">
+            <h2>Adoption Paths</h2>
+            <p>Pick the track that matches where your team is today.</p>
+        </div>
+        <BuzzPricingTable Plans="@_adoptionPlans" OnPlanSelected="OnPlanSelectedAsync" />
+        @if (!string.IsNullOrWhiteSpace(_selectedPlan))
+        {
+            <p class="home-muted">Selected path: <strong>@_selectedPlan</strong></p>
+        }
+    </section>
+
+    <section class="home-panel">
+        <h2>Frequently Asked Questions</h2>
+        <BuzzAccordion Label="Buzz FAQ"
+                       Sections="@_faqSections"
+                       AllowMultipleOpen="false"
+                       ShowRecommendationHint="false"
+                       EnableAiRecommendedSection="true"
+                       SourceText="@_heroSource" />
+    </section>
+
+    <section class="home-cta-strip">
+        <article class="home-cta-content">
+            <h2>Ready to evaluate Buzz in your app?</h2>
+            <p>Open guided docs, try live demos, then move to packaging when you are confident with the UI system.</p>
+            <BuzzStack Direction="horizontal" Gap="0.5rem" Wrap="true" Align="center">
+                <BuzzButton Text="View Getting Started" Variant="primary" OnClick="OpenGettingStarted" />
+                <BuzzButton Text="Open Demo Hub" Variant="outline" OnClick="OpenDemoHub" />
+                <BuzzButton Text="Developer Guide" Variant="secondary" OnClick="OpenGuide" />
+            </BuzzStack>
+        </article>
+    </section>
+</div>
 
 @code {
-    private string _textValue = "Please draft a follow-up email for today meeting";
+    private readonly string _heroSource =
+        "Audience: Blazor teams building internal tools, support consoles, and customer-facing portals.\n" +
+        "Priorities: modern visuals, accessibility, practical AI suggestions, and consistent theming.";
+
+    private readonly IReadOnlyList<CoreComponentItem> _coreComponents =
+    [
+        new("BuzzTextBox", "Input", "AI-assisted text input with memory-based suggestions.", "/demo-inputs"),
+        new("BuzzAlert", "Feedback", "Status messaging with severity variants and dismiss support.", "/demo-feedback"),
+        new("BuzzSmartTable", "Workflow", "Data analysis table with sorting, summaries, and AI insights.", "/demo-workflow"),
+        new("BuzzHero", "Marketing", "Landing-page hero with optional AI-generated tagline.", "/demo-marketing")
+    ];
+
+    private readonly IReadOnlyList<string> _developerExperiencePoints =
+    [
+        "Live demos grouped by intent: inputs, feedback, workflow, and marketing.",
+        "Implementation snippets with copy actions for fast experimentation.",
+        "Clear progression: landing -> getting started -> installation -> full guide."
+    ];
+
+    private readonly IReadOnlyList<string> _workflowPoints =
+    [
+        "Smart table insights for numerical and categorical analysis.",
+        "Command palette and guided form patterns for faster operations.",
+        "Status-driven components for alerts, banners, toasts, and confirmations."
+    ];
+
+    private readonly IReadOnlyList<string> _recommendedDemoFlow =
+    [
+        "Open Demo Hub and choose a focused page.",
+        "Try Inputs and Feedback pages for baseline UI behavior.",
+        "Use Workflow demo for SmartTable + AI insights.",
+        "Check Developer Guide for implementation details."
+    ];
+
+    private readonly string _quickInstallSnippet =
+        "dotnet add reference ../Buzz.Blazor/Buzz.Blazor.csproj\n" +
+        "dotnet run --project Buzz.Samples/Buzz.Samples.csproj";
+
+    private readonly IReadOnlyList<BuzzPricingPlan> _adoptionPlans =
+    [
+        new("Evaluate", "Free", "today", ["Use sample app", "Explore demos", "Validate accessibility"], false, "Start Evaluation"),
+        new("Build", "Team", "phase", ["Implement components", "Tune themes", "Wire AI options"], true, "Start Building"),
+        new("Ship", "Release", "phase", ["Finalize docs", "Package via NuGet", "Publish release notes"], false, "Prepare Release")
+    ];
+
+    private readonly IReadOnlyList<BuzzAccordionItem> _faqSections =
+    [
+        new("Can I use Buzz without AI?", "Yes. AI capabilities are optional per component and can be disabled by configuration.", true),
+        new("Does theming apply to the whole app?", "Yes. Theme tokens are applied at document level, so components and page surfaces update together."),
+        new("Where should I start as a new developer?", "Start with Getting Started, run the demo hub pages, then use Developer Guide for component-specific implementation."),
+        new("When will NuGet packaging be available?", "Packaging is the final phase after visual consistency, accessibility checks, and release-readiness validation.")
+    ];
+
+    private string _selectedPlan = string.Empty;
+
+    private void OpenGettingStarted() => Navigation.NavigateTo("/getting-started");
+    private void OpenInstallation() => Navigation.NavigateTo("/installation");
+    private void OpenGuide() => Navigation.NavigateTo("/developer-guide");
+    private void OpenDemoHub() => Navigation.NavigateTo("/demo");
+    private Task OpenRoute(string path)
+    {
+        Navigation.NavigateTo(path);
+        return Task.CompletedTask;
+    }
+
+    private Task OnPlanSelectedAsync(BuzzPricingPlan plan)
+    {
+        _selectedPlan = plan.Name;
+        return Task.CompletedTask;
+    }
+
+    private sealed record CoreComponentItem(string Name, string Group, string Description, string DemoPath);
 }

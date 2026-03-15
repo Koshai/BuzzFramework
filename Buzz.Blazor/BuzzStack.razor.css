@@ -1,0 +1,20 @@
+.buzz-stack {
+    display: flex;
+    min-width: 0;
+}
+
+.buzz-stack-vertical {
+    flex-direction: column;
+}
+
+.buzz-stack-horizontal {
+    flex-direction: row;
+}
+
+.buzz-stack-wrap {
+    flex-wrap: wrap;
+}
+
+.buzz-stack-nowrap {
+    flex-wrap: nowrap;
+}

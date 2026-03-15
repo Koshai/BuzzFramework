@@ -1,0 +1,59 @@
+<section class="buzz-data-panel buzz-data-panel-@NormalizeVariant(Variant)">
+    <header class="buzz-data-panel-header">
+        <div>
+            <h4 class="buzz-data-panel-title">@Title</h4>
+            @if (!string.IsNullOrWhiteSpace(Subtitle))
+            {
+                <p class="buzz-data-panel-subtitle">@Subtitle</p>
+            }
+        </div>
+        @if (!string.IsNullOrWhiteSpace(BadgeText))
+        {
+            <BuzzBadge Text="@BadgeText" Variant="info" />
+        }
+    </header>
+
+    @if (!string.IsNullOrWhiteSpace(PrimaryValue))
+    {
+        <p class="buzz-data-panel-value">@PrimaryValue</p>
+    }
+
+    @if (!string.IsNullOrWhiteSpace(Description))
+    {
+        <p class="buzz-data-panel-description">@Description</p>
+    }
+
+    @ChildContent
+</section>
+
+@code {
+    [Parameter]
+    public string Title { get; set; } = "Data panel";
+
+    [Parameter]
+    public string Subtitle { get; set; } = string.Empty;
+
+    [Parameter]
+    public string PrimaryValue { get; set; } = string.Empty;
+
+    [Parameter]
+    public string Description { get; set; } = string.Empty;
+
+    [Parameter]
+    public string BadgeText { get; set; } = string.Empty;
+
+    [Parameter]
+    public string Variant { get; set; } = "neutral";
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    private static string NormalizeVariant(string? value) =>
+        value?.Trim().ToLowerInvariant() switch
+        {
+            "accent" => "accent",
+            "success" => "success",
+            "warning" => "warning",
+            _ => "neutral"
+        };
+}

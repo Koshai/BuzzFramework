@@ -1,0 +1,31 @@
+.a11y-grid {
+    margin-top: 0.85rem;
+    display: grid;
+    gap: 0.8rem;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.a11y-card {
+    border: 1px solid var(--buzz-border, #d0d7de);
+    border-radius: 12px;
+    padding: 0.8rem;
+    background: var(--buzz-surface, #ffffff);
+}
+
+.a11y-card h3 {
+    margin: 0 0 0.45rem;
+    font-size: 1rem;
+}
+
+.a11y-checklist {
+    margin-top: 0.55rem;
+    display: grid;
+    gap: 0.35rem;
+}
+
+.a11y-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.45rem;
+    font-size: 0.84rem;
+}

@@ -1,0 +1,39 @@
+.buzz-auth-shell {
+    display: grid;
+    justify-items: center;
+    padding: 1rem 0.4rem;
+}
+
+.buzz-auth-card {
+    width: min(460px, 100%);
+    border: 1px solid var(--buzz-border, #d0d7de);
+    border-radius: 14px;
+    background: var(--buzz-surface, #ffffff);
+    overflow: hidden;
+}
+
+.buzz-auth-header,
+.buzz-auth-body,
+.buzz-auth-actions {
+    padding: 0.75rem;
+}
+
+.buzz-auth-header {
+    border-bottom: 1px solid var(--buzz-border, #d0d7de);
+}
+
+.buzz-auth-header h2 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: var(--buzz-text-primary, #0f172a);
+}
+
+.buzz-auth-header p {
+    margin: 0.25rem 0 0;
+    color: var(--buzz-text-muted, #64748b);
+    font-size: 0.8rem;
+}
+
+.buzz-auth-actions {
+    border-top: 1px solid var(--buzz-border, #d0d7de);
+}

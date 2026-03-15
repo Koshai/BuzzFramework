@@ -1,0 +1,31 @@
+.buzz-skeleton {
+    display: block;
+    background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%);
+    background-size: 200% 100%;
+}
+
+.buzz-skeleton-text {
+    max-width: 100%;
+}
+
+.buzz-skeleton-rect {
+    max-width: 100%;
+}
+
+.buzz-skeleton-circle {
+    aspect-ratio: 1 / 1;
+}
+
+.buzz-skeleton-animated {
+    animation: buzz-skeleton-shimmer 1.2s ease-in-out infinite;
+}
+
+@keyframes buzz-skeleton-shimmer {
+    0% {
+        background-position: 200% 0;
+    }
+
+    100% {
+        background-position: -200% 0;
+    }
+}

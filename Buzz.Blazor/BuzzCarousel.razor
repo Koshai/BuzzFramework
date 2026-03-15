@@ -1,0 +1,57 @@
+@using Buzz.Blazor.Models
+
+<section class="buzz-carousel" aria-label="@Label">
+    @if (Slides.Count > 0)
+    {
+        var slide = Slides[_activeIndex];
+        <article class="buzz-carousel-slide">
+            @if (!string.IsNullOrWhiteSpace(slide.Badge))
+            {
+                <BuzzBadge Text="@slide.Badge" Variant="info" />
+            }
+            <h3>@slide.Title</h3>
+            <p>@slide.Description</p>
+        </article>
+
+        <BuzzStack Direction="horizontal" Gap="0.35rem" Align="center">
+            <BuzzButton Text="Prev" Variant="secondary" Size="sm" OnClick="PrevAsync" />
+            <span class="buzz-carousel-index">@(_activeIndex + 1) / @Slides.Count</span>
+            <BuzzButton Text="Next" Variant="secondary" Size="sm" OnClick="NextAsync" />
+        </BuzzStack>
+    }
+</section>
+
+@code {
+    [Parameter]
+    public string Label { get; set; } = "Carousel";
+
+    [Parameter]
+    public IReadOnlyList<BuzzCarouselSlide> Slides { get; set; } = Array.Empty<BuzzCarouselSlide>();
+
+    [Parameter]
+    public EventCallback<int> ActiveIndexChanged { get; set; }
+
+    private int _activeIndex;
+
+    private async Task PrevAsync()
+    {
+        if (Slides.Count == 0)
+        {
+            return;
+        }
+
+        _activeIndex = (_activeIndex - 1 + Slides.Count) % Slides.Count;
+        await ActiveIndexChanged.InvokeAsync(_activeIndex);
+    }
+
+    private async Task NextAsync()
+    {
+        if (Slides.Count == 0)
+        {
+            return;
+        }
+
+        _activeIndex = (_activeIndex + 1) % Slides.Count;
+        await ActiveIndexChanged.InvokeAsync(_activeIndex);
+    }
+}

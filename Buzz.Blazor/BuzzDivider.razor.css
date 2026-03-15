@@ -1,0 +1,14 @@
+.buzz-divider {
+    border: none;
+    border-top: 1px solid var(--buzz-border, #d0d7de);
+    margin: 0.6rem 0;
+}
+
+.buzz-divider-strong {
+    border-top-width: 2px;
+    border-top-color: var(--buzz-border-strong, #94a3b8);
+}
+
+.buzz-divider-subtle {
+    border-top-color: #e2e8f0;
+}

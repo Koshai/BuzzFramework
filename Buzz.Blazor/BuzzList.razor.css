@@ -1,0 +1,26 @@
+.buzz-list {
+    margin: 0.2rem 0 0.2rem 1rem;
+    padding: 0;
+    display: grid;
+    gap: 0.25rem;
+}
+
+.buzz-list-item {
+    color: var(--buzz-text-primary, #0f172a);
+}
+
+.buzz-list-item-button {
+    border: none;
+    background: transparent;
+    color: inherit;
+    padding: 0;
+    text-align: left;
+    cursor: default;
+    font-size: 0.82rem;
+}
+
+.buzz-list-item-button:enabled {
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}

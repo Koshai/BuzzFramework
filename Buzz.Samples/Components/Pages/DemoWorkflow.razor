@@ -1,0 +1,112 @@
+@page "/demo-workflow"
+@rendermode InteractiveServer
+@using Buzz.Blazor.Models
+
+<PageTitle>Demo Workflow</PageTitle>
+
+<h1>Workflow and Data Demo</h1>
+<p>AI-assisted command, date-range, and table workflows.</p>
+
+<DemoAiContextBanner SampleText="@_sampleText" />
+
+<div class="demo-workflow-grid">
+    <BuzzCommandPalette Label="Case command palette"
+                        Commands="@_commands"
+                        Query="@_commandQuery"
+                        QueryChanged="@OnCommandQueryChanged"
+                        SelectedCommand="@_selectedCommand"
+                        SelectedCommandChanged="@OnSelectedCommandChanged"
+                        SourceText="@_sampleText" />
+
+    <BuzzDateRangePicker Label="Investigation window"
+                         Start="@_rangeStart"
+                         StartChanged="@OnRangeStartChanged"
+                         End="@_rangeEnd"
+                         EndChanged="@OnRangeEndChanged"
+                         RangeChanged="@OnRangeChanged"
+                         SourceContext="@_sampleText" />
+</div>
+
+<BuzzSmartTable Label="Incident metrics"
+                Columns="@_columns"
+                Rows="@_rows"
+                SavedViews="@_savedViews"
+                SavedViewsChanged="@OnSavedViewsChanged"
+                SourceText="@_sampleText"
+                ShowAiInsightsPanel="true"
+                EnableAiRecommendedSort="true"
+                EnableAiInsights="true" />
+
+@code {
+    private readonly string _sampleText =
+        "Customer issue: Login intermittently fails for SSO users in APAC after password reset.\n" +
+        "Observed impact: 6.2% failed login attempts in the last 24h.\n" +
+        "Requested outcome: concise root-cause hypotheses and a next-step plan.";
+
+    private readonly IReadOnlyList<BuzzCommandItem> _commands =
+    [
+        new("Open incident timeline", "View chronological updates for this case.", "open_timeline"),
+        new("Run anomaly check", "Compare current failures against baseline.", "run_anomaly_check"),
+        new("Draft customer update", "Prepare a concise status note for customers.", "draft_customer_update"),
+        new("Assign to identity team", "Route this case to identity specialists.", "assign_identity_team")
+    ];
+
+    private readonly IReadOnlyList<BuzzTableColumn> _columns =
+    [
+        new("date", "Date", BuzzTableDataType.Date, EnableAutoFormat: true, Format: "yyyy-MM-dd", Aggregation: BuzzTableAggregationType.Max),
+        new("region", "Region", BuzzTableDataType.Text, Aggregation: BuzzTableAggregationType.DistinctCount),
+        new("failures", "Failed logins", BuzzTableDataType.Number, EnableAutoFormat: true, Aggregation: BuzzTableAggregationType.Sum),
+        new("rate", "Failure rate", BuzzTableDataType.Percent, EnableAutoFormat: true, Aggregation: BuzzTableAggregationType.Average)
+    ];
+
+    private readonly IReadOnlyList<IReadOnlyDictionary<string, string>> _rows =
+    [
+        new Dictionary<string, string> { ["date"] = "2026-03-04", ["region"] = "APAC", ["failures"] = "124", ["rate"] = "6.2" },
+        new Dictionary<string, string> { ["date"] = "2026-03-05", ["region"] = "EMEA", ["failures"] = "52", ["rate"] = "2.1" },
+        new Dictionary<string, string> { ["date"] = "2026-03-05", ["region"] = "APAC", ["failures"] = "131", ["rate"] = "6.7" },
+        new Dictionary<string, string> { ["date"] = "2026-03-06", ["region"] = "NA", ["failures"] = "41", ["rate"] = "1.5" }
+    ];
+
+    private string _commandQuery = string.Empty;
+    private string _selectedCommand = string.Empty;
+    private string _rangeStart = DateTime.UtcNow.AddDays(-6).ToString("yyyy-MM-dd");
+    private string _rangeEnd = DateTime.UtcNow.ToString("yyyy-MM-dd");
+    private IReadOnlyList<BuzzSmartTableViewState> _savedViews = [];
+
+    private Task OnCommandQueryChanged(string value)
+    {
+        _commandQuery = value;
+        return Task.CompletedTask;
+    }
+
+    private Task OnSelectedCommandChanged(string value)
+    {
+        _selectedCommand = value;
+        return Task.CompletedTask;
+    }
+
+    private Task OnRangeStartChanged(string value)
+    {
+        _rangeStart = value;
+        return Task.CompletedTask;
+    }
+
+    private Task OnRangeEndChanged(string value)
+    {
+        _rangeEnd = value;
+        return Task.CompletedTask;
+    }
+
+    private Task OnRangeChanged(BuzzDateRange range)
+    {
+        _rangeStart = range.Start;
+        _rangeEnd = range.End;
+        return Task.CompletedTask;
+    }
+
+    private Task OnSavedViewsChanged(IReadOnlyList<BuzzSmartTableViewState> views)
+    {
+        _savedViews = views;
+        return Task.CompletedTask;
+    }
+}

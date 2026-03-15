@@ -1,0 +1,17 @@
+<section class="demo-ai-context">
+    <h2>@Title</h2>
+    <p class="demo-ai-context-subtitle">@Subtitle</p>
+    <BuzzCodeBlock Code="@SampleText"
+                   Language="text"
+                   ShowLineNumbers="false"
+                   EnableCopyButton="true" />
+</section>
+
+@code {
+    [Parameter] public string Title { get; set; } = "AI sample context";
+    [Parameter] public string Subtitle { get; set; } = "Use this text for components that accept SourceText or AI guidance.";
+    [Parameter] public string SampleText { get; set; } =
+        "Customer issue: Login intermittently fails for SSO users in APAC after password reset.\n" +
+        "Observed impact: 6.2% failed login attempts in the last 24h.\n" +
+        "Requested outcome: concise root-cause hypotheses and a next-step plan.";
+}

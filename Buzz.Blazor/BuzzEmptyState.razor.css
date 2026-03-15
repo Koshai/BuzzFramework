@@ -1,0 +1,33 @@
+.buzz-empty-state {
+    border: 1px dashed var(--buzz-border, #cbd5e1);
+    border-radius: 12px;
+    padding: 0.95rem;
+    text-align: center;
+    display: grid;
+    justify-items: center;
+    gap: 0.35rem;
+    background: #f8fafc;
+}
+
+.buzz-empty-icon {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 999px;
+    border: 1px solid var(--buzz-border, #cbd5e1);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #475569;
+}
+
+.buzz-empty-title {
+    margin: 0;
+    font-size: 0.95rem;
+    color: #0f172a;
+}
+
+.buzz-empty-description {
+    margin: 0;
+    font-size: 0.78rem;
+    color: #475569;
+}

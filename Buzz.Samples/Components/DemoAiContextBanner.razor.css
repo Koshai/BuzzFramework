@@ -1,0 +1,19 @@
+.demo-ai-context {
+    border: 1px solid var(--buzz-border, #d0d7de);
+    background: var(--buzz-surface, #ffffff);
+    border-radius: 14px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.demo-ai-context h2 {
+    margin: 0 0 0.35rem;
+    font-size: 1.1rem;
+    color: var(--buzz-text-primary, #0f172a);
+}
+
+.demo-ai-context-subtitle {
+    margin: 0 0 0.75rem;
+    color: var(--buzz-text-muted, #64748b);
+    font-size: 0.9rem;
+}

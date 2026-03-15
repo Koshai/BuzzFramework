@@ -1,0 +1,54 @@
+.buzz-stat-card {
+    border: 1px solid var(--buzz-border, #d0d7de);
+    border-radius: 12px;
+    padding: 0.65rem 0.75rem;
+    display: grid;
+    gap: 0.18rem;
+    background: var(--buzz-surface, #ffffff);
+}
+
+.buzz-stat-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.4rem;
+    align-items: baseline;
+}
+
+.buzz-stat-label {
+    font-size: 0.75rem;
+    color: var(--buzz-text-muted, #475569);
+}
+
+.buzz-stat-trend {
+    font-size: 0.7rem;
+    font-weight: 700;
+}
+
+.buzz-stat-value {
+    font-size: 1.2rem;
+    line-height: 1.15;
+    font-weight: 700;
+    color: var(--buzz-text-primary, #0f172a);
+}
+
+.buzz-stat-description {
+    margin: 0;
+    font-size: 0.74rem;
+    color: var(--buzz-text-muted, #475569);
+}
+
+.buzz-stat-card-accent .buzz-stat-trend {
+    color: #1d4ed8;
+}
+
+.buzz-stat-card-success .buzz-stat-trend {
+    color: #166534;
+}
+
+.buzz-stat-card-warning .buzz-stat-trend {
+    color: #92400e;
+}
+
+.buzz-stat-card-danger .buzz-stat-trend {
+    color: #991b1b;
+}

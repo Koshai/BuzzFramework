@@ -1,0 +1,111 @@
+.buzz-timeline {
+    display: grid;
+    gap: 0.6rem;
+}
+
+.buzz-timeline-label {
+    margin: 0;
+    font-size: 1rem;
+    color: var(--buzz-text-primary, #0f172a);
+}
+
+.buzz-timeline-recommendation {
+    margin: 0;
+    font-size: 0.82rem;
+    color: var(--buzz-text-muted, #64748b);
+}
+
+.buzz-timeline-empty {
+    margin: 0;
+    font-size: 0.84rem;
+    color: var(--buzz-text-muted, #64748b);
+}
+
+.buzz-timeline-track {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.65rem;
+}
+
+.buzz-timeline-item {
+    display: grid;
+    grid-template-columns: 12px 1fr;
+    gap: 0.55rem;
+    align-items: start;
+}
+
+.buzz-timeline-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 999px;
+    margin-top: 0.32rem;
+    background: var(--buzz-border, #d0d7de);
+}
+
+.buzz-timeline-dot-success {
+    background: #16a34a;
+}
+
+.buzz-timeline-dot-warning {
+    background: #d97706;
+}
+
+.buzz-timeline-dot-error {
+    background: #dc2626;
+}
+
+.buzz-timeline-dot-info {
+    background: #2563eb;
+}
+
+.buzz-timeline-content {
+    border: 1px solid var(--buzz-border, #d0d7de);
+    border-radius: var(--buzz-radius-md, 10px);
+    background: var(--buzz-surface, #ffffff);
+    padding: 0.65rem 0.75rem;
+}
+
+.buzz-timeline-item.is-highlighted .buzz-timeline-content {
+    border-color: var(--buzz-accent, #3b82f6);
+    box-shadow: 0 0 0 2px var(--buzz-focus-ring, rgba(59, 130, 246, 0.2));
+}
+
+.buzz-timeline-title {
+    margin: 0;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--buzz-text-primary, #0f172a);
+}
+
+.buzz-timeline-time {
+    margin: 0.18rem 0;
+    font-size: 0.76rem;
+    color: var(--buzz-text-muted, #64748b);
+}
+
+.buzz-timeline-detail {
+    margin: 0;
+    font-size: 0.82rem;
+    color: var(--buzz-text-muted, #64748b);
+    line-height: 1.45;
+    white-space: pre-wrap;
+}
+
+[data-buzz-theme="dark"] .buzz-timeline-label,
+[data-buzz-theme="dark"] .buzz-timeline-title {
+    color: var(--buzz-text-primary-dark, #e2e8f0);
+}
+
+[data-buzz-theme="dark"] .buzz-timeline-recommendation,
+[data-buzz-theme="dark"] .buzz-timeline-empty,
+[data-buzz-theme="dark"] .buzz-timeline-time,
+[data-buzz-theme="dark"] .buzz-timeline-detail {
+    color: var(--buzz-text-muted-dark, #93a3b8);
+}
+
+[data-buzz-theme="dark"] .buzz-timeline-content {
+    border-color: var(--buzz-border-dark, #334155);
+    background: var(--buzz-surface-dark, #111827);
+}

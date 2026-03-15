@@ -1,0 +1,36 @@
+<section class="buzz-auth-shell">
+    <article class="buzz-auth-card">
+        <header class="buzz-auth-header">
+            <h2>@Title</h2>
+            @if (!string.IsNullOrWhiteSpace(Subtitle))
+            {
+                <p>@Subtitle</p>
+            }
+        </header>
+
+        <div class="buzz-auth-body">
+            @ChildContent
+        </div>
+
+        @if (Actions is not null)
+        {
+            <footer class="buzz-auth-actions">
+                @Actions
+            </footer>
+        }
+    </article>
+</section>
+
+@code {
+    [Parameter]
+    public string Title { get; set; } = "Welcome back";
+
+    [Parameter]
+    public string Subtitle { get; set; } = "Sign in to continue.";
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    [Parameter]
+    public RenderFragment? Actions { get; set; }
+}

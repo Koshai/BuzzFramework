@@ -1,0 +1,30 @@
+.buzz-file-upload {
+    border: 1px solid var(--buzz-border, #d0d7de);
+    border-radius: 12px;
+    padding: 0.65rem;
+    background: var(--buzz-surface, #ffffff);
+    display: grid;
+    gap: 0.45rem;
+}
+
+.buzz-file-upload-label {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--buzz-text-primary, #0f172a);
+}
+
+.buzz-file-upload-error {
+    margin: 0;
+    color: #b91c1c;
+    font-size: 0.78rem;
+}
+
+.buzz-file-upload-insight {
+    margin: 0;
+    color: #1e293b;
+    font-size: 0.8rem;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 10px;
+    padding: 0.45rem 0.55rem;
+}

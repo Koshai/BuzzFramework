@@ -1,0 +1,81 @@
+.buzz-command-palette {
+    display: grid;
+    gap: 0.55rem;
+}
+
+.buzz-command-label {
+    margin: 0;
+    font-size: 1rem;
+    color: var(--buzz-text-primary, #0f172a);
+}
+
+.buzz-command-input {
+    border: 1px solid var(--buzz-border, #d0d7de);
+    border-radius: var(--buzz-radius-md, 10px);
+    background: var(--buzz-surface, #ffffff);
+    color: var(--buzz-text-primary, #0f172a);
+    padding: 0.5rem 0.65rem;
+    font-size: 0.85rem;
+}
+
+.buzz-command-recommendation,
+.buzz-command-selected,
+.buzz-command-empty {
+    margin: 0;
+    font-size: 0.8rem;
+    color: var(--buzz-text-muted, #64748b);
+}
+
+.buzz-command-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.45rem;
+}
+
+.buzz-command-button {
+    width: 100%;
+    text-align: left;
+    border: 1px solid var(--buzz-border, #d0d7de);
+    border-radius: var(--buzz-radius-md, 10px);
+    background: var(--buzz-surface, #ffffff);
+    color: var(--buzz-text-primary, #0f172a);
+    padding: 0.5rem 0.65rem;
+    display: grid;
+    gap: 0.15rem;
+}
+
+.buzz-command-button:hover {
+    border-color: var(--buzz-accent, #3b82f6);
+}
+
+.buzz-command-title {
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.buzz-command-description {
+    font-size: 0.78rem;
+    color: var(--buzz-text-muted, #64748b);
+}
+
+[data-buzz-theme="dark"] .buzz-command-label,
+[data-buzz-theme="dark"] .buzz-command-input,
+[data-buzz-theme="dark"] .buzz-command-button,
+[data-buzz-theme="dark"] .buzz-command-title {
+    color: var(--buzz-text-primary-dark, #e2e8f0);
+}
+
+[data-buzz-theme="dark"] .buzz-command-input,
+[data-buzz-theme="dark"] .buzz-command-button {
+    border-color: var(--buzz-border-dark, #334155);
+    background: var(--buzz-surface-dark, #111827);
+}
+
+[data-buzz-theme="dark"] .buzz-command-recommendation,
+[data-buzz-theme="dark"] .buzz-command-selected,
+[data-buzz-theme="dark"] .buzz-command-empty,
+[data-buzz-theme="dark"] .buzz-command-description {
+    color: var(--buzz-text-muted-dark, #93a3b8);
+}

@@ -1,19 +1,34 @@
-﻿@inherits LayoutComponentBase
+@inherits LayoutComponentBase
+@using Buzz.Blazor.Models
+@inject IJSRuntime JS
 
 <div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
+    <BuzzNavBar BrandText="Buzz Framework"
+                BrandHref="/"
+                Links="@_primaryLinks">
+        <Actions>
+            <label class="buzz-theme-label" for="buzz-theme-select">Theme</label>
+            <select id="buzz-theme-select" class="buzz-theme-select" value="@_activeTheme" @onchange="OnThemeChanged">
+                @foreach (var option in _themeItems)
+                {
+                    <option value="@option.Value">@option.Text</option>
+                }
+            </select>
+            <span class="buzz-theme-indicator">@_activeThemeLabel</span>
+            <a class="buzz-navbar-doc-link" href="/getting-started">Getting Started</a>
+        </Actions>
+    </BuzzNavBar>
 
-    <main>
-        <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
-        </div>
-
-        <article class="content px-4">
+    <main class="page-main">
+        <article class="content">
             @Body
         </article>
     </main>
+
+    <BuzzFooter BrandText="Buzz Framework"
+                Description="AI-ready Blazor components for modern web development."
+                Links="@_footerLinks"
+                Copyright="@($"Copyright {DateTime.UtcNow.Year} Buzz Framework")" />
 </div>
 
 <div id="blazor-error-ui" data-nosnippet>
@@ -21,3 +36,78 @@
     <a href="." class="reload">Reload</a>
     <span class="dismiss">🗙</span>
 </div>
+
+@code {
+    private readonly IReadOnlyList<BuzzNavLink> _primaryLinks =
+    [
+        new("Home", "/", true),
+        new("Getting Started", "/getting-started"),
+        new("Installation", "/installation"),
+        new("Demo Hub", "/demo"),
+        new("Inputs", "/demo-inputs"),
+        new("Feedback", "/demo-feedback"),
+        new("Workflow", "/demo-workflow"),
+        new("Marketing", "/demo-marketing"),
+        new("Developer Guide", "/developer-guide"),
+        new("Accessibility Checklist", "/accessibility-checklist")
+    ];
+
+    private readonly IReadOnlyList<BuzzNavLink> _footerLinks =
+    [
+        new("Home", "/"),
+        new("Getting Started", "/getting-started"),
+        new("Installation", "/installation"),
+        new("Demo Hub", "/demo"),
+        new("Developer Guide", "/developer-guide"),
+        new("Inputs", "/demo-inputs"),
+        new("Feedback", "/demo-feedback"),
+        new("Accessibility Checklist", "/accessibility-checklist")
+    ];
+
+    private readonly IReadOnlyList<BuzzMenuItem> _themeItems =
+    [
+        new("Azure Pulse", "azure"),
+        new("Emerald Flow", "emerald"),
+        new("Violet Prism", "violet"),
+        new("Sunset Coral", "coral"),
+        new("Slate Mono", "slate")
+    ];
+
+    private string _activeTheme = "azure";
+    private string _activeThemeLabel = "Azure Pulse";
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+        {
+            return;
+        }
+
+        var stored = await JS.InvokeAsync<string>("buzzTheme.getStoredTheme");
+        await ApplyThemeAsync(stored);
+    }
+
+    private async Task OnThemeChanged(ChangeEventArgs args)
+    {
+        await ApplyThemeAsync(args.Value?.ToString());
+    }
+
+    private async Task ApplyThemeAsync(string? requestedTheme)
+    {
+        var selected = requestedTheme ?? "azure";
+        var match = _themeItems.FirstOrDefault(item => string.Equals(item.Value, selected, StringComparison.OrdinalIgnoreCase));
+        if (match is null)
+        {
+            _activeTheme = "azure";
+            _activeThemeLabel = "Azure Pulse";
+            await JS.InvokeAsync<string>("buzzTheme.apply", _activeTheme);
+            await InvokeAsync(StateHasChanged);
+            return;
+        }
+
+        _activeTheme = match.Value;
+        _activeThemeLabel = match.Text;
+        await JS.InvokeAsync<string>("buzzTheme.apply", _activeTheme);
+        await InvokeAsync(StateHasChanged);
+    }
+}

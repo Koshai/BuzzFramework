@@ -1,0 +1,107 @@
+@page "/demo-inputs"
+@rendermode InteractiveServer
+@using Buzz.Blazor.Models
+
+<PageTitle>Demo Inputs</PageTitle>
+
+<h1>Inputs Demo</h1>
+<p>AI-aware field primitives with shared sample context.</p>
+
+<DemoAiContextBanner SampleText="@_sampleText" />
+
+<section class="demo-page-grid">
+    <BuzzTextBox Label="Issue summary"
+                 InputText="@_issueSummary"
+                 InputTextChanged="@OnIssueSummaryChanged"
+                 Placeholder="Describe the issue..."
+                 ReferenceText="@_sampleText" />
+
+    <BuzzComboBox Label="Queue routing"
+                  Options="@_queueOptions"
+                  Value="@_selectedQueue"
+                  ValueChanged="@OnSelectedQueueChanged"
+                  ReferenceText="@_sampleText" />
+
+    <BuzzSelectBox Label="Priority"
+                   Options="@_priorityOptions"
+                   Value="@_selectedPriority"
+                   ValueChanged="@OnSelectedPriorityChanged"
+                   ReferenceText="@_sampleText" />
+
+    <BuzzDatePicker Label="Target resolution date"
+                    Value="@_resolutionDate"
+                    ValueChanged="@OnResolutionDateChanged"
+                    ReferenceText="@_sampleText" />
+
+    <BuzzCheckBox Label="Escalate to on-call engineer"
+                  Value="@_escalate"
+                  ValueChanged="@OnEscalateChanged"
+                  HelperText="Enable when production impact is customer-visible."
+                  ReferenceText="@_sampleText" />
+</section>
+
+<BuzzCard Title="Current input snapshot"
+          Subtitle="This card confirms your selected values."
+          EnableAiSummary="false">
+    <ul class="demo-simple-list">
+        <li><strong>Issue summary:</strong> @_issueSummary</li>
+        <li><strong>Queue:</strong> @_selectedQueue</li>
+        <li><strong>Priority:</strong> @_selectedPriority</li>
+        <li><strong>Target date:</strong> @_resolutionDate</li>
+        <li><strong>Escalation:</strong> @(_escalate ? "Enabled" : "Disabled")</li>
+    </ul>
+</BuzzCard>
+
+@code {
+    private readonly string _sampleText =
+        "Customer issue: Login intermittently fails for SSO users in APAC after password reset.\n" +
+        "Observed impact: 6.2% failed login attempts in the last 24h.\n" +
+        "Requested outcome: concise root-cause hypotheses and a next-step plan.";
+
+    private readonly IReadOnlyList<string> _queueOptions =
+    [
+        "Identity Platform",
+        "API Gateway",
+        "Frontend Sessions",
+        "Database Reliability",
+        "Security Operations"
+    ];
+
+    private readonly IReadOnlyList<string> _priorityOptions = ["Low", "Medium", "High", "Critical"];
+
+    private string _issueSummary = "SSO users report intermittent login failures after credential reset.";
+    private string _selectedQueue = "Identity Platform";
+    private string _selectedPriority = "High";
+    private string _resolutionDate = DateTime.UtcNow.AddDays(2).ToString("yyyy-MM-dd");
+    private bool _escalate = true;
+
+    private Task OnIssueSummaryChanged(string value)
+    {
+        _issueSummary = value;
+        return Task.CompletedTask;
+    }
+
+    private Task OnSelectedQueueChanged(string value)
+    {
+        _selectedQueue = value;
+        return Task.CompletedTask;
+    }
+
+    private Task OnSelectedPriorityChanged(string value)
+    {
+        _selectedPriority = value;
+        return Task.CompletedTask;
+    }
+
+    private Task OnResolutionDateChanged(string value)
+    {
+        _resolutionDate = value;
+        return Task.CompletedTask;
+    }
+
+    private Task OnEscalateChanged(bool value)
+    {
+        _escalate = value;
+        return Task.CompletedTask;
+    }
+}

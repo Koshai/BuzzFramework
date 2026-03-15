@@ -1,0 +1,1050 @@
+@using Buzz.Blazor.Models
+@using Buzz.Core
+@using System.Globalization
+@using System.Text
+@using Microsoft.Extensions.Logging
+@inject IBuzzClient BuzzClient
+@inject ILogger<BuzzSmartTable> Logger
+
+<div class="buzz-smart-table">
+    @if (!string.IsNullOrWhiteSpace(Label))
+    {
+        <h3 class="buzz-smart-table-label">@Label</h3>
+    }
+
+    @if (ShowRecommendationHint && !string.IsNullOrWhiteSpace(_recommendedSortHeader))
+    {
+        <p class="buzz-smart-table-recommendation">
+            Recommended sort: <strong>@_recommendedSortHeader</strong>
+        </p>
+    }
+
+    @if (ShowRowCount)
+    {
+        <p class="buzz-smart-table-count">Rows: @FilteredRows.Count / @Rows.Count</p>
+    }
+
+    @if (IsFilterPanelEnabled)
+    {
+        <div class="buzz-smart-table-filters">
+            @if (IsGlobalSearchEnabled)
+            {
+                <input
+                    type="text"
+                    class="buzz-smart-table-filter-input"
+                    placeholder="Search all columns..."
+                    value="@_globalSearch"
+                    @oninput="HandleGlobalSearchInput" />
+            }
+
+            <div class="buzz-smart-table-filter-grid">
+                @foreach (var column in Columns)
+                {
+                    <input
+                        type="text"
+                        class="buzz-smart-table-filter-input"
+                        placeholder="@($"Filter {column.Header}")"
+                        value="@GetColumnFilter(column.Key)"
+                        @oninput="args => HandleColumnFilterInput(column.Key, args)" />
+                }
+            </div>
+
+            @if (IsGroupingEnabled)
+            {
+                <div class="buzz-smart-table-grouping">
+                    <label for="@_groupingId">Group by</label>
+                    <select id="@_groupingId" class="buzz-smart-table-group-select" value="@_groupByKey" @onchange="HandleGroupByChanged">
+                        <option value="">None</option>
+                        @foreach (var column in Columns)
+                        {
+                            <option value="@column.Key">@column.Header</option>
+                        }
+                    </select>
+                </div>
+            }
+        </div>
+    }
+
+    @if (IsSavedViewsEnabled)
+    {
+        <div class="buzz-smart-table-views">
+            @if (AllowCreateView)
+            {
+                <div class="buzz-smart-table-view-editor">
+                    <input
+                        type="text"
+                        class="buzz-smart-table-filter-input"
+                        placeholder="View name..."
+                        value="@_newViewName"
+                        @oninput="args => _newViewName = args.Value?.ToString() ?? string.Empty" />
+                    <button type="button" class="buzz-smart-table-view-button" @onclick="SaveCurrentViewAsync">
+                        Save current view
+                    </button>
+                </div>
+            }
+
+            @if (_savedViews.Count > 0)
+            {
+                <div class="buzz-smart-table-view-list">
+                    @foreach (var view in _savedViews)
+                    {
+                        <div class="buzz-smart-table-view-item">
+                            <button type="button" class="buzz-smart-table-view-button" @onclick="() => ApplyView(view)">
+                                @view.Name
+                            </button>
+                            @if (AllowDeleteView)
+                            {
+                                <button type="button" class="buzz-smart-table-view-delete" @onclick="() => DeleteViewAsync(view.Name)">
+                                    Delete
+                                </button>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    }
+
+    @if (Columns.Count == 0)
+    {
+        <p class="buzz-smart-table-empty">No columns configured.</p>
+    }
+    else if (SortedRows.Count == 0)
+    {
+        <p class="buzz-smart-table-empty">No data rows available.</p>
+    }
+    else
+    {
+        <div class="buzz-smart-table-wrapper">
+            <table class="buzz-smart-table-table">
+                <thead>
+                    <tr>
+                        @foreach (var column in Columns)
+                        {
+                            <th scope="col">
+                                <button type="button" class="buzz-smart-table-sort" @onclick="() => ApplySort(column.Key)">
+                                    @column.Header
+                                </button>
+                            </th>
+                        }
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (var rowIndex = 0; rowIndex < SortedRows.Count; rowIndex++)
+                    {
+                        var row = SortedRows[rowIndex];
+                        <tr class="@(rowIndex == 0 && HighlightFirstRow ? "is-highlighted" : null)">
+                            @foreach (var column in Columns)
+                            {
+                                <td>@FormatCellValue(column, row)</td>
+                            }
+                        </tr>
+                    }
+                </tbody>
+
+                @if (IsSummaryFooterEnabled)
+                {
+                    <tfoot>
+                        <tr>
+                            @foreach (var column in Columns)
+                            {
+                                <td class="buzz-smart-table-summary">
+                                    @GetAggregateText(column)
+                                </td>
+                            }
+                        </tr>
+                    </tfoot>
+                }
+            </table>
+        </div>
+
+        @if (IsInsightsPanelEnabled)
+        {
+            <div class="buzz-smart-table-insights">
+                <p class="buzz-smart-table-insight-item">
+                    <strong>Missing values:</strong> @MissingCellCount / @TotalCellCount (@MissingPercentageText)
+                </p>
+                <p class="buzz-smart-table-insight-item">
+                    <strong>Duplicate rows:</strong> @DuplicateRowCount
+                </p>
+                @foreach (var insight in ColumnInsights)
+                {
+                    <p class="buzz-smart-table-insight-item">
+                        <strong>@insight.Header:</strong> @insight.Summary
+                    </p>
+                }
+            </div>
+        }
+
+        @if (IsGroupingEnabled && !string.IsNullOrWhiteSpace(_groupByKey) && GroupSummaryRows.Count > 0)
+        {
+            <div class="buzz-smart-table-group-summary">
+                <p class="buzz-smart-table-group-title">Grouping summary</p>
+                @foreach (var group in GroupSummaryRows)
+                {
+                    <p class="buzz-smart-table-group-item">
+                        <strong>@group.Label</strong>: @group.Count row(s)
+                    </p>
+                }
+            </div>
+        }
+
+        @if (IsAiInsightsPanelEnabled)
+        {
+            <div class="buzz-smart-table-ai-insights">
+                <div class="buzz-smart-table-ai-header">
+                    <span>AI analysis</span>
+                    @if (!_insightLoading)
+                    {
+                        <button type="button" class="buzz-smart-table-ai-button" @onclick="GenerateAiInsightAsync">
+                            Refresh AI analysis
+                        </button>
+                    }
+                </div>
+                @if (_insightLoading)
+                {
+                    <p class="buzz-smart-table-ai-text">Generating AI analysis...</p>
+                }
+                else if (!string.IsNullOrWhiteSpace(_aiInsightText))
+                {
+                    <p class="buzz-smart-table-ai-text">@_aiInsightText</p>
+                }
+                else if (!string.IsNullOrWhiteSpace(_aiInsightError))
+                {
+                    <p class="buzz-smart-table-ai-error">@_aiInsightError</p>
+                }
+            </div>
+        }
+    }
+</div>
+
+@code {
+    [Parameter]
+    public string Label { get; set; } = "Buzz Smart Table";
+
+    [Parameter]
+    public IReadOnlyList<BuzzTableColumn> Columns { get; set; } = [];
+
+    [Parameter]
+    public IReadOnlyList<IReadOnlyDictionary<string, string>> Rows { get; set; } = [];
+
+    [Parameter]
+    public bool ShowRowCount { get; set; } = true;
+
+    [Parameter]
+    public bool HighlightFirstRow { get; set; } = true;
+
+    [Parameter]
+    public bool ShowSummaryFooter { get; set; } = true;
+
+    [Parameter]
+    public bool ShowInsightsPanel { get; set; } = true;
+
+    [Parameter]
+    public bool ShowSavedViewsPanel { get; set; } = true;
+
+    [Parameter]
+    public bool ShowFilterPanel { get; set; } = true;
+
+    [Parameter]
+    public bool EnableGlobalSearch { get; set; } = true;
+
+    [Parameter]
+    public bool EnableGrouping { get; set; } = true;
+
+    [Parameter]
+    public bool ShowAiInsightsPanel { get; set; } = true;
+
+    [Parameter]
+    public BuzzSmartTableModules? Modules { get; set; }
+
+    [Parameter]
+    public IReadOnlyList<BuzzSmartTableViewState> SavedViews { get; set; } = [];
+
+    [Parameter]
+    public EventCallback<IReadOnlyList<BuzzSmartTableViewState>> SavedViewsChanged { get; set; }
+
+    [Parameter]
+    public bool AllowCreateView { get; set; } = true;
+
+    [Parameter]
+    public bool AllowDeleteView { get; set; } = true;
+
+    [Parameter]
+    public bool ShowRecommendationHint { get; set; } = true;
+
+    [Parameter]
+    public bool EnableAiRecommendedSort { get; set; } = true;
+
+    [Parameter]
+    public bool AutoRecommendSortOnLoad { get; set; } = true;
+
+    [Parameter]
+    public bool EnableAiInsights { get; set; } = true;
+
+    [Parameter]
+    public bool AutoGenerateAiInsightsOnLoad { get; set; } = true;
+
+    [Parameter]
+    public string AiInsightFallbackText { get; set; } = "AI analysis is unavailable right now. You can still use summary metrics above.";
+
+    [Parameter]
+    public string SourceText { get; set; } = string.Empty;
+
+    [Parameter]
+    public int MaxInputCharacters { get; set; } = 1200;
+
+    private string? _sortKey;
+    private bool _sortAscending = true;
+    private bool _recommendationLoaded;
+    private bool _aiInsightLoaded;
+    private bool _insightLoading;
+    private string? _recommendedSortHeader;
+    private string? _aiInsightText;
+    private string? _aiInsightError;
+    private string _globalSearch = string.Empty;
+    private string _groupByKey = string.Empty;
+    private string _newViewName = string.Empty;
+    private readonly Dictionary<string, string> _columnFilters = new(StringComparer.OrdinalIgnoreCase);
+    private readonly string _groupingId = $"buzz-group-by-{Guid.NewGuid():N}";
+    private readonly List<BuzzSmartTableViewState> _savedViews = [];
+    private bool _savedViewsInitialized;
+
+    private bool IsSummaryFooterEnabled => Modules?.EnableSummaryFooter ?? ShowSummaryFooter;
+    private bool IsInsightsPanelEnabled => Modules?.EnableInsightsPanel ?? ShowInsightsPanel;
+    private bool IsAiInsightsPanelEnabled => (Modules?.EnableAiInsightsPanel ?? ShowAiInsightsPanel) && EnableAiInsights;
+    private bool IsFilterPanelEnabled => Modules?.EnableFilterPanel ?? ShowFilterPanel;
+    private bool IsGlobalSearchEnabled => IsFilterPanelEnabled && (Modules?.EnableGlobalSearch ?? EnableGlobalSearch);
+    private bool IsGroupingEnabled => IsFilterPanelEnabled && (Modules?.EnableGrouping ?? EnableGrouping);
+    private bool IsSavedViewsEnabled => Modules?.EnableSavedViews ?? ShowSavedViewsPanel;
+    private bool IsAiRecommendedSortEnabled => Modules?.EnableAiRecommendedSort ?? EnableAiRecommendedSort;
+
+    private IReadOnlyList<IReadOnlyDictionary<string, string>> FilteredRows =>
+        ApplyFilters(Rows, Columns, _globalSearch, _columnFilters);
+    private IReadOnlyList<IReadOnlyDictionary<string, string>> SortedRows =>
+        ApplyCurrentSort(FilteredRows, _sortKey, _sortAscending, ResolveColumnByKey(_sortKey));
+    private IReadOnlyList<GroupSummaryItem> GroupSummaryRows =>
+        BuildGroupSummary(SortedRows, Columns, _groupByKey);
+    private int TotalCellCount => Rows.Count * Columns.Count;
+    private int MissingCellCount => CountMissingCells(Rows, Columns);
+    private int DuplicateRowCount => CountDuplicateRows(Rows, Columns);
+    private string MissingPercentageText => TotalCellCount == 0
+        ? "0.0%"
+        : $"{(MissingCellCount * 100.0 / TotalCellCount):N1}%";
+    private IReadOnlyList<ColumnInsight> ColumnInsights => BuildColumnInsights(Rows, Columns);
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (!_savedViewsInitialized)
+        {
+            _savedViews.Clear();
+            _savedViews.AddRange(SavedViews);
+            _savedViewsInitialized = true;
+        }
+
+        if (IsAiRecommendedSortEnabled && AutoRecommendSortOnLoad && !_recommendationLoaded && Columns.Count > 0)
+        {
+            await TryLoadRecommendationAsync();
+            _recommendationLoaded = true;
+        }
+
+        if (IsAiInsightsPanelEnabled && AutoGenerateAiInsightsOnLoad && !_aiInsightLoaded && Columns.Count > 0 && Rows.Count > 0)
+        {
+            await GenerateAiInsightAsync();
+            _aiInsightLoaded = true;
+        }
+    }
+
+    private void ApplySort(string key)
+    {
+        if (string.IsNullOrWhiteSpace(key))
+        {
+            return;
+        }
+
+        if (_sortKey?.Equals(key, StringComparison.OrdinalIgnoreCase) == true)
+        {
+            _sortAscending = !_sortAscending;
+            return;
+        }
+
+        _sortKey = key;
+        _sortAscending = true;
+    }
+
+    private void HandleGlobalSearchInput(ChangeEventArgs args)
+    {
+        _globalSearch = args.Value?.ToString() ?? string.Empty;
+    }
+
+    private string GetColumnFilter(string key) =>
+        _columnFilters.TryGetValue(key, out var value) ? value : string.Empty;
+
+    private void HandleColumnFilterInput(string key, ChangeEventArgs args)
+    {
+        var value = args.Value?.ToString() ?? string.Empty;
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            _columnFilters.Remove(key);
+            return;
+        }
+
+        _columnFilters[key] = value;
+    }
+
+    private void HandleGroupByChanged(ChangeEventArgs args)
+    {
+        _groupByKey = args.Value?.ToString() ?? string.Empty;
+    }
+
+    private async Task SaveCurrentViewAsync()
+    {
+        if (!IsSavedViewsEnabled || !AllowCreateView)
+        {
+            return;
+        }
+
+        var name = (_newViewName ?? string.Empty).Trim();
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            return;
+        }
+
+        var state = new BuzzSmartTableViewState(
+            Name: name,
+            GlobalSearch: _globalSearch,
+            GroupByKey: _groupByKey,
+            SortKey: _sortKey,
+            SortAscending: _sortAscending,
+            ColumnFilters: new Dictionary<string, string>(_columnFilters, StringComparer.OrdinalIgnoreCase));
+
+        var existingIndex = _savedViews.FindIndex(view => view.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+        if (existingIndex >= 0)
+        {
+            _savedViews[existingIndex] = state;
+        }
+        else
+        {
+            _savedViews.Add(state);
+        }
+
+        _newViewName = string.Empty;
+        await SavedViewsChanged.InvokeAsync(_savedViews.ToList());
+    }
+
+    private void ApplyView(BuzzSmartTableViewState view)
+    {
+        _globalSearch = view.GlobalSearch ?? string.Empty;
+        _groupByKey = view.GroupByKey ?? string.Empty;
+        _sortKey = view.SortKey;
+        _sortAscending = view.SortAscending;
+        _columnFilters.Clear();
+        if (view.ColumnFilters is null)
+        {
+            return;
+        }
+
+        foreach (var (key, value) in view.ColumnFilters)
+        {
+            if (!string.IsNullOrWhiteSpace(value))
+            {
+                _columnFilters[key] = value;
+            }
+        }
+    }
+
+    private async Task DeleteViewAsync(string name)
+    {
+        if (!IsSavedViewsEnabled || !AllowDeleteView || string.IsNullOrWhiteSpace(name))
+        {
+            return;
+        }
+
+        var removed = _savedViews.RemoveAll(view => view.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+        if (removed > 0)
+        {
+            await SavedViewsChanged.InvokeAsync(_savedViews.ToList());
+        }
+    }
+
+    private static IReadOnlyList<IReadOnlyDictionary<string, string>> ApplyCurrentSort(
+        IReadOnlyList<IReadOnlyDictionary<string, string>> rows,
+        string? sortKey,
+        bool ascending,
+        BuzzTableColumn? sortColumn)
+    {
+        if (rows.Count == 0 || string.IsNullOrWhiteSpace(sortKey))
+        {
+            return rows;
+        }
+
+        Func<IReadOnlyDictionary<string, string>, string> textSelector =
+            row => row.TryGetValue(sortKey, out var value) ? value : string.Empty;
+
+        if (sortColumn is null)
+        {
+            var textSorted = ascending
+                ? rows.OrderBy(textSelector, StringComparer.OrdinalIgnoreCase)
+                : rows.OrderByDescending(textSelector, StringComparer.OrdinalIgnoreCase);
+            return textSorted.ToList();
+        }
+
+        if (sortColumn.DataType is BuzzTableDataType.Number or BuzzTableDataType.Currency or BuzzTableDataType.Percent)
+        {
+            var numericSorted = ascending
+                ? rows.OrderBy(row => ParseDecimal(textSelector(row), sortColumn))
+                : rows.OrderByDescending(row => ParseDecimal(textSelector(row), sortColumn));
+            return numericSorted.ToList();
+        }
+
+        if (sortColumn.DataType is BuzzTableDataType.Date or BuzzTableDataType.DateTime)
+        {
+            var dateSorted = ascending
+                ? rows.OrderBy(row => ParseDateTime(textSelector(row), sortColumn))
+                : rows.OrderByDescending(row => ParseDateTime(textSelector(row), sortColumn));
+            return dateSorted.ToList();
+        }
+
+        var sorted = ascending
+            ? rows.OrderBy(textSelector, StringComparer.OrdinalIgnoreCase)
+            : rows.OrderByDescending(textSelector, StringComparer.OrdinalIgnoreCase);
+        return sorted.ToList();
+    }
+
+    private static IReadOnlyList<IReadOnlyDictionary<string, string>> ApplyFilters(
+        IReadOnlyList<IReadOnlyDictionary<string, string>> rows,
+        IReadOnlyList<BuzzTableColumn> columns,
+        string globalSearch,
+        IReadOnlyDictionary<string, string> columnFilters)
+    {
+        IEnumerable<IReadOnlyDictionary<string, string>> query = rows;
+
+        if (!string.IsNullOrWhiteSpace(globalSearch))
+        {
+            var search = globalSearch.Trim();
+            query = query.Where(row =>
+                columns.Any(column =>
+                    row.TryGetValue(column.Key, out var value) &&
+                    !string.IsNullOrWhiteSpace(value) &&
+                    value.Contains(search, StringComparison.OrdinalIgnoreCase)));
+        }
+
+        foreach (var (key, filter) in columnFilters)
+        {
+            if (string.IsNullOrWhiteSpace(filter))
+            {
+                continue;
+            }
+
+            var text = filter.Trim();
+            query = query.Where(row =>
+                row.TryGetValue(key, out var value) &&
+                !string.IsNullOrWhiteSpace(value) &&
+                value.Contains(text, StringComparison.OrdinalIgnoreCase));
+        }
+
+        return query.ToList();
+    }
+
+    private BuzzTableColumn? ResolveColumnByKey(string? key)
+    {
+        if (string.IsNullOrWhiteSpace(key))
+        {
+            return null;
+        }
+
+        return Columns.FirstOrDefault(column => column.Key.Equals(key, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private string FormatCellValue(BuzzTableColumn column, IReadOnlyDictionary<string, string> row)
+    {
+        var raw = row.TryGetValue(column.Key, out var value) ? value : string.Empty;
+        if (!column.EnableAutoFormat || string.IsNullOrWhiteSpace(raw))
+        {
+            return raw;
+        }
+
+        var culture = ResolveCulture(column.Culture);
+
+        switch (column.DataType)
+        {
+            case BuzzTableDataType.Number:
+            {
+                var number = ParseDecimal(raw, column);
+                return number is null ? raw : number.Value.ToString(column.Format ?? "N2", culture);
+            }
+            case BuzzTableDataType.Currency:
+            {
+                var number = ParseDecimal(raw, column);
+                return number is null ? raw : number.Value.ToString(column.Format ?? "C2", culture);
+            }
+            case BuzzTableDataType.Percent:
+            {
+                var number = ParseDecimal(raw, column);
+                if (number is null)
+                {
+                    return raw;
+                }
+
+                var fraction = number.Value > 1 ? number.Value / 100m : number.Value;
+                return fraction.ToString(column.Format ?? "P2", culture);
+            }
+            case BuzzTableDataType.Date:
+            {
+                var date = ParseDateTime(raw, column);
+                return date is null ? raw : date.Value.ToString(column.Format ?? "d", culture);
+            }
+            case BuzzTableDataType.DateTime:
+            {
+                var date = ParseDateTime(raw, column);
+                return date is null ? raw : date.Value.ToString(column.Format ?? "g", culture);
+            }
+            case BuzzTableDataType.Boolean:
+            {
+                var valueParsed = ParseBoolean(raw);
+                return valueParsed is null ? raw : valueParsed.Value ? "Yes" : "No";
+            }
+            default:
+                return raw;
+        }
+    }
+
+    private string GetAggregateText(BuzzTableColumn column)
+    {
+        if (column.Aggregation == BuzzTableAggregationType.None)
+        {
+            return string.Empty;
+        }
+
+        var values = SortedRows
+            .Select(row => row.TryGetValue(column.Key, out var value) ? value : string.Empty)
+            .Where(value => !string.IsNullOrWhiteSpace(value))
+            .ToList();
+        if (values.Count == 0)
+        {
+            return $"{column.Aggregation}: -";
+        }
+
+        var culture = ResolveCulture(column.Culture);
+        var label = column.Aggregation switch
+        {
+            BuzzTableAggregationType.DistinctCount => "Distinct",
+            _ => column.Aggregation.ToString()
+        };
+
+        switch (column.Aggregation)
+        {
+            case BuzzTableAggregationType.Count:
+                return $"{label}: {values.Count}";
+            case BuzzTableAggregationType.DistinctCount:
+                return $"{label}: {values.Distinct(StringComparer.OrdinalIgnoreCase).Count()}";
+            case BuzzTableAggregationType.Sum:
+            {
+                var parsed = values.Select(value => ParseDecimal(value, column)).Where(item => item is not null).Select(item => item!.Value).ToList();
+                if (parsed.Count == 0)
+                {
+                    return $"{label}: -";
+                }
+
+                var sum = parsed.Sum();
+                return $"{label}: {FormatAggregateNumber(sum, column, culture)}";
+            }
+            case BuzzTableAggregationType.Average:
+            {
+                var parsed = values.Select(value => ParseDecimal(value, column)).Where(item => item is not null).Select(item => item!.Value).ToList();
+                if (parsed.Count == 0)
+                {
+                    return $"{label}: -";
+                }
+
+                var avg = parsed.Average();
+                return $"{label}: {FormatAggregateNumber((decimal)avg, column, culture)}";
+            }
+            case BuzzTableAggregationType.Min:
+            {
+                if (column.DataType is BuzzTableDataType.Date or BuzzTableDataType.DateTime)
+                {
+                    var dates = values.Select(value => ParseDateTime(value, column)).Where(item => item is not null).Select(item => item!.Value).ToList();
+                    if (dates.Count == 0)
+                    {
+                        return $"{label}: -";
+                    }
+
+                    return $"{label}: {dates.Min().ToString(column.Format ?? (column.DataType == BuzzTableDataType.Date ? "d" : "g"), culture)}";
+                }
+
+                var minText = values.OrderBy(item => item, StringComparer.OrdinalIgnoreCase).First();
+                return $"{label}: {minText}";
+            }
+            case BuzzTableAggregationType.Max:
+            {
+                if (column.DataType is BuzzTableDataType.Date or BuzzTableDataType.DateTime)
+                {
+                    var dates = values.Select(value => ParseDateTime(value, column)).Where(item => item is not null).Select(item => item!.Value).ToList();
+                    if (dates.Count == 0)
+                    {
+                        return $"{label}: -";
+                    }
+
+                    return $"{label}: {dates.Max().ToString(column.Format ?? (column.DataType == BuzzTableDataType.Date ? "d" : "g"), culture)}";
+                }
+
+                var maxText = values.OrderBy(item => item, StringComparer.OrdinalIgnoreCase).Last();
+                return $"{label}: {maxText}";
+            }
+            default:
+                return string.Empty;
+        }
+    }
+
+    private static decimal? ParseDecimal(string? value, BuzzTableColumn column)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return null;
+        }
+
+        var culture = ResolveCulture(column.Culture);
+        return decimal.TryParse(value, NumberStyles.Any, culture, out var parsed)
+            ? parsed
+            : decimal.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out parsed)
+                ? parsed
+                : null;
+    }
+
+    private static DateTime? ParseDateTime(string? value, BuzzTableColumn column)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return null;
+        }
+
+        var culture = ResolveCulture(column.Culture);
+        return DateTime.TryParse(value, culture, DateTimeStyles.AssumeLocal, out var parsed)
+            ? parsed
+            : DateTime.TryParse(value, CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal, out parsed)
+                ? parsed
+                : null;
+    }
+
+    private static bool? ParseBoolean(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return null;
+        }
+
+        if (bool.TryParse(value, out var parsed))
+        {
+            return parsed;
+        }
+
+        return value.Trim().ToLowerInvariant() switch
+        {
+            "1" => true,
+            "0" => false,
+            "yes" => true,
+            "no" => false,
+            _ => null
+        };
+    }
+
+    private static string FormatAggregateNumber(decimal value, BuzzTableColumn column, CultureInfo culture) =>
+        column.DataType switch
+        {
+            BuzzTableDataType.Currency => value.ToString(column.Format ?? "C2", culture),
+            BuzzTableDataType.Percent => (value > 1 ? value / 100m : value).ToString(column.Format ?? "P2", culture),
+            _ => value.ToString(column.Format ?? "N2", culture)
+        };
+
+    private static CultureInfo ResolveCulture(string? culture)
+    {
+        if (string.IsNullOrWhiteSpace(culture))
+        {
+            return CultureInfo.CurrentCulture;
+        }
+
+        try
+        {
+            return CultureInfo.GetCultureInfo(culture);
+        }
+        catch (CultureNotFoundException)
+        {
+            return CultureInfo.CurrentCulture;
+        }
+    }
+
+    private static int CountMissingCells(
+        IReadOnlyList<IReadOnlyDictionary<string, string>> rows,
+        IReadOnlyList<BuzzTableColumn> columns)
+    {
+        var missing = 0;
+        foreach (var row in rows)
+        {
+            foreach (var column in columns)
+            {
+                if (!row.TryGetValue(column.Key, out var value) || string.IsNullOrWhiteSpace(value))
+                {
+                    missing++;
+                }
+            }
+        }
+
+        return missing;
+    }
+
+    private static int CountDuplicateRows(
+        IReadOnlyList<IReadOnlyDictionary<string, string>> rows,
+        IReadOnlyList<BuzzTableColumn> columns)
+    {
+        if (rows.Count == 0 || columns.Count == 0)
+        {
+            return 0;
+        }
+
+        var signatures = rows.Select(row => BuildRowSignature(row, columns));
+        return signatures
+            .GroupBy(item => item, StringComparer.OrdinalIgnoreCase)
+            .Where(group => group.Count() > 1)
+            .Sum(group => group.Count() - 1);
+    }
+
+    private static string BuildRowSignature(IReadOnlyDictionary<string, string> row, IReadOnlyList<BuzzTableColumn> columns)
+    {
+        var builder = new StringBuilder();
+        foreach (var column in columns)
+        {
+            if (!row.TryGetValue(column.Key, out var value))
+            {
+                value = string.Empty;
+            }
+
+            builder.Append(column.Key);
+            builder.Append('=');
+            builder.Append(value?.Trim() ?? string.Empty);
+            builder.Append('|');
+        }
+
+        return builder.ToString();
+    }
+
+    private static IReadOnlyList<ColumnInsight> BuildColumnInsights(
+        IReadOnlyList<IReadOnlyDictionary<string, string>> rows,
+        IReadOnlyList<BuzzTableColumn> columns)
+    {
+        var insights = new List<ColumnInsight>();
+        foreach (var column in columns)
+        {
+            var values = rows.Select(row => row.TryGetValue(column.Key, out var value) ? value : string.Empty).ToList();
+            var nonEmpty = values.Where(value => !string.IsNullOrWhiteSpace(value)).ToList();
+            if (values.Count == 0)
+            {
+                continue;
+            }
+
+            var missing = values.Count - nonEmpty.Count;
+            var distinct = nonEmpty.Distinct(StringComparer.OrdinalIgnoreCase).Count();
+
+            switch (column.DataType)
+            {
+                case BuzzTableDataType.Number:
+                case BuzzTableDataType.Currency:
+                case BuzzTableDataType.Percent:
+                {
+                    var parsed = nonEmpty.Select(value => ParseDecimal(value, column)).ToList();
+                    var valid = parsed.Count(item => item is not null);
+                    var invalid = parsed.Count - valid;
+                    insights.Add(new ColumnInsight(
+                        column.Header,
+                        $"Valid numbers: {valid}, Invalid numbers: {invalid}, Missing: {missing}"));
+                    break;
+                }
+                case BuzzTableDataType.Date:
+                case BuzzTableDataType.DateTime:
+                {
+                    var parsed = nonEmpty.Select(value => ParseDateTime(value, column)).ToList();
+                    var valid = parsed.Count(item => item is not null);
+                    var invalid = parsed.Count - valid;
+                    insights.Add(new ColumnInsight(
+                        column.Header,
+                        $"Valid dates: {valid}, Invalid dates: {invalid}, Missing: {missing}"));
+                    break;
+                }
+                default:
+                {
+                    var top = nonEmpty
+                        .GroupBy(value => value, StringComparer.OrdinalIgnoreCase)
+                        .OrderByDescending(group => group.Count())
+                        .ThenBy(group => group.Key, StringComparer.OrdinalIgnoreCase)
+                        .FirstOrDefault();
+                    if (top is null)
+                    {
+                        insights.Add(new ColumnInsight(column.Header, $"Missing: {missing}"));
+                        break;
+                    }
+
+                    insights.Add(new ColumnInsight(
+                        column.Header,
+                        $"Most common: '{top.Key}' ({top.Count()}), Distinct: {distinct}, Missing: {missing}"));
+                    break;
+                }
+            }
+        }
+
+        return insights;
+    }
+
+    private sealed record ColumnInsight(string Header, string Summary);
+    private sealed record GroupSummaryItem(string Label, int Count);
+
+    private static IReadOnlyList<GroupSummaryItem> BuildGroupSummary(
+        IReadOnlyList<IReadOnlyDictionary<string, string>> rows,
+        IReadOnlyList<BuzzTableColumn> columns,
+        string groupByKey)
+    {
+        if (rows.Count == 0 || string.IsNullOrWhiteSpace(groupByKey))
+        {
+            return [];
+        }
+
+        var header = columns.FirstOrDefault(column => column.Key.Equals(groupByKey, StringComparison.OrdinalIgnoreCase))?.Header
+            ?? groupByKey;
+
+        return rows
+            .Select(row => row.TryGetValue(groupByKey, out var value) ? value : string.Empty)
+            .GroupBy(value => string.IsNullOrWhiteSpace(value) ? "(empty)" : value, StringComparer.OrdinalIgnoreCase)
+            .OrderByDescending(group => group.Count())
+            .ThenBy(group => group.Key, StringComparer.OrdinalIgnoreCase)
+            .Select(group => new GroupSummaryItem($"{header} = {group.Key}", group.Count()))
+            .ToList();
+    }
+
+    private async Task GenerateAiInsightAsync()
+    {
+        if (!IsAiInsightsPanelEnabled || Columns.Count == 0 || Rows.Count == 0)
+        {
+            return;
+        }
+
+        var insightInput = BuildInsightInput();
+        if (string.IsNullOrWhiteSpace(insightInput))
+        {
+            return;
+        }
+
+        _insightLoading = true;
+        _aiInsightError = null;
+        _aiInsightText = null;
+
+        try
+        {
+            var response = await BuzzClient.GenerateAsync(
+                new BuzzRequest(
+                    insightInput,
+                    "You are analyzing a data table for support operations. Return exactly three short bullet points: 1) key trend, 2) possible anomaly/risk, 3) next action recommendation. Keep it concise and practical.",
+                    "Output should be plain text bullets for end users."));
+
+            var text = (response.OutputText ?? string.Empty).Trim();
+            _aiInsightText = string.IsNullOrWhiteSpace(text) ? AiInsightFallbackText : text;
+        }
+        catch (Exception ex)
+        {
+            Logger.LogWarning(ex, "BuzzSmartTable AI insight generation failed.");
+            _aiInsightError = AiInsightFallbackText;
+        }
+        finally
+        {
+            _insightLoading = false;
+        }
+    }
+
+    private string BuildInsightInput()
+    {
+        var source = (SourceText ?? string.Empty).Trim();
+        var builder = new StringBuilder();
+        if (!string.IsNullOrWhiteSpace(source))
+        {
+            builder.AppendLine($"Context: {Truncate(source, MaxInputCharacters / 2)}");
+        }
+
+        builder.AppendLine($"Rows={Rows.Count}; MissingCells={MissingCellCount}; MissingPct={MissingPercentageText}; Duplicates={DuplicateRowCount}");
+        builder.AppendLine("Columns:");
+        foreach (var column in Columns)
+        {
+            builder.Append("- ");
+            builder.Append(column.Header);
+            builder.Append(" (");
+            builder.Append(column.DataType);
+            builder.AppendLine(")");
+        }
+
+        builder.AppendLine("Sample rows:");
+        var sampleRows = SortedRows.Take(8).ToList();
+        foreach (var row in sampleRows)
+        {
+            var parts = Columns
+                .Select(column => $"{column.Header}={FormatCellValue(column, row)}")
+                .ToArray();
+            builder.AppendLine(string.Join("; ", parts));
+        }
+
+        return Truncate(builder.ToString(), MaxInputCharacters);
+    }
+
+    private static string Truncate(string text, int limit)
+    {
+        if (string.IsNullOrWhiteSpace(text) || limit <= 0 || text.Length <= limit)
+        {
+            return text;
+        }
+
+        return text[..limit];
+    }
+
+    private async Task TryLoadRecommendationAsync()
+    {
+        var source = (SourceText ?? string.Empty).Trim();
+        if (string.IsNullOrWhiteSpace(source))
+        {
+            return;
+        }
+
+        var constrainedInput = source.Length > MaxInputCharacters
+            ? source[..MaxInputCharacters]
+            : source;
+        var headers = Columns.Select(column => column.Header.Trim()).Where(header => header.Length > 0).ToList();
+        if (headers.Count == 0)
+        {
+            return;
+        }
+
+        try
+        {
+            var response = await BuzzClient.GenerateAsync(
+                new BuzzRequest(
+                    constrainedInput,
+                    "Choose exactly one column header from the provided list that should be used as the initial sort for user clarity. Return only the column header text and nothing else.",
+                    $"ColumnHeaders: {string.Join(" | ", headers)}"));
+
+            var candidate = (response.OutputText ?? string.Empty).Trim();
+            var match = headers.FirstOrDefault(header => header.Equals(candidate, StringComparison.OrdinalIgnoreCase))
+                ?? headers.FirstOrDefault(header => candidate.Contains(header, StringComparison.OrdinalIgnoreCase));
+            if (string.IsNullOrWhiteSpace(match))
+            {
+                return;
+            }
+
+            _recommendedSortHeader = match;
+            var column = Columns.FirstOrDefault(item => item.Header.Equals(match, StringComparison.OrdinalIgnoreCase));
+            if (column is not null)
+            {
+                _sortKey = column.Key;
+                _sortAscending = true;
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogWarning(ex, "BuzzSmartTable recommendation generation failed.");
+        }
+    }
+}

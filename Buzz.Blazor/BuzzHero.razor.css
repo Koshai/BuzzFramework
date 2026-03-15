@@ -1,0 +1,18 @@
+.buzz-hero {
+    border: 1px solid var(--buzz-border, #d0d7de);
+    border-radius: 16px;
+    background: linear-gradient(135deg, var(--buzz-surface, #ffffff), var(--buzz-accent-soft, #dbeafe));
+    padding: 1.2rem;
+}
+
+.buzz-hero h1 {
+    margin: 0.45rem 0 0.35rem;
+    font-size: clamp(1.25rem, 2vw, 2rem);
+    color: var(--buzz-text-primary, #0f172a);
+}
+
+.buzz-hero p {
+    margin: 0 0 0.75rem;
+    color: var(--buzz-text-muted, #64748b);
+    max-width: 64ch;
+}

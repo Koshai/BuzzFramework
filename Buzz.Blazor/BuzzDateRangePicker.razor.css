@@ -1,0 +1,56 @@
+.buzz-date-range {
+    border: 1px solid var(--buzz-border, #d0d7de);
+    border-radius: 12px;
+    background: var(--buzz-surface, #ffffff);
+    padding: 0.65rem;
+    display: grid;
+    gap: 0.45rem;
+}
+
+.buzz-date-range-label {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--buzz-text-primary, #0f172a);
+}
+
+.buzz-date-range-inputs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.55rem;
+}
+
+.buzz-date-range-inputs input {
+    width: 100%;
+    border: 1px solid var(--buzz-input-border, #c5ccd3);
+    border-radius: 8px;
+    padding: 0.35rem 0.45rem;
+}
+
+.buzz-date-range-meta {
+    display: block;
+    font-size: 0.74rem;
+    color: var(--buzz-text-muted, #64748b);
+    margin-bottom: 0.2rem;
+}
+
+.buzz-date-range-hint {
+    margin: 0;
+    font-size: 0.78rem;
+    color: #1e3a8a;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 8px;
+    padding: 0.35rem 0.45rem;
+}
+
+.buzz-date-range-error {
+    margin: 0;
+    color: #b91c1c;
+    font-size: 0.76rem;
+}
+
+@media (max-width: 640px) {
+    .buzz-date-range-inputs {
+        grid-template-columns: 1fr;
+    }
+}

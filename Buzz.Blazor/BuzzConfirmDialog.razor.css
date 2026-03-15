@@ -1,0 +1,43 @@
+.buzz-confirm-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgb(15 23 42 / 40%);
+    z-index: 69;
+}
+
+.buzz-confirm-dialog {
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: min(460px, 92vw);
+    border: 1px solid var(--buzz-border, #d0d7de);
+    border-radius: 12px;
+    background: var(--buzz-surface, #ffffff);
+    z-index: 70;
+    overflow: hidden;
+}
+
+.buzz-confirm-header,
+.buzz-confirm-footer {
+    padding: 0.65rem 0.75rem;
+    border-bottom: 1px solid var(--buzz-border, #d0d7de);
+}
+
+.buzz-confirm-footer {
+    border-bottom: none;
+    border-top: 1px solid var(--buzz-border, #d0d7de);
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.4rem;
+}
+
+.buzz-confirm-body {
+    padding: 0.75rem;
+    color: var(--buzz-text-primary, #0f172a);
+}
+
+.buzz-confirm-body p {
+    margin: 0;
+    font-size: 0.85rem;
+}

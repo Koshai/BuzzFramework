@@ -1,0 +1,43 @@
+<div class="buzz-stat-card buzz-stat-card-@NormalizeVariant(Variant)">
+    <div class="buzz-stat-header">
+        <span class="buzz-stat-label">@Label</span>
+        @if (!string.IsNullOrWhiteSpace(TrendText))
+        {
+            <span class="buzz-stat-trend">@TrendText</span>
+        }
+    </div>
+
+    <div class="buzz-stat-value">@Value</div>
+
+    @if (!string.IsNullOrWhiteSpace(Description))
+    {
+        <p class="buzz-stat-description">@Description</p>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public string Label { get; set; } = "Metric";
+
+    [Parameter]
+    public string Value { get; set; } = "0";
+
+    [Parameter]
+    public string Description { get; set; } = string.Empty;
+
+    [Parameter]
+    public string TrendText { get; set; } = string.Empty;
+
+    [Parameter]
+    public string Variant { get; set; } = "neutral";
+
+    private static string NormalizeVariant(string? value) =>
+        value?.Trim().ToLowerInvariant() switch
+        {
+            "accent" => "accent",
+            "success" => "success",
+            "warning" => "warning",
+            "danger" => "danger",
+            _ => "neutral"
+        };
+}

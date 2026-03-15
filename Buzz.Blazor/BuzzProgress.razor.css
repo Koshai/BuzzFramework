@@ -1,0 +1,41 @@
+.buzz-progress {
+    display: grid;
+    gap: 0.28rem;
+}
+
+.buzz-progress-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.4rem;
+    font-size: 0.76rem;
+    color: var(--buzz-text-muted, #475569);
+}
+
+.buzz-progress-track {
+    width: 100%;
+    height: 0.5rem;
+    border-radius: 999px;
+    background: #e2e8f0;
+    overflow: hidden;
+}
+
+.buzz-progress-bar {
+    height: 100%;
+    border-radius: inherit;
+}
+
+.buzz-progress-bar-accent {
+    background: var(--buzz-accent, #3b82f6);
+}
+
+.buzz-progress-bar-success {
+    background: #16a34a;
+}
+
+.buzz-progress-bar-warning {
+    background: #d97706;
+}
+
+.buzz-progress-bar-danger {
+    background: #dc2626;
+}

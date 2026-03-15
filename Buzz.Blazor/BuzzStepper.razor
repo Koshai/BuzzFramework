@@ -1,0 +1,235 @@
+@using Buzz.Blazor.Models
+@using Buzz.Core
+@using Microsoft.Extensions.Logging
+@inject IBuzzClient BuzzClient
+@inject ILogger<BuzzStepper> Logger
+
+<div class="buzz-stepper">
+    @if (!string.IsNullOrWhiteSpace(Label))
+    {
+        <h3 class="buzz-stepper-label">@Label</h3>
+    }
+
+    @if (ShowRecommendationHint && !string.IsNullOrWhiteSpace(_recommendedStep))
+    {
+        <p class="buzz-stepper-recommendation">
+            Recommended step: <strong>@_recommendedStep</strong>
+        </p>
+    }
+
+    <ol class="buzz-stepper-track" aria-label="@Label">
+        @for (var i = 0; i < Steps.Count; i++)
+        {
+            var item = Steps[i];
+            var stateClass = ResolveStepStateClass(i);
+            var currentIndex = i;
+            <li class="buzz-stepper-item @stateClass">
+                <button
+                    type="button"
+                    class="buzz-stepper-button"
+                    disabled="@(!AllowStepNavigation)"
+                    aria-current="@(currentIndex == _currentStepIndex ? "step" : null)"
+                    @onclick="() => SelectStepAsync(currentIndex)">
+                    <span class="buzz-stepper-index">@(currentIndex + 1)</span>
+                    <span class="buzz-stepper-title">@item.Title</span>
+                </button>
+            </li>
+        }
+    </ol>
+
+    @if (_currentStep is not null)
+    {
+        <div class="buzz-stepper-panel">
+            <h4 class="buzz-stepper-panel-title">@_currentStep.Title</h4>
+            <p class="buzz-stepper-panel-text">@_currentStep.Description</p>
+        </div>
+    }
+
+    <div class="buzz-stepper-actions">
+        <button type="button" class="buzz-stepper-nav" disabled="@(_currentStepIndex <= 0)" @onclick="MovePreviousAsync">
+            Previous
+        </button>
+        <button type="button" class="buzz-stepper-nav" disabled="@(_currentStepIndex >= Steps.Count - 1)" @onclick="MoveNextAsync">
+            Next
+        </button>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public string Label { get; set; } = "Buzz Stepper";
+
+    [Parameter]
+    public IReadOnlyList<BuzzStepItem> Steps { get; set; } = [];
+
+    [Parameter]
+    public string ActiveStep { get; set; } = string.Empty;
+
+    [Parameter]
+    public EventCallback<string> ActiveStepChanged { get; set; }
+
+    [Parameter]
+    public bool AllowStepNavigation { get; set; } = true;
+
+    [Parameter]
+    public bool ShowRecommendationHint { get; set; } = true;
+
+    [Parameter]
+    public bool EnableAiRecommendedStep { get; set; } = true;
+
+    [Parameter]
+    public bool AutoRecommendOnLoad { get; set; } = true;
+
+    [Parameter]
+    public string SourceText { get; set; } = string.Empty;
+
+    [Parameter]
+    public int MaxInputCharacters { get; set; } = 1200;
+
+    private int _currentStepIndex;
+    private string? _recommendedStep;
+    private bool _recommendedLoaded;
+
+    private BuzzStepItem? _currentStep =>
+        _currentStepIndex >= 0 && _currentStepIndex < Steps.Count
+            ? Steps[_currentStepIndex]
+            : null;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        InitializeCurrentStep();
+
+        if (!EnableAiRecommendedStep || !AutoRecommendOnLoad || _recommendedLoaded || Steps.Count == 0)
+        {
+            return;
+        }
+
+        await TryLoadRecommendationAsync();
+        _recommendedLoaded = true;
+    }
+
+    private void InitializeCurrentStep()
+    {
+        if (Steps.Count == 0)
+        {
+            _currentStepIndex = 0;
+            return;
+        }
+
+        if (!string.IsNullOrWhiteSpace(ActiveStep))
+        {
+            var explicitIndex = FindStepIndexByTitle(ActiveStep.Trim());
+            _currentStepIndex = explicitIndex >= 0 ? explicitIndex : 0;
+            return;
+        }
+
+        if (_currentStepIndex >= 0 && _currentStepIndex < Steps.Count)
+        {
+            return;
+        }
+
+        var initialIndex = Steps
+            .Select((item, index) => (item, index))
+            .FirstOrDefault(entry => entry.item.IsInitiallyActive).index;
+        _currentStepIndex = initialIndex;
+    }
+
+    private string ResolveStepStateClass(int index)
+    {
+        if (index < _currentStepIndex)
+        {
+            return "is-complete";
+        }
+
+        if (index == _currentStepIndex)
+        {
+            return "is-current";
+        }
+
+        return "is-upcoming";
+    }
+
+    private async Task MovePreviousAsync()
+    {
+        if (_currentStepIndex <= 0)
+        {
+            return;
+        }
+
+        await SelectStepAsync(_currentStepIndex - 1);
+    }
+
+    private async Task MoveNextAsync()
+    {
+        if (_currentStepIndex >= Steps.Count - 1)
+        {
+            return;
+        }
+
+        await SelectStepAsync(_currentStepIndex + 1);
+    }
+
+    private async Task SelectStepAsync(int index)
+    {
+        if (index < 0 || index >= Steps.Count)
+        {
+            return;
+        }
+
+        _currentStepIndex = index;
+        await ActiveStepChanged.InvokeAsync(Steps[index].Title);
+    }
+
+    private int FindStepIndexByTitle(string title) =>
+        Steps
+            .Select((item, index) => (item, index))
+            .FirstOrDefault(entry => entry.item.Title.Equals(title, StringComparison.OrdinalIgnoreCase))
+            .index;
+
+    private async Task TryLoadRecommendationAsync()
+    {
+        var source = (SourceText ?? string.Empty).Trim();
+        if (string.IsNullOrWhiteSpace(source))
+        {
+            return;
+        }
+
+        var constrainedInput = source.Length > MaxInputCharacters
+            ? source[..MaxInputCharacters]
+            : source;
+        var titles = Steps.Select(item => item.Title.Trim()).Where(item => item.Length > 0).ToList();
+        if (titles.Count == 0)
+        {
+            return;
+        }
+
+        try
+        {
+            var response = await BuzzClient.GenerateAsync(
+                new BuzzRequest(
+                    constrainedInput,
+                    "Choose exactly one best matching step title from the provided list. Return only the step title text and nothing else.",
+                    $"StepTitles: {string.Join(" | ", titles)}"));
+
+            var candidate = (response.OutputText ?? string.Empty).Trim();
+            var match = titles.FirstOrDefault(title => title.Equals(candidate, StringComparison.OrdinalIgnoreCase))
+                ?? titles.FirstOrDefault(title => candidate.Contains(title, StringComparison.OrdinalIgnoreCase));
+            if (string.IsNullOrWhiteSpace(match))
+            {
+                return;
+            }
+
+            _recommendedStep = match;
+            var recommendedIndex = FindStepIndexByTitle(match);
+            if (recommendedIndex >= 0)
+            {
+                _currentStepIndex = recommendedIndex;
+                await ActiveStepChanged.InvokeAsync(match);
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogWarning(ex, "BuzzStepper recommendation generation failed.");
+        }
+    }
+}

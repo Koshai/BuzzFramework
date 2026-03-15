@@ -1,0 +1,34 @@
+.buzz-badge {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    padding: 0.12rem 0.45rem;
+    font-size: 0.74rem;
+    font-weight: 600;
+    border: 1px solid transparent;
+}
+
+.buzz-badge-neutral {
+    background: #e2e8f0;
+    color: #0f172a;
+}
+
+.buzz-badge-success {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.buzz-badge-warning {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.buzz-badge-danger {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.buzz-badge-info {
+    background: #dbeafe;
+    color: #1d4ed8;
+}

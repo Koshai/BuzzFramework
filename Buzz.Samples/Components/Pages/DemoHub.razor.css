@@ -1,0 +1,29 @@
+.demo-hub-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 0.75rem;
+}
+
+.demo-hub-card {
+    border: 1px solid var(--buzz-border, #d0d7de);
+    border-radius: 12px;
+    background: var(--buzz-surface, #ffffff);
+    padding: 0.85rem;
+}
+
+.demo-hub-card h2 {
+    margin: 0 0 0.45rem;
+    font-size: 1rem;
+}
+
+.demo-hub-card p {
+    margin: 0 0 0.65rem;
+    color: var(--buzz-text-muted, #64748b);
+    font-size: 0.9rem;
+}
+
+.demo-hub-link {
+    color: var(--buzz-accent, #2563eb);
+    text-decoration: none;
+    font-weight: 600;
+}

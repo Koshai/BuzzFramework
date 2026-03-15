@@ -1,0 +1,49 @@
+.gs-page {
+    display: grid;
+    gap: 1rem;
+}
+
+.gs-hero h1 {
+    margin: 0.35rem 0 0.3rem;
+}
+
+.gs-hero p {
+    margin: 0;
+    color: var(--buzz-text-muted, #64748b);
+}
+
+.gs-grid {
+    display: grid;
+    gap: 0.95rem;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    margin-bottom: 0.85rem;
+}
+
+.gs-card {
+    border: 1px solid var(--buzz-border, #d0d7de);
+    border-radius: 16px;
+    background: var(--buzz-surface, #ffffff);
+    padding: 1.05rem;
+    box-shadow: var(--buzz-shadow-sm, 0 1px 2px rgba(15, 23, 42, 0.05));
+}
+
+.gs-card h2 {
+    margin: 0 0 0.55rem;
+    font-size: 1.05rem;
+}
+
+.gs-cta {
+    border: 1px solid color-mix(in srgb, var(--buzz-accent, #2563eb) 24%, var(--buzz-border, #d0d7de));
+    border-radius: 18px;
+    background: linear-gradient(140deg, var(--buzz-accent-soft, #dbeafe), var(--buzz-surface, #ffffff));
+    padding: 1.05rem;
+}
+
+.gs-cta h2 {
+    margin: 0 0 0.4rem;
+}
+
+.gs-cta p {
+    margin: 0 0 0.7rem;
+    color: var(--buzz-text-muted, #64748b);
+}

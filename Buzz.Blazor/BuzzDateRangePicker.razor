@@ -1,0 +1,153 @@
+@using Buzz.Blazor.Models
+@using Buzz.Core
+@using Microsoft.Extensions.Logging
+@inject IBuzzClient BuzzClient
+@inject ILogger<BuzzDateRangePicker> Logger
+
+<section class="buzz-date-range">
+    <label class="buzz-date-range-label">@Label</label>
+
+    <div class="buzz-date-range-inputs">
+        <div>
+            <span class="buzz-date-range-meta">Start</span>
+            <input type="date" value="@Start" @oninput="OnStartChanged" />
+        </div>
+        <div>
+            <span class="buzz-date-range-meta">End</span>
+            <input type="date" value="@End" @oninput="OnEndChanged" />
+        </div>
+    </div>
+
+    <BuzzStack Direction="horizontal" Gap="0.35rem" Wrap="true" Align="center">
+        <BuzzButton Text="Today" Variant="secondary" Size="sm" OnClick="SetTodayRangeAsync" />
+        <BuzzButton Text="Last 7 Days" Variant="secondary" Size="sm" OnClick="SetLast7DaysAsync" />
+        <BuzzButton Text="Last 30 Days" Variant="secondary" Size="sm" OnClick="SetLast30DaysAsync" />
+        @if (EnableAiRecommendedRange)
+        {
+            <BuzzButton Text="@(_isRecommending ? "Recommending..." : "AI Recommend")"
+                        Variant="outline"
+                        Size="sm"
+                        Loading="@_isRecommending"
+                        OnClick="RecommendDateRangeAsync" />
+        }
+    </BuzzStack>
+
+    @if (!string.IsNullOrWhiteSpace(_recommendationHint))
+    {
+        <p class="buzz-date-range-hint">@_recommendationHint</p>
+    }
+
+    @if (!string.IsNullOrWhiteSpace(_error))
+    {
+        <p class="buzz-date-range-error">@_error</p>
+    }
+</section>
+
+@code {
+    [Parameter]
+    public string Label { get; set; } = "Date range";
+
+    [Parameter]
+    public string Start { get; set; } = string.Empty;
+
+    [Parameter]
+    public EventCallback<string> StartChanged { get; set; }
+
+    [Parameter]
+    public string End { get; set; } = string.Empty;
+
+    [Parameter]
+    public EventCallback<string> EndChanged { get; set; }
+
+    [Parameter]
+    public EventCallback<BuzzDateRange> RangeChanged { get; set; }
+
+    [Parameter]
+    public bool EnableAiRecommendedRange { get; set; } = true;
+
+    [Parameter]
+    public string SourceContext { get; set; } = string.Empty;
+
+    private bool _isRecommending;
+    private string _recommendationHint = string.Empty;
+    private string _error = string.Empty;
+
+    private async Task OnStartChanged(ChangeEventArgs args)
+    {
+        Start = args.Value?.ToString() ?? string.Empty;
+        await StartChanged.InvokeAsync(Start);
+        await NotifyRangeChangedAsync();
+    }
+
+    private async Task OnEndChanged(ChangeEventArgs args)
+    {
+        End = args.Value?.ToString() ?? string.Empty;
+        await EndChanged.InvokeAsync(End);
+        await NotifyRangeChangedAsync();
+    }
+
+    private async Task SetTodayRangeAsync()
+    {
+        var today = DateOnly.FromDateTime(DateTime.UtcNow).ToString("yyyy-MM-dd");
+        await SetRangeAsync(today, today);
+    }
+
+    private async Task SetLast7DaysAsync()
+    {
+        var end = DateOnly.FromDateTime(DateTime.UtcNow);
+        var start = end.AddDays(-6);
+        await SetRangeAsync(start.ToString("yyyy-MM-dd"), end.ToString("yyyy-MM-dd"));
+    }
+
+    private async Task SetLast30DaysAsync()
+    {
+        var end = DateOnly.FromDateTime(DateTime.UtcNow);
+        var start = end.AddDays(-29);
+        await SetRangeAsync(start.ToString("yyyy-MM-dd"), end.ToString("yyyy-MM-dd"));
+    }
+
+    private async Task RecommendDateRangeAsync()
+    {
+        _isRecommending = true;
+        _error = string.Empty;
+        try
+        {
+            var response = await BuzzClient.GenerateAsync(new BuzzRequest(
+                $"CurrentStart: {Start}\nCurrentEnd: {End}",
+                "Recommend one practical date range for reviewing this case context. Return one line only in plain text.",
+                SourceContext));
+
+            _recommendationHint = response.OutputText?.Trim() ?? string.Empty;
+        }
+        catch (Exception ex)
+        {
+            Logger.LogWarning(ex, "BuzzDateRangePicker recommendation failed.");
+            _error = "AI date-range recommendation is unavailable right now.";
+        }
+        finally
+        {
+            _isRecommending = false;
+        }
+    }
+
+    private async Task SetRangeAsync(string start, string end)
+    {
+        Start = start;
+        End = end;
+        await StartChanged.InvokeAsync(Start);
+        await EndChanged.InvokeAsync(End);
+        await NotifyRangeChangedAsync();
+    }
+
+    private async Task NotifyRangeChangedAsync()
+    {
+        if (string.CompareOrdinal(Start, End) > 0 && !string.IsNullOrWhiteSpace(Start) && !string.IsNullOrWhiteSpace(End))
+        {
+            _error = "Start date must be before or equal to end date.";
+            return;
+        }
+
+        _error = string.Empty;
+        await RangeChanged.InvokeAsync(new BuzzDateRange(Start, End));
+    }
+}

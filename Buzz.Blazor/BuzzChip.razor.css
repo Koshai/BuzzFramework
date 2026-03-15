@@ -1,0 +1,65 @@
+.buzz-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    border-radius: 999px;
+    border: 1px solid var(--buzz-border, #d0d7de);
+    padding: 0.12rem 0.18rem 0.12rem 0.35rem;
+    font-size: 0.74rem;
+    font-weight: 600;
+}
+
+.buzz-chip-label,
+.buzz-chip-remove {
+    border: none;
+    background: transparent;
+    color: inherit;
+    padding: 0;
+}
+
+.buzz-chip-label {
+    cursor: pointer;
+    font: inherit;
+}
+
+.buzz-chip-remove {
+    cursor: pointer;
+    width: 1rem;
+    height: 1rem;
+    border-radius: 999px;
+    line-height: 1rem;
+    text-align: center;
+}
+
+.buzz-chip-remove:hover {
+    background: rgb(15 23 42 / 8%);
+}
+
+.buzz-chip-icon {
+    font-size: 0.7rem;
+}
+
+.buzz-chip-neutral {
+    background: #f8fafc;
+    color: #0f172a;
+}
+
+.buzz-chip-accent {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+
+.buzz-chip-success {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.buzz-chip-warning {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.buzz-chip-danger {
+    background: #fee2e2;
+    color: #991b1b;
+}

@@ -1,0 +1,86 @@
+@using Microsoft.JSInterop
+@inject IJSRuntime JS
+
+<section class="buzz-code-block">
+    <header class="buzz-code-block-header">
+        <div class="buzz-code-block-meta">
+            @if (!string.IsNullOrWhiteSpace(Title))
+            {
+                <strong>@Title</strong>
+            }
+            @if (!string.IsNullOrWhiteSpace(Language))
+            {
+                <BuzzBadge Text="@Language" Variant="neutral" />
+            }
+        </div>
+
+        @if (EnableCopyButton)
+        {
+            <BuzzButton Text="@(_copied ? "Copied" : CopyButtonText)" Variant="secondary" Size="sm" OnClick="CopyCodeAsync" />
+        }
+    </header>
+
+    @if (ShowLineNumbers)
+    {
+        <div class="buzz-code-block-lines @WrapClass" style="@BuildStyle()">
+            @for (var index = 0; index < Lines.Count; index++)
+            {
+                <div class="buzz-code-line">
+                    <span class="buzz-code-line-number">@(index + 1)</span>
+                    <code class="buzz-code-line-content">@Lines[index]</code>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <pre class="buzz-code-pre @WrapClass" style="@BuildStyle()"><code>@Code</code></pre>
+    }
+</section>
+
+@code {
+    [Parameter]
+    public string Title { get; set; } = "Code";
+
+    [Parameter]
+    public string Language { get; set; } = "text";
+
+    [Parameter]
+    public string Code { get; set; } = string.Empty;
+
+    [Parameter]
+    public bool ShowLineNumbers { get; set; } = true;
+
+    [Parameter]
+    public bool WrapLines { get; set; } = true;
+
+    [Parameter]
+    public string MaxHeight { get; set; } = "320px";
+
+    [Parameter]
+    public bool EnableCopyButton { get; set; } = true;
+
+    [Parameter]
+    public string CopyButtonText { get; set; } = "Copy code";
+
+    private bool _copied;
+
+    private IReadOnlyList<string> Lines =>
+        (Code ?? string.Empty)
+            .Replace("\r\n", "\n", StringComparison.Ordinal)
+            .Replace('\r', '\n')
+            .Split('\n')
+            .ToList();
+
+    private string WrapClass => WrapLines ? "is-wrapped" : "is-nowrap";
+
+    private string BuildStyle() => $"max-height:{MaxHeight};";
+
+    private async Task CopyCodeAsync()
+    {
+        await JS.InvokeVoidAsync("navigator.clipboard.writeText", Code ?? string.Empty);
+        _copied = true;
+        await Task.Delay(1200);
+        _copied = false;
+    }
+}

@@ -1,0 +1,103 @@
+@page "/accessibility-checklist"
+@rendermode InteractiveServer
+
+<PageTitle>Accessibility Checklist</PageTitle>
+
+<h1>Accessibility Checklist</h1>
+<p>Use this checklist before shipping component updates.</p>
+
+<BuzzResultBanner
+    Title="Checklist progress"
+    Message="@($"{CompletedCount} of {TotalCount} checks completed ({CompletionPercent}%).")"
+    Variant="@ProgressVariant"
+    Dismissible="false" />
+
+<div class="a11y-grid">
+    @foreach (var checklistSection in _sections)
+    {
+        <section class="a11y-card">
+            <h3>@checklistSection.Title</h3>
+            <BuzzList Items="@(checklistSection.Items.Select(item => item.Title).ToList())" Ordered="true" />
+            <div class="a11y-checklist">
+                @foreach (var item in checklistSection.Items)
+                {
+                    <label class="a11y-item">
+                        <input type="checkbox" checked="@item.Done" @onchange="@(() => Toggle(item.Id))" />
+                        <span>@item.Title</span>
+                    </label>
+                }
+            </div>
+        </section>
+    }
+</div>
+
+@code {
+    private readonly List<A11ySection> _sections =
+    [
+        new("Keyboard and Focus",
+        [
+            new("kbd-1", "Tab order is logical and complete."),
+            new("kbd-2", "All controls are reachable without mouse."),
+            new("kbd-3", "Visible focus indicator exists on interactive controls.")
+        ]),
+        new("Semantics and Labels",
+        [
+            new("sem-1", "Inputs have clear labels and helper text."),
+            new("sem-2", "ARIA roles/states are valid and necessary."),
+            new("sem-3", "Toasts and alerts use the correct live region behavior.")
+        ]),
+        new("Visual and Content",
+        [
+            new("vis-1", "Color contrast meets WCAG expectations."),
+            new("vis-2", "Error states include text, not color alone."),
+            new("vis-3", "Reduced motion mode is respected.")
+        ])
+    ];
+
+    private int TotalCount => _sections.Sum(section => section.Items.Count);
+
+    private int CompletedCount => _sections.Sum(section => section.Items.Count(item => item.Done));
+
+    private int CompletionPercent =>
+        TotalCount == 0
+            ? 0
+            : (int)Math.Round((CompletedCount * 100.0) / TotalCount, MidpointRounding.AwayFromZero);
+
+    private string ProgressVariant =>
+        CompletionPercent >= 100
+            ? "success"
+            : CompletionPercent >= 60
+                ? "warning"
+                : "info";
+
+    private void Toggle(string id)
+    {
+        foreach (var section in _sections)
+        {
+            var target = section.Items.FirstOrDefault(item => string.Equals(item.Id, id, StringComparison.Ordinal));
+            if (target is null)
+            {
+                continue;
+            }
+
+            target.Done = !target.Done;
+            break;
+        }
+    }
+
+    private sealed class A11ySection(string title, List<A11yChecklistItem> items)
+    {
+        public string Title { get; } = title;
+
+        public List<A11yChecklistItem> Items { get; } = items;
+    }
+
+    private sealed class A11yChecklistItem(string id, string title)
+    {
+        public string Id { get; } = id;
+
+        public string Title { get; } = title;
+
+        public bool Done { get; set; }
+    }
+}

@@ -1,0 +1,64 @@
+.buzz-code-block {
+    border: 1px solid var(--buzz-border, #d0d7de);
+    border-radius: 12px;
+    overflow: hidden;
+    background: color-mix(in srgb, var(--buzz-surface, #ffffff) 18%, #0f172a);
+    color: color-mix(in srgb, var(--buzz-text-primary, #0f172a) 8%, #e2e8f0);
+}
+
+.buzz-code-block-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.45rem 0.55rem;
+    background: color-mix(in srgb, var(--buzz-surface, #ffffff) 12%, #111827);
+    border-bottom: 1px solid rgb(148 163 184 / 22%);
+}
+
+.buzz-code-block-meta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.buzz-code-pre,
+.buzz-code-block-lines {
+    margin: 0;
+    padding: 0.65rem;
+    overflow: auto;
+    font-size: 0.78rem;
+    font-family: Consolas, "Courier New", monospace;
+}
+
+.buzz-code-block-lines {
+    display: grid;
+    gap: 0.1rem;
+}
+
+.buzz-code-line {
+    display: grid;
+    grid-template-columns: 2.2rem minmax(0, 1fr);
+    gap: 0.55rem;
+}
+
+.buzz-code-line-number {
+    color: color-mix(in srgb, var(--buzz-text-muted, #64748b) 65%, #94a3b8);
+    text-align: right;
+    user-select: none;
+}
+
+.buzz-code-line-content {
+    white-space: pre;
+}
+
+.buzz-code-pre code {
+    display: block;
+    white-space: pre;
+}
+
+.is-wrapped .buzz-code-line-content,
+.is-wrapped code {
+    white-space: pre-wrap;
+    word-break: break-word;
+}

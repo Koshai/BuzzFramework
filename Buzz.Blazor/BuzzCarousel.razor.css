@@ -1,0 +1,23 @@
+.buzz-carousel {
+    border: 1px solid var(--buzz-border, #d0d7de);
+    border-radius: 14px;
+    padding: 0.8rem;
+    background: var(--buzz-surface, #ffffff);
+    display: grid;
+    gap: 0.5rem;
+}
+
+.buzz-carousel-slide h3 {
+    margin: 0.35rem 0 0.2rem;
+    color: var(--buzz-text-primary, #0f172a);
+}
+
+.buzz-carousel-slide p {
+    margin: 0;
+    color: var(--buzz-text-muted, #64748b);
+}
+
+.buzz-carousel-index {
+    font-size: 0.78rem;
+    color: var(--buzz-text-muted, #64748b);
+}

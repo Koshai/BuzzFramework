@@ -1,0 +1,103 @@
+@page "/demo-marketing"
+@rendermode InteractiveServer
+@using Buzz.Blazor.Models
+
+<PageTitle>Demo Marketing</PageTitle>
+
+<h1>Marketing and Auth Demo</h1>
+<p>Landing and conversion-oriented patterns with optional AI enrichment.</p>
+
+<DemoAiContextBanner SampleText="@_sampleText" />
+
+<BuzzHero Title="Ship AI-native UI faster"
+          Subtitle="Buzz delivers practical, production-friendly Blazor components."
+          PrimaryCtaText="Start building"
+          SecondaryCtaText="Read developer guide"
+          OnPrimaryCta="OnHeroPrimaryAsync"
+          OnSecondaryCta="OnHeroSecondaryAsync"
+          SourceContext="@_sampleText" />
+
+<div class="demo-marketing-section">
+    <BuzzPricingTable Plans="@_plans" OnPlanSelected="OnPlanSelectedAsync" />
+    @if (!string.IsNullOrWhiteSpace(_selectedPlanName))
+    {
+        <p class="demo-marketing-note">Selected plan: <strong>@_selectedPlanName</strong></p>
+    }
+</div>
+
+<div class="demo-marketing-section">
+    <BuzzCarousel Slides="@_slides" ActiveIndexChanged="OnActiveSlideChangedAsync" />
+    <p class="demo-marketing-note">Active slide index: @_activeSlideIndex</p>
+</div>
+
+<div class="demo-marketing-section">
+    <BuzzAuthShell Title="Welcome back" Subtitle="Sign in to manage your Buzz workspace.">
+        <ChildContent>
+            <BuzzTextBox Label="Email" InputText="@_authEmail" InputTextChanged="@OnAuthEmailChanged" Placeholder="name@company.com" InputType="email" />
+        </ChildContent>
+        <Actions>
+            <BuzzButton Text="Sign in" Variant="primary" OnClick="SignInAsync" />
+        </Actions>
+    </BuzzAuthShell>
+</div>
+
+@code {
+    private readonly string _sampleText =
+        "Customer issue: Login intermittently fails for SSO users in APAC after password reset.\n" +
+        "Observed impact: 6.2% failed login attempts in the last 24h.\n" +
+        "Requested outcome: concise root-cause hypotheses and a next-step plan.";
+
+    private readonly IReadOnlyList<BuzzPricingPlan> _plans =
+    [
+        new("Starter", "$0", "monthly", ["Core components", "Community support"], false, "Choose Starter"),
+        new("Team", "$49", "monthly", ["Advanced components", "AI enhancements", "Email support"], true, "Choose Team"),
+        new("Enterprise", "Contact us", "custom", ["SSO", "Audit logs", "Priority support"], false, "Contact sales")
+    ];
+
+    private readonly IReadOnlyList<BuzzCarouselSlide> _slides =
+    [
+        new("AI-guided setup", "Start with guided defaults for common enterprise workflows.", "New"),
+        new("Accessible by default", "Keyboard-first interactions and semantic structure built in."),
+        new("Theme-ready system", "Apply consistent brand themes without rewriting component CSS.")
+    ];
+
+    private string _selectedPlanName = string.Empty;
+    private int _activeSlideIndex;
+    private string _authEmail = "team@buzz.dev";
+
+    private Task OnHeroPrimaryAsync()
+    {
+        _selectedPlanName = "Team";
+        return Task.CompletedTask;
+    }
+
+    private Task OnHeroSecondaryAsync()
+    {
+        _activeSlideIndex = 0;
+        return Task.CompletedTask;
+    }
+
+    private Task OnPlanSelectedAsync(BuzzPricingPlan plan)
+    {
+        _selectedPlanName = plan.Name;
+        return Task.CompletedTask;
+    }
+
+    private Task OnActiveSlideChangedAsync(int index)
+    {
+        _activeSlideIndex = index;
+        return Task.CompletedTask;
+    }
+
+    private Task OnAuthEmailChanged(string value)
+    {
+        _authEmail = value;
+        return Task.CompletedTask;
+    }
+
+    private Task SignInAsync()
+    {
+        _selectedPlanName = $"Signed in as {_authEmail}";
+        return Task.CompletedTask;
+    }
+}

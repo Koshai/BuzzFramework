@@ -1,0 +1,147 @@
+@using Buzz.Core
+@using Microsoft.Extensions.Logging
+@inject IBuzzClient BuzzClient
+@inject ILogger<BuzzCodeEditor> Logger
+
+<section class="buzz-code-editor">
+    <header class="buzz-code-editor-header">
+        <div>
+            <strong>@Label</strong>
+            @if (!string.IsNullOrWhiteSpace(Language))
+            {
+                <span class="buzz-code-editor-language">@Language</span>
+            }
+        </div>
+        <BuzzStack Direction="horizontal" Gap="0.35rem" Align="center" Wrap="true">
+            @if (EnableAiAssist)
+            {
+                <BuzzButton Text="@(_isGenerating ? "Generating..." : AiButtonText)" Variant="outline" Size="sm" Loading="@_isGenerating" OnClick="GenerateAiSuggestionAsync" />
+            }
+            @if (!string.IsNullOrWhiteSpace(_aiSuggestion))
+            {
+                <BuzzButton Text="Apply suggestion" Variant="primary" Size="sm" OnClick="ApplySuggestionAsync" />
+            }
+        </BuzzStack>
+    </header>
+
+    <textarea class="buzz-code-editor-input"
+              value="@Value"
+              @oninput="HandleInputChanged"
+              placeholder="@Placeholder"
+              readonly="@ReadOnly"
+              maxlength="@MaxInputCharacters"
+              style="@($"height:{Height};")"></textarea>
+
+    @if (!string.IsNullOrWhiteSpace(_aiSuggestion))
+    {
+        <BuzzCodeBlock Title="AI suggestion" Language="@Language" Code="@_aiSuggestion" ShowLineNumbers="true" MaxHeight="240px" />
+    }
+
+    @if (!string.IsNullOrWhiteSpace(_aiError))
+    {
+        <p class="buzz-code-editor-error">@_aiError</p>
+    }
+</section>
+
+@code {
+    [Parameter]
+    public string Label { get; set; } = "Code editor";
+
+    [Parameter]
+    public string Language { get; set; } = "text";
+
+    [Parameter]
+    public string Value { get; set; } = string.Empty;
+
+    [Parameter]
+    public EventCallback<string> ValueChanged { get; set; }
+
+    [Parameter]
+    public string Placeholder { get; set; } = "Write code...";
+
+    [Parameter]
+    public string Height { get; set; } = "220px";
+
+    [Parameter]
+    public bool ReadOnly { get; set; }
+
+    [Parameter]
+    public bool EnableAiAssist { get; set; } = true;
+
+    [Parameter]
+    public string AiButtonText { get; set; } = "Improve with AI";
+
+    [Parameter]
+    public string AiInstruction { get; set; } = "Improve this code for readability and safety. Return code only, no markdown fences.";
+
+    [Parameter]
+    public string SourceContext { get; set; } = string.Empty;
+
+    [Parameter]
+    public int MaxInputCharacters { get; set; } = 6000;
+
+    [Parameter]
+    public EventCallback<string> OnAiSuggestionGenerated { get; set; }
+
+    private bool _isGenerating;
+    private string _aiSuggestion = string.Empty;
+    private string _aiError = string.Empty;
+
+    private async Task HandleInputChanged(ChangeEventArgs args)
+    {
+        var next = args.Value?.ToString() ?? string.Empty;
+        Value = next;
+        await ValueChanged.InvokeAsync(next);
+    }
+
+    private async Task GenerateAiSuggestionAsync()
+    {
+        _aiError = string.Empty;
+        _aiSuggestion = string.Empty;
+
+        var source = (Value ?? string.Empty).Trim();
+        if (string.IsNullOrWhiteSpace(source))
+        {
+            _aiError = "Add code before requesting AI improvements.";
+            return;
+        }
+
+        if (source.Length > MaxInputCharacters)
+        {
+            source = source[..MaxInputCharacters];
+        }
+
+        _isGenerating = true;
+        try
+        {
+            var response = await BuzzClient.GenerateAsync(
+                new BuzzRequest(
+                    source,
+                    AiInstruction,
+                    $"Language: {Language}\nContext: {SourceContext}"));
+
+            _aiSuggestion = (response.OutputText ?? string.Empty).Trim();
+            await OnAiSuggestionGenerated.InvokeAsync(_aiSuggestion);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogWarning(ex, "BuzzCodeEditor AI suggestion failed.");
+            _aiError = "AI suggestion is unavailable right now.";
+        }
+        finally
+        {
+            _isGenerating = false;
+        }
+    }
+
+    private async Task ApplySuggestionAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_aiSuggestion))
+        {
+            return;
+        }
+
+        Value = _aiSuggestion;
+        await ValueChanged.InvokeAsync(Value);
+    }
+}

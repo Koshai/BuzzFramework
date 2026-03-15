@@ -1,0 +1,80 @@
+@using Buzz.Core
+@using Microsoft.Extensions.Logging
+@inject IBuzzClient BuzzClient
+@inject ILogger<BuzzHero> Logger
+
+<section class="buzz-hero">
+    <div class="buzz-hero-content">
+        <BuzzBadge Text="@Badge" Variant="info" />
+        <h1>@Title</h1>
+        <p>@ResolvedSubtitle</p>
+        <BuzzStack Direction="horizontal" Gap="0.45rem" Wrap="true" Align="center">
+            <BuzzButton Text="@PrimaryCtaText" Variant="primary" OnClick="OnPrimaryCta" />
+            <BuzzButton Text="@SecondaryCtaText" Variant="outline" OnClick="OnSecondaryCta" />
+            @if (EnableAiTagline)
+            {
+                <BuzzButton Text="@(_isGenerating ? "Generating..." : "AI tagline")"
+                            Variant="secondary"
+                            Size="sm"
+                            Loading="@_isGenerating"
+                            OnClick="GenerateTaglineAsync" />
+            }
+        </BuzzStack>
+    </div>
+</section>
+
+@code {
+    [Parameter]
+    public string Badge { get; set; } = "AI-powered UI";
+
+    [Parameter]
+    public string Title { get; set; } = "Build support-grade web experiences faster";
+
+    [Parameter]
+    public string Subtitle { get; set; } = "Buzz gives teams accessible, modern components with practical AI assistance.";
+
+    [Parameter]
+    public string PrimaryCtaText { get; set; } = "Get started";
+
+    [Parameter]
+    public string SecondaryCtaText { get; set; } = "View guide";
+
+    [Parameter]
+    public EventCallback OnPrimaryCta { get; set; }
+
+    [Parameter]
+    public EventCallback OnSecondaryCta { get; set; }
+
+    [Parameter]
+    public bool EnableAiTagline { get; set; } = true;
+
+    [Parameter]
+    public string SourceContext { get; set; } = string.Empty;
+
+    private bool _isGenerating;
+    private string _aiSubtitle = string.Empty;
+
+    private string ResolvedSubtitle => string.IsNullOrWhiteSpace(_aiSubtitle) ? Subtitle : _aiSubtitle;
+
+    private async Task GenerateTaglineAsync()
+    {
+        _isGenerating = true;
+        try
+        {
+            var response = await BuzzClient.GenerateAsync(new BuzzRequest(
+                Title,
+                "Write one concise marketing subtitle (max 18 words). Plain text only.",
+                SourceContext));
+
+            _aiSubtitle = response.OutputText?.Trim() ?? string.Empty;
+        }
+        catch (Exception ex)
+        {
+            Logger.LogWarning(ex, "BuzzHero AI tagline failed.");
+        }
+        finally
+        {
+            _isGenerating = false;
+        }
+    }
+}

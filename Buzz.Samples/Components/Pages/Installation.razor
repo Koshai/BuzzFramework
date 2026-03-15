@@ -1,0 +1,101 @@
+@page "/installation"
+@rendermode InteractiveServer
+@using Buzz.Blazor.Models
+
+<PageTitle>Installation - Buzz Framework</PageTitle>
+
+<div class="install-page">
+    <header class="install-hero">
+        <BuzzBadge Text="Setup" Variant="success" />
+        <h1>Installation</h1>
+        <p>Choose your integration mode, then wire services for production-ready usage.</p>
+    </header>
+
+    <section class="install-card">
+        <BuzzTabs Label="Installation Modes"
+                  Tabs="@_installModeTabs"
+                  ShowRecommendationHint="false"
+                  EnableAiRecommendedTab="true"
+                  SourceText="@_installSource" />
+    </section>
+
+    <section class="install-grid">
+        <article class="install-card">
+            <h2>Local Project Reference (current)</h2>
+            <BuzzCodeBlock Code="@_localReferenceSnippet" Language="bash" ShowLineNumbers="false" EnableCopyButton="true" />
+        </article>
+        <article class="install-card">
+            <h2>NuGet Package (release phase)</h2>
+            <BuzzCodeBlock Code="@_nugetSnippet" Language="bash" ShowLineNumbers="false" EnableCopyButton="true" />
+            <p class="install-note">Use this command after package publishing is enabled.</p>
+        </article>
+    </section>
+
+    <section class="install-grid">
+        <article class="install-card">
+            <h2>Minimum App Setup</h2>
+            <BuzzCodeBlock Code="@_serviceSetupSnippet" Language="csharp" ShowLineNumbers="false" EnableCopyButton="true" />
+        </article>
+        <article class="install-card">
+            <h2>Validation Checklist</h2>
+            <BuzzList Items="@_validationChecklist" Ordered="false" />
+        </article>
+    </section>
+
+    <section class="install-grid">
+        <article class="install-card">
+            <h2>Reference Links</h2>
+            <BuzzList Items="@_referenceLinks" Ordered="false" />
+        </article>
+        <article class="install-card">
+            <h2>Continue</h2>
+            <BuzzList Items="@_nextMoves" Ordered="false" />
+        </article>
+    </section>
+</div>
+
+@code {
+    private readonly string _installSource =
+        "Goal: provide a clean install path for both current project-reference usage and future NuGet package usage.";
+
+    private readonly IReadOnlyList<BuzzTabItem> _installModeTabs =
+    [
+        new("Local reference", "Best for active framework development and rapid component iteration.", true),
+        new("NuGet package", "Best for stable consumption in product applications and CI environments."),
+        new("Hybrid", "Develop locally while validating package-style integration in a consumer app.")
+    ];
+
+    private readonly string _localReferenceSnippet =
+        "dotnet add reference ../Buzz.Blazor/Buzz.Blazor.csproj";
+
+    private readonly string _nugetSnippet =
+        "dotnet add package Buzz.Blazor --version <version>";
+
+    private readonly string _serviceSetupSnippet =
+        "builder.Services.AddBuzzFramework(options =>\\n" +
+        "{\\n" +
+        "    options.DefaultProviderName = \\\"openai\\\";\\n" +
+        "    options.ProviderFailoverOrder = [\\\"openai\\\", \\\"ollama\\\", \\\"mock\\\"];\\n" +
+        "});";
+
+    private readonly IReadOnlyList<string> _validationChecklist =
+    [
+        "Build solution and confirm no warnings or errors.",
+        "Switch between all five themes and validate visual changes.",
+        "Open demo pages and verify interactions/ARIA behavior."
+    ];
+
+    private readonly IReadOnlyList<string> _referenceLinks =
+    [
+        "Developer Guide: /developer-guide",
+        "Demo Hub: /demo",
+        "Accessibility Checklist: /accessibility-checklist"
+    ];
+
+    private readonly IReadOnlyList<string> _nextMoves =
+    [
+        "Run Getting Started flow for first implementation pass.",
+        "Use Developer Guide for per-component APIs and examples.",
+        "Move to packaging phase after UI and accessibility sign-off."
+    ];
+}

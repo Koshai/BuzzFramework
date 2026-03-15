@@ -1,0 +1,62 @@
+<nav class="buzz-breadcrumb" aria-label="@AriaLabel">
+    <ol class="buzz-breadcrumb-list">
+        @if (ShowHome)
+        {
+            <li class="buzz-breadcrumb-item">
+                <button type="button"
+                        class="buzz-breadcrumb-link"
+                        disabled="@(!Selectable)"
+                        @onclick="() => SelectAsync(HomeText)">
+                    @HomeText
+                </button>
+            </li>
+        }
+
+        @for (var index = 0; index < Items.Count; index++)
+        {
+            var item = Items[index];
+            var isLast = index == Items.Count - 1;
+
+            <li class="buzz-breadcrumb-item">
+                @if (!isLast && Selectable)
+                {
+                    <button type="button" class="buzz-breadcrumb-link" @onclick="() => SelectAsync(item)">@item</button>
+                }
+                else
+                {
+                    <span class="buzz-breadcrumb-current" aria-current="page">@item</span>
+                }
+            </li>
+        }
+    </ol>
+</nav>
+
+@code {
+    [Parameter]
+    public string AriaLabel { get; set; } = "Breadcrumb";
+
+    [Parameter]
+    public IReadOnlyList<string> Items { get; set; } = Array.Empty<string>();
+
+    [Parameter]
+    public bool ShowHome { get; set; } = true;
+
+    [Parameter]
+    public string HomeText { get; set; } = "Home";
+
+    [Parameter]
+    public bool Selectable { get; set; } = true;
+
+    [Parameter]
+    public EventCallback<string> OnItemSelected { get; set; }
+
+    private async Task SelectAsync(string item)
+    {
+        if (!Selectable)
+        {
+            return;
+        }
+
+        await OnItemSelected.InvokeAsync(item);
+    }
+}
