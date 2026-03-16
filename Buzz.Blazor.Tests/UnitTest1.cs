@@ -1,5 +1,8 @@
 using Bunit;
 using Buzz.Blazor;
+using Buzz.Blazor.Components.Data;
+using Buzz.Blazor.Components.Feedback;
+using Buzz.Blazor.Components.Workflow;
 
 namespace Buzz.Blazor.Tests;
 

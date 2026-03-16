@@ -4,6 +4,15 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <IsPackable>true</IsPackable>
+    <PackageId>Buzz.Framework.Blazor</PackageId>
+    <Version>0.1.0-preview.1</Version>
+    <Authors>Buzz Framework Team</Authors>
+    <Description>Reusable Blazor UI components with AI-ready interaction patterns and theme support.</Description>
+    <PackageTags>buzz;blazor;components;ui;ai</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <RepositoryUrl>https://example.com/buzz-framework</RepositoryUrl>
   </PropertyGroup>
 
 
@@ -17,6 +26,10 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Buzz.Core\Buzz.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 
 </Project>

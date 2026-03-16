@@ -1,0 +1,150 @@
+.buzz-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.45);
+    display: grid;
+    place-items: center;
+    z-index: 1200;
+    padding: 1rem;
+    animation: buzz-modal-fade-in var(--buzz-motion-normal, 180ms) var(--buzz-motion-ease, cubic-bezier(0.2, 0.8, 0.2, 1));
+}
+
+.buzz-modal {
+    inline-size: min(680px, 100%);
+    max-block-size: 85vh;
+    overflow: auto;
+    background: var(--buzz-surface, #ffffff);
+    border: 1px solid var(--buzz-border, #d0d7de);
+    border-radius: var(--buzz-radius-lg, 14px);
+    box-shadow: var(--buzz-shadow-md, 0 14px 40px rgba(15, 23, 42, 0.22));
+    display: grid;
+    gap: 0.8rem;
+    padding: 1rem;
+    animation: buzz-modal-scale-in var(--buzz-motion-slow, 280ms) var(--buzz-motion-ease-emphasized, cubic-bezier(0.16, 1, 0.3, 1));
+}
+
+.buzz-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.buzz-modal-title {
+    margin: 0;
+    color: var(--buzz-text-primary, #0f172a);
+    font-size: 1.05rem;
+}
+
+.buzz-modal-close {
+    border: 1px solid var(--buzz-border, #d0d7de);
+    border-radius: 8px;
+    background: var(--buzz-surface, #ffffff);
+    color: var(--buzz-text-primary, #0f172a);
+    inline-size: 2rem;
+    block-size: 2rem;
+    cursor: pointer;
+    transition: background-color var(--buzz-motion-fast, 120ms) var(--buzz-motion-ease, ease), border-color var(--buzz-motion-fast, 120ms) var(--buzz-motion-ease, ease), transform var(--buzz-motion-fast, 120ms) var(--buzz-motion-ease, ease);
+}
+
+.buzz-modal-close:hover {
+    background: var(--buzz-accent-soft, #dbeafe);
+    border-color: var(--buzz-accent, #3b82f6);
+    transform: translateY(-1px);
+}
+
+.buzz-modal-content {
+    color: var(--buzz-text-primary, #0f172a);
+    font-size: 0.93rem;
+}
+
+.buzz-modal-ai {
+    border: 1px solid var(--buzz-border, #d0d7de);
+    border-radius: 10px;
+    padding: 0.7rem;
+    display: grid;
+    gap: 0.45rem;
+    background: var(--buzz-surface-soft, #f8fbff);
+}
+
+.buzz-modal-ai-button,
+.buzz-modal-secondary {
+    border: 1px solid var(--buzz-border-strong, #aab4c2);
+    border-radius: 8px;
+    background: var(--buzz-surface, #ffffff);
+    color: var(--buzz-text-primary, #0f172a);
+    padding: 0.4rem 0.75rem;
+    font-size: 0.82rem;
+    cursor: pointer;
+    transition: background-color var(--buzz-motion-fast, 120ms) var(--buzz-motion-ease, ease), border-color var(--buzz-motion-fast, 120ms) var(--buzz-motion-ease, ease), transform var(--buzz-motion-fast, 120ms) var(--buzz-motion-ease, ease);
+}
+
+.buzz-modal-ai-button:hover,
+.buzz-modal-secondary:hover {
+    background: var(--buzz-accent-soft, #dbeafe);
+    border-color: var(--buzz-accent, #3b82f6);
+    transform: translateY(-1px);
+}
+
+.buzz-modal-ai-text,
+.buzz-modal-ai-error {
+    margin: 0;
+    font-size: 0.84rem;
+}
+
+.buzz-modal-ai-text {
+    color: var(--buzz-text-muted, #64748b);
+}
+
+.buzz-modal-ai-error {
+    color: #b42318;
+}
+
+.buzz-modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+}
+
+[data-buzz-theme="dark"] .buzz-modal {
+    background: var(--buzz-surface-dark, #111827);
+    border-color: var(--buzz-border-dark, #334155);
+}
+
+[data-buzz-theme="dark"] .buzz-modal-title,
+[data-buzz-theme="dark"] .buzz-modal-content,
+[data-buzz-theme="dark"] .buzz-modal-close,
+[data-buzz-theme="dark"] .buzz-modal-ai-button,
+[data-buzz-theme="dark"] .buzz-modal-secondary {
+    color: var(--buzz-text-primary-dark, #e2e8f0);
+}
+
+[data-buzz-theme="dark"] .buzz-modal-close,
+[data-buzz-theme="dark"] .buzz-modal-ai-button,
+[data-buzz-theme="dark"] .buzz-modal-secondary {
+    background: #172538;
+    border-color: var(--buzz-border-dark, #334155);
+}
+
+[data-buzz-theme="dark"] .buzz-modal-ai {
+    background: #152337;
+    border-color: var(--buzz-border-dark, #334155);
+}
+
+[data-buzz-theme="dark"] .buzz-modal-ai-text {
+    color: var(--buzz-text-muted-dark, #93a3b8);
+}
+
+[data-buzz-theme="dark"] .buzz-modal-ai-error {
+    color: #fca5a5;
+}
+
+@keyframes buzz-modal-fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes buzz-modal-scale-in {
+    from { opacity: 0; transform: translateY(8px) scale(0.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}

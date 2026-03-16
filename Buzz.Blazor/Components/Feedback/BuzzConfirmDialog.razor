@@ -1,0 +1,84 @@
+@if (IsOpen)
+{
+    <div class="buzz-confirm-backdrop" @onclick="CancelAsync"></div>
+    <section class="buzz-confirm-dialog" role="dialog" aria-modal="true" aria-label="@Title">
+        <header class="buzz-confirm-header">
+            <strong>@Title</strong>
+        </header>
+        <div class="buzz-confirm-body">
+            <p>@Message</p>
+        </div>
+        <footer class="buzz-confirm-footer">
+            <BuzzButton Text="@CancelButtonText" Variant="secondary" OnClick="CancelAsync" />
+            <BuzzButton Text="@ConfirmButtonText" Variant="@ConfirmVariant" OnClick="ConfirmAsync" />
+        </footer>
+    </section>
+}
+
+@code {
+    /// <summary>
+    /// Controls whether the dialog is open.
+    /// </summary>
+    [Parameter]
+    public bool IsOpen { get; set; }
+
+    /// <summary>
+    /// Two-way binding callback for <see cref="IsOpen"/>.
+    /// </summary>
+    [Parameter]
+    public EventCallback<bool> IsOpenChanged { get; set; }
+
+    /// <summary>
+    /// Dialog title text.
+    /// </summary>
+    [Parameter]
+    public string Title { get; set; } = "Confirm action";
+
+    /// <summary>
+    /// Dialog body message.
+    /// </summary>
+    [Parameter]
+    public string Message { get; set; } = "Are you sure you want to continue?";
+
+    /// <summary>
+    /// Confirm button label.
+    /// </summary>
+    [Parameter]
+    public string ConfirmButtonText { get; set; } = "Confirm";
+
+    /// <summary>
+    /// Cancel button label.
+    /// </summary>
+    [Parameter]
+    public string CancelButtonText { get; set; } = "Cancel";
+
+    /// <summary>
+    /// Variant used for the confirm button.
+    /// </summary>
+    [Parameter]
+    public string ConfirmVariant { get; set; } = "danger";
+
+    /// <summary>
+    /// Callback invoked after confirm.
+    /// </summary>
+    [Parameter]
+    public EventCallback OnConfirm { get; set; }
+
+    /// <summary>
+    /// Callback invoked after cancel.
+    /// </summary>
+    [Parameter]
+    public EventCallback OnCancel { get; set; }
+
+    private async Task ConfirmAsync()
+    {
+        await IsOpenChanged.InvokeAsync(false);
+        await OnConfirm.InvokeAsync();
+    }
+
+    private async Task CancelAsync()
+    {
+        await IsOpenChanged.InvokeAsync(false);
+        await OnCancel.InvokeAsync();
+    }
+}

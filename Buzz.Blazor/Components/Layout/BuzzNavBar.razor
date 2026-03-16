@@ -1,0 +1,114 @@
+@using Buzz.Blazor.Models
+@using Microsoft.AspNetCore.Components.Routing
+@implements IDisposable
+@inject NavigationManager NavigationManager
+
+<header class="buzz-navbar @(Vertical ? "is-vertical" : string.Empty)">
+    <div class="buzz-navbar-container navbar navbar-expand-lg">
+        <a class="navbar-brand buzz-navbar-brand" href="@BrandHref" @onclick="HandleNavLinkClicked">@BrandText</a>
+
+        <button type="button"
+                class="navbar-toggler buzz-navbar-toggler"
+                aria-label="@(_isMenuOpen ? "Close navigation menu" : "Open navigation menu")"
+                aria-expanded="@_isMenuOpen"
+                aria-controls="@_menuId"
+                @onclick="ToggleMenu">
+            <span class="navbar-toggler-icon buzz-navbar-toggler-icon" aria-hidden="true">
+                <span></span>
+                <span></span>
+                <span></span>
+            </span>
+        </button>
+
+        <div id="@_menuId" class="collapse navbar-collapse buzz-navbar-collapse @(_isMenuOpen ? "show" : string.Empty)">
+            <nav class="buzz-navbar-nav" aria-label="Primary">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0 buzz-navbar-nav-list">
+                    @foreach (var item in Links)
+                    {
+                        <li class="nav-item buzz-navbar-nav-item">
+                            <NavLink class="nav-link buzz-navbar-link"
+                                     href="@item.Href"
+                                     Match="@(item.MatchAll ? NavLinkMatch.All : NavLinkMatch.Prefix)"
+                                     @onclick="HandleNavLinkClicked">
+                                @item.Text
+                            </NavLink>
+                        </li>
+                    }
+                </ul>
+            </nav>
+
+            @if (Actions is not null)
+            {
+                <div class="buzz-navbar-actions ms-lg-auto">
+                    @Actions
+                </div>
+            }
+        </div>
+    </div>
+</header>
+
+@code {
+    /// <summary>
+    /// Brand label shown at the start of the navbar.
+    /// </summary>
+    [Parameter]
+    public string BrandText { get; set; } = "Buzz";
+
+    /// <summary>
+    /// Navigation target for the brand link.
+    /// </summary>
+    [Parameter]
+    public string BrandHref { get; set; } = "/";
+
+    /// <summary>
+    /// Navigation links rendered in the menu.
+    /// </summary>
+    [Parameter]
+    public IReadOnlyList<BuzzNavLink> Links { get; set; } = Array.Empty<BuzzNavLink>();
+
+    /// <summary>
+    /// Optional custom actions displayed on the right side.
+    /// </summary>
+    [Parameter]
+    public RenderFragment? Actions { get; set; }
+
+    /// <summary>
+    /// Enables vertical layout mode.
+    /// </summary>
+    [Parameter]
+    public bool Vertical { get; set; }
+
+    private readonly string _menuId = $"buzz-navbar-menu-{Guid.NewGuid():N}";
+    private bool _isMenuOpen;
+
+    protected override void OnInitialized()
+    {
+        NavigationManager.LocationChanged += HandleLocationChanged;
+    }
+
+    private void ToggleMenu()
+    {
+        _isMenuOpen = !_isMenuOpen;
+    }
+
+    private void HandleNavLinkClicked()
+    {
+        _isMenuOpen = false;
+    }
+
+    private void HandleLocationChanged(object? sender, LocationChangedEventArgs args)
+    {
+        if (!_isMenuOpen)
+        {
+            return;
+        }
+
+        _isMenuOpen = false;
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        NavigationManager.LocationChanged -= HandleLocationChanged;
+    }
+}

@@ -1,0 +1,39 @@
+@using Buzz.Blazor.Models
+@using Microsoft.AspNetCore.Components.Routing
+
+<aside class="buzz-side-nav" aria-label="@Label">
+    <div class="buzz-side-nav-header">
+        <strong>@Title</strong>
+    </div>
+
+    <nav class="buzz-side-nav-links">
+        @foreach (var link in Links)
+        {
+            <NavLink class="buzz-side-nav-link"
+                     href="@link.Href"
+                     Match="@(link.MatchAll ? NavLinkMatch.All : NavLinkMatch.Prefix)">
+                @link.Text
+            </NavLink>
+        }
+    </nav>
+</aside>
+
+@code {
+    /// <summary>
+    /// Accessible label for side navigation.
+    /// </summary>
+    [Parameter]
+    public string Label { get; set; } = "Sidebar navigation";
+
+    /// <summary>
+    /// Side navigation heading text.
+    /// </summary>
+    [Parameter]
+    public string Title { get; set; } = "Navigation";
+
+    /// <summary>
+    /// Navigation link collection.
+    /// </summary>
+    [Parameter]
+    public IReadOnlyList<BuzzNavLink> Links { get; set; } = Array.Empty<BuzzNavLink>();
+}

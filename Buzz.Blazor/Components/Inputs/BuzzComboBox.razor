@@ -1,0 +1,240 @@
+@using Buzz.Blazor.Models
+@using Buzz.Blazor.Services
+@inject IBuzzOptionRanker OptionRanker
+@inject NavigationManager NavigationManager
+
+<div class="buzz-combo">
+    <label class="buzz-combo-label">@Label</label>
+    <div class="buzz-combo-shell">
+        <input
+            class="buzz-combo-input"
+            value="@_inputValue"
+            placeholder="@Placeholder"
+            @oninput="HandleInputChanged"
+            @onfocus="HandleInputFocused"
+            @onkeydown="HandleKeyDown"
+            @onblur="HandleInputBlurred" />
+        <button type="button" class="buzz-combo-toggle" @onclick="ToggleDropdown" aria-label="Toggle options">
+            ▾
+        </button>
+    </div>
+
+    @if (_isOpen && _visibleOptions.Count > 0)
+    {
+        <ul class="buzz-combo-list" role="listbox">
+            @for (var i = 0; i < _visibleOptions.Count; i++)
+            {
+                var option = _visibleOptions[i];
+                <li class="@(i == _activeIndex ? "buzz-combo-item buzz-combo-item-active" : "buzz-combo-item")"
+                    @onmousedown="() => SelectOptionAsync(option.Value)">
+                    <span class="buzz-combo-item-text">@option.Value</span>
+                    @if (ShowRankingReasons && !string.IsNullOrWhiteSpace(option.Reason))
+                    {
+                        <span class="buzz-combo-item-reason">@option.Reason</span>
+                    }
+                </li>
+            }
+        </ul>
+    }
+</div>
+
+@code {
+    /// <summary>
+    /// Combobox label text.
+    /// </summary>
+    [Parameter]
+    public string Label { get; set; } = "Buzz Combo Box";
+
+    /// <summary>
+    /// Source option values.
+    /// </summary>
+    [Parameter]
+    public IReadOnlyList<string> Options { get; set; } = [];
+
+    /// <summary>
+    /// Current input/selected value.
+    /// </summary>
+    [Parameter]
+    public string Value { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Two-way binding callback for <see cref="Value"/>.
+    /// </summary>
+    [Parameter]
+    public EventCallback<string> ValueChanged { get; set; }
+
+    /// <summary>
+    /// Placeholder text for the input.
+    /// </summary>
+    [Parameter]
+    public string Placeholder { get; set; } = "Start typing to rank options...";
+
+    /// <summary>
+    /// Maximum visible ranked options in dropdown.
+    /// </summary>
+    [Parameter]
+    public int MaxVisibleOptions { get; set; } = 7;
+
+    /// <summary>
+    /// Optional memory topic key for ranking context.
+    /// </summary>
+    [Parameter]
+    public string? MemorySubject { get; set; }
+
+    /// <summary>
+    /// Optional reference context used for ranking.
+    /// </summary>
+    [Parameter]
+    public string? ReferenceText { get; set; }
+
+    /// <summary>
+    /// Shows ranking reason text in dropdown.
+    /// </summary>
+    [Parameter]
+    public bool ShowRankingReasons { get; set; } = true;
+
+    /// <summary>
+    /// Allows committing values not present in <see cref="Options"/>.
+    /// </summary>
+    [Parameter]
+    public bool AllowCustomValues { get; set; } = true;
+
+    private readonly List<BuzzRankedOption> _visibleOptions = [];
+    private readonly List<string> _customOptions = [];
+    private string _inputValue = string.Empty;
+    private int _activeIndex = -1;
+    private bool _isOpen;
+
+    protected override void OnParametersSet()
+    {
+        _inputValue = Value;
+    }
+
+    private async Task HandleInputChanged(ChangeEventArgs args)
+    {
+        _inputValue = args.Value?.ToString() ?? string.Empty;
+        await ValueChanged.InvokeAsync(_inputValue);
+        await RefreshVisibleOptionsAsync();
+        _isOpen = _visibleOptions.Count > 0;
+    }
+
+    private async Task HandleInputFocused(FocusEventArgs _)
+    {
+        await RefreshVisibleOptionsAsync();
+        _isOpen = _visibleOptions.Count > 0;
+    }
+
+    private void HandleInputBlurred(FocusEventArgs _)
+    {
+        _isOpen = false;
+    }
+
+    private async Task HandleKeyDown(KeyboardEventArgs args)
+    {
+        if (!_isOpen && (args.Key == "ArrowDown" || args.Key == "ArrowUp"))
+        {
+            await RefreshVisibleOptionsAsync();
+            _isOpen = _visibleOptions.Count > 0;
+        }
+
+        if (!_isOpen || _visibleOptions.Count == 0)
+        {
+            if ((string.Equals(args.Key, "Enter", StringComparison.Ordinal) ||
+                 string.Equals(args.Key, "Tab", StringComparison.Ordinal)) &&
+                AllowCustomValues &&
+                !string.IsNullOrWhiteSpace(_inputValue))
+            {
+                await SelectOptionAsync(_inputValue.Trim(), isCustomValue: true);
+            }
+
+            return;
+        }
+
+        if (string.Equals(args.Key, "ArrowDown", StringComparison.Ordinal))
+        {
+            _activeIndex = Math.Min(_activeIndex + 1, _visibleOptions.Count - 1);
+        }
+        else if (string.Equals(args.Key, "ArrowUp", StringComparison.Ordinal))
+        {
+            _activeIndex = Math.Max(_activeIndex - 1, 0);
+        }
+        else if (string.Equals(args.Key, "Enter", StringComparison.Ordinal) ||
+                 string.Equals(args.Key, "Tab", StringComparison.Ordinal))
+        {
+            if (_activeIndex >= 0 && _activeIndex < _visibleOptions.Count)
+            {
+                await SelectOptionAsync(_visibleOptions[_activeIndex].Value);
+            }
+            else if (AllowCustomValues && !string.IsNullOrWhiteSpace(_inputValue))
+            {
+                await SelectOptionAsync(_inputValue.Trim(), isCustomValue: true);
+            }
+        }
+        else if (string.Equals(args.Key, "Escape", StringComparison.Ordinal))
+        {
+            _isOpen = false;
+        }
+    }
+
+    private async Task ToggleDropdown()
+    {
+        if (_isOpen)
+        {
+            _isOpen = false;
+            return;
+        }
+
+        await RefreshVisibleOptionsAsync();
+        _isOpen = _visibleOptions.Count > 0;
+    }
+
+    private async Task SelectOptionAsync(string option, bool isCustomValue = false)
+    {
+        _inputValue = option;
+        _isOpen = false;
+        _activeIndex = -1;
+        if (isCustomValue || (!Options.Contains(option, StringComparer.OrdinalIgnoreCase) &&
+                              !_customOptions.Contains(option, StringComparer.OrdinalIgnoreCase)))
+        {
+            _customOptions.Insert(0, option);
+            if (_customOptions.Count > 25)
+            {
+                _customOptions.RemoveRange(25, _customOptions.Count - 25);
+            }
+        }
+
+        await ValueChanged.InvokeAsync(option);
+        await OptionRanker.RememberSelectionAsync(
+            option,
+            Label,
+            CurrentPagePath(),
+            MemorySubject,
+            ReferenceText);
+    }
+
+    private async Task RefreshVisibleOptionsAsync()
+    {
+        _visibleOptions.Clear();
+        var sourceOptions = Options
+            .Concat(_customOptions)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+        var ranked = await OptionRanker.RankAsync(
+            sourceOptions,
+            _inputValue,
+            Label,
+            CurrentPagePath(),
+            MemorySubject,
+            ReferenceText,
+            MaxVisibleOptions);
+
+        _visibleOptions.AddRange(ranked);
+        _activeIndex = _visibleOptions.Count > 0 ? 0 : -1;
+    }
+
+    private string CurrentPagePath()
+    {
+        var relative = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
+        return string.IsNullOrWhiteSpace(relative) ? "/" : $"/{relative}";
+    }
+}

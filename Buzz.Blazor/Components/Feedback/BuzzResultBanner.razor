@@ -1,0 +1,103 @@
+@if (IsVisible)
+{
+    <div class="buzz-result-banner buzz-result-banner-@NormalizeVariant(Variant)" role="@ResolveRole()">
+        <div class="buzz-result-banner-content">
+            <strong>@Title</strong>
+            @if (!string.IsNullOrWhiteSpace(Message))
+            {
+                <span>@Message</span>
+            }
+        </div>
+
+        <BuzzStack Direction="horizontal" Gap="0.35rem" Align="center">
+            @if (!string.IsNullOrWhiteSpace(ActionText))
+            {
+                <BuzzButton Text="@ActionText" Variant="outline" Size="sm" OnClick="HandleActionAsync" />
+            }
+            @if (Dismissible)
+            {
+                <BuzzButton Text="Dismiss" Variant="secondary" Size="sm" OnClick="DismissAsync" />
+            }
+        </BuzzStack>
+    </div>
+}
+
+@code {
+    /// <summary>
+    /// Banner heading text.
+    /// </summary>
+    [Parameter]
+    public string Title { get; set; } = "Operation complete";
+
+    /// <summary>
+    /// Supporting message text.
+    /// </summary>
+    [Parameter]
+    public string Message { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Banner style variant (info, success, warning, danger).
+    /// </summary>
+    [Parameter]
+    public string Variant { get; set; } = "info";
+
+    /// <summary>
+    /// Shows dismiss button.
+    /// </summary>
+    [Parameter]
+    public bool Dismissible { get; set; } = true;
+
+    /// <summary>
+    /// Optional primary action label.
+    /// </summary>
+    [Parameter]
+    public string ActionText { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Controls whether the banner is rendered.
+    /// </summary>
+    [Parameter]
+    public bool IsVisible { get; set; } = true;
+
+    /// <summary>
+    /// Two-way binding callback for <see cref="IsVisible"/>.
+    /// </summary>
+    [Parameter]
+    public EventCallback<bool> IsVisibleChanged { get; set; }
+
+    /// <summary>
+    /// Callback for the optional action button.
+    /// </summary>
+    [Parameter]
+    public EventCallback OnAction { get; set; }
+
+    /// <summary>
+    /// Callback invoked after dismiss action.
+    /// </summary>
+    [Parameter]
+    public EventCallback OnDismiss { get; set; }
+
+    private async Task DismissAsync()
+    {
+        IsVisible = false;
+        await IsVisibleChanged.InvokeAsync(IsVisible);
+        await OnDismiss.InvokeAsync();
+    }
+
+    private async Task HandleActionAsync()
+    {
+        await OnAction.InvokeAsync();
+    }
+
+    private string ResolveRole() =>
+        NormalizeVariant(Variant) == "danger" ? "alert" : "status";
+
+    private static string NormalizeVariant(string? value) =>
+        value?.Trim().ToLowerInvariant() switch
+        {
+            "success" => "success",
+            "warning" => "warning",
+            "danger" => "danger",
+            _ => "info"
+        };
+}

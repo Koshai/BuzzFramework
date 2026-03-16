@@ -1,0 +1,81 @@
+<div class="buzz-stack @DirectionClass @WrapClass" style="@BuildStyle()" aria-label="@Label">
+    @ChildContent
+</div>
+
+@code {
+    /// <summary>
+    /// Accessible label for the stack container.
+    /// </summary>
+    [Parameter]
+    public string Label { get; set; } = "Buzz Stack";
+
+    /// <summary>
+    /// Stack child content.
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// Layout direction (vertical or horizontal).
+    /// </summary>
+    [Parameter]
+    public string Direction { get; set; } = "vertical";
+
+    /// <summary>
+    /// Cross-axis alignment value.
+    /// </summary>
+    [Parameter]
+    public string Align { get; set; } = "stretch";
+
+    /// <summary>
+    /// Main-axis distribution value.
+    /// </summary>
+    [Parameter]
+    public string Justify { get; set; } = "start";
+
+    /// <summary>
+    /// CSS gap value between children.
+    /// </summary>
+    [Parameter]
+    public string Gap { get; set; } = "0.5rem";
+
+    /// <summary>
+    /// Enables wrapping for horizontal layouts.
+    /// </summary>
+    [Parameter]
+    public bool Wrap { get; set; }
+
+    private string DirectionClass => NormalizeDirection(Direction) == "horizontal"
+        ? "buzz-stack-horizontal"
+        : "buzz-stack-vertical";
+
+    private string WrapClass => Wrap ? "buzz-stack-wrap" : "buzz-stack-nowrap";
+
+    private string BuildStyle() =>
+        $"gap:{Gap};align-items:{NormalizeAlign(Align)};justify-content:{NormalizeJustify(Justify)};";
+
+    private static string NormalizeDirection(string? value) =>
+        value?.Trim().ToLowerInvariant() switch
+        {
+            "horizontal" => "horizontal",
+            _ => "vertical"
+        };
+
+    private static string NormalizeAlign(string? value) =>
+        value?.Trim().ToLowerInvariant() switch
+        {
+            "start" => "flex-start",
+            "center" => "center",
+            "end" => "flex-end",
+            _ => "stretch"
+        };
+
+    private static string NormalizeJustify(string? value) =>
+        value?.Trim().ToLowerInvariant() switch
+        {
+            "center" => "center",
+            "end" => "flex-end",
+            "between" => "space-between",
+            _ => "flex-start"
+        };
+}

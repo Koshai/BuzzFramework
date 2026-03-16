@@ -1,0 +1,78 @@
+<div class="buzz-progress">
+    @if (!string.IsNullOrWhiteSpace(Label) || ShowValueLabel)
+    {
+        <div class="buzz-progress-header">
+            @if (!string.IsNullOrWhiteSpace(Label))
+            {
+                <span>@Label</span>
+            }
+            @if (ShowValueLabel)
+            {
+                <span>@DisplayPercent%</span>
+            }
+        </div>
+    }
+
+    <div class="buzz-progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="@Max" aria-valuenow="@ClampedValue">
+        <div class="buzz-progress-bar buzz-progress-bar-@NormalizeVariant(Variant)" style="width:@DisplayPercent%;"></div>
+    </div>
+</div>
+
+@code {
+    /// <summary>
+    /// Optional progress label.
+    /// </summary>
+    [Parameter]
+    public string Label { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Current progress value.
+    /// </summary>
+    [Parameter]
+    public double Value { get; set; }
+
+    /// <summary>
+    /// Maximum progress value.
+    /// </summary>
+    [Parameter]
+    public double Max { get; set; } = 100;
+
+    /// <summary>
+    /// Visual variant for the progress bar.
+    /// </summary>
+    [Parameter]
+    public string Variant { get; set; } = "accent";
+
+    /// <summary>
+    /// Shows the numeric percentage label.
+    /// </summary>
+    [Parameter]
+    public bool ShowValueLabel { get; set; } = true;
+
+    private double ClampedValue
+    {
+        get
+        {
+            if (Max <= 0)
+            {
+                return 0;
+            }
+
+            return Math.Clamp(Value, 0, Max);
+        }
+    }
+
+    private int DisplayPercent =>
+        Max <= 0
+            ? 0
+            : (int)Math.Round((ClampedValue / Max) * 100, MidpointRounding.AwayFromZero);
+
+    private static string NormalizeVariant(string? value) =>
+        value?.Trim().ToLowerInvariant() switch
+        {
+            "success" => "success",
+            "warning" => "warning",
+            "danger" => "danger",
+            _ => "accent"
+        };
+}

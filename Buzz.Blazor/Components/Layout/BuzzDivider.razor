@@ -1,0 +1,24 @@
+<hr class="buzz-divider buzz-divider-@NormalizeVariant(Variant)" />
+
+@code {
+    /// <summary>
+    /// Divider visual style variant.
+    /// </summary>
+    [Parameter]
+    public string Variant { get; set; } = "default";
+
+    private static string NormalizeVariant(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return "default";
+        }
+
+        return value.Trim().ToLowerInvariant() switch
+        {
+            "strong" => "strong",
+            "subtle" => "subtle",
+            _ => "default"
+        };
+    }
+}

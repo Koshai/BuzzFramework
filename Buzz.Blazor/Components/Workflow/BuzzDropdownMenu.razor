@@ -1,0 +1,63 @@
+@using Buzz.Blazor.Models
+
+<div class="buzz-dropdown">
+    <BuzzButton Text="@Label"
+                Variant="secondary"
+                Size="sm"
+                OnClick="ToggleOpenAsync" />
+
+    @if (_isOpen)
+    {
+        <div class="buzz-dropdown-panel" role="menu" aria-label="@Label">
+            @foreach (var item in Items)
+            {
+                <button type="button"
+                        class="buzz-dropdown-item"
+                        role="menuitem"
+                        disabled="@item.Disabled"
+                        @onclick="() => SelectItemAsync(item)">
+                    @item.Text
+                </button>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    /// <summary>
+    /// Button label for the dropdown trigger.
+    /// </summary>
+    [Parameter]
+    public string Label { get; set; } = "Menu";
+
+    /// <summary>
+    /// Menu items rendered in the dropdown.
+    /// </summary>
+    [Parameter]
+    public IReadOnlyList<BuzzMenuItem> Items { get; set; } = Array.Empty<BuzzMenuItem>();
+
+    /// <summary>
+    /// Callback invoked when an enabled item is selected.
+    /// </summary>
+    [Parameter]
+    public EventCallback<BuzzMenuItem> OnItemSelected { get; set; }
+
+    private bool _isOpen;
+
+    private Task ToggleOpenAsync()
+    {
+        _isOpen = !_isOpen;
+        return Task.CompletedTask;
+    }
+
+    private async Task SelectItemAsync(BuzzMenuItem item)
+    {
+        if (item.Disabled)
+        {
+            return;
+        }
+
+        _isOpen = false;
+        await OnItemSelected.InvokeAsync(item);
+    }
+}

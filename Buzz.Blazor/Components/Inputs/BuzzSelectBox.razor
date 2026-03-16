@@ -1,0 +1,230 @@
+@using Buzz.Blazor.Models
+@using Buzz.Blazor.Services
+@inject IBuzzOptionRanker OptionRanker
+@inject NavigationManager NavigationManager
+
+<div class="buzz-select">
+    <label class="buzz-select-label" for="@_selectId">@Label</label>
+    <select
+        id="@_selectId"
+        class="buzz-select-input"
+        value="@Value"
+        disabled="@Disabled"
+        required="@Required"
+        aria-required="@Required"
+        aria-invalid="@HasErrorText"
+        aria-describedby="@ResolvedDescribedBy"
+        @onchange="HandleChangedAsync">
+        @if (ShowPlaceholderOption)
+        {
+            <option value="">@PlaceholderOptionText</option>
+        }
+        @foreach (var option in _rankedOptions)
+        {
+            <option value="@option.Value">@option.Value</option>
+        }
+    </select>
+
+    @if (ShowRecommendationHint && _recommendedOption is not null)
+    {
+        <p id="@_recommendationId" class="buzz-select-recommendation">
+            Recommended: <strong>@_recommendedOption.Value</strong>
+            @if (!string.IsNullOrWhiteSpace(_recommendedOption.Reason))
+            {
+                <span class="buzz-select-recommendation-reason">(@_recommendedOption.Reason)</span>
+            }
+        </p>
+    }
+
+    @if (!string.IsNullOrWhiteSpace(HelperText))
+    {
+        <p id="@_helperTextId" class="buzz-select-helper">@HelperText</p>
+    }
+
+    @if (HasErrorText)
+    {
+        <p id="@_errorTextId" class="buzz-select-error">@ErrorText</p>
+    }
+</div>
+
+@code {
+    /// <summary>
+    /// Label shown above the select control.
+    /// </summary>
+    [Parameter]
+    public string Label { get; set; } = "Buzz Select Box";
+
+    /// <summary>
+    /// Available option values.
+    /// </summary>
+    [Parameter]
+    public IReadOnlyList<string> Options { get; set; } = [];
+
+    /// <summary>
+    /// Currently selected option value.
+    /// </summary>
+    [Parameter]
+    public string Value { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Two-way binding callback for <see cref="Value"/>.
+    /// </summary>
+    [Parameter]
+    public EventCallback<string> ValueChanged { get; set; }
+
+    /// <summary>
+    /// Disables the select control when <see langword="true"/>.
+    /// </summary>
+    [Parameter]
+    public bool Disabled { get; set; }
+
+    /// <summary>
+    /// Marks the select control as required.
+    /// </summary>
+    [Parameter]
+    public bool Required { get; set; }
+
+    /// <summary>
+    /// Shows an initial placeholder option when <see langword="true"/>.
+    /// </summary>
+    [Parameter]
+    public bool ShowPlaceholderOption { get; set; } = true;
+
+    /// <summary>
+    /// Placeholder text used for the initial option entry.
+    /// </summary>
+    [Parameter]
+    public string PlaceholderOptionText { get; set; } = "Select an option...";
+
+    /// <summary>
+    /// Maximum number of ranked options to display.
+    /// </summary>
+    [Parameter]
+    public int MaxVisibleOptions { get; set; } = 10;
+
+    /// <summary>
+    /// Optional memory subject key used for personalized ranking.
+    /// </summary>
+    [Parameter]
+    public string? MemorySubject { get; set; }
+
+    /// <summary>
+    /// Optional contextual text passed to ranking services.
+    /// </summary>
+    [Parameter]
+    public string? ReferenceText { get; set; }
+
+    /// <summary>
+    /// Shows recommendation hint text when available.
+    /// </summary>
+    [Parameter]
+    public bool ShowRecommendationHint { get; set; } = true;
+
+    /// <summary>
+    /// Helper text rendered below the control.
+    /// </summary>
+    [Parameter]
+    public string? HelperText { get; set; }
+
+    /// <summary>
+    /// Validation error text rendered below the control.
+    /// </summary>
+    [Parameter]
+    public string? ErrorText { get; set; }
+
+    /// <summary>
+    /// Additional element IDs to include in <c>aria-describedby</c>.
+    /// </summary>
+    [Parameter]
+    public string? DescribedBy { get; set; }
+
+    private readonly string _selectId = $"buzz-select-{Guid.NewGuid():N}";
+    private readonly string _helperTextId = $"buzz-select-helper-{Guid.NewGuid():N}";
+    private readonly string _errorTextId = $"buzz-select-error-{Guid.NewGuid():N}";
+    private readonly string _recommendationId = $"buzz-select-recommendation-{Guid.NewGuid():N}";
+    private readonly List<BuzzRankedOption> _rankedOptions = [];
+    private BuzzRankedOption? _recommendedOption;
+    private bool HasErrorText => !string.IsNullOrWhiteSpace(ErrorText);
+    private string? ResolvedDescribedBy
+    {
+        get
+        {
+            var ids = new List<string>();
+            if (!string.IsNullOrWhiteSpace(DescribedBy))
+            {
+                ids.Add(DescribedBy.Trim());
+            }
+
+            if (ShowRecommendationHint && _recommendedOption is not null)
+            {
+                ids.Add(_recommendationId);
+            }
+
+            if (!string.IsNullOrWhiteSpace(HelperText))
+            {
+                ids.Add(_helperTextId);
+            }
+
+            if (HasErrorText)
+            {
+                ids.Add(_errorTextId);
+            }
+
+            return ids.Count == 0 ? null : string.Join(" ", ids);
+        }
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await RefreshRankedOptionsAsync();
+    }
+
+    private async Task HandleChangedAsync(ChangeEventArgs args)
+    {
+        var selected = args.Value?.ToString() ?? string.Empty;
+        await ValueChanged.InvokeAsync(selected);
+        if (!string.IsNullOrWhiteSpace(selected))
+        {
+            await OptionRanker.RememberSelectionAsync(
+                selected,
+                Label,
+                CurrentPagePath(),
+                MemorySubject,
+                ReferenceText);
+        }
+    }
+
+    private async Task RefreshRankedOptionsAsync()
+    {
+        _rankedOptions.Clear();
+        if (Options.Count == 0)
+        {
+            _recommendedOption = null;
+            return;
+        }
+
+        var ranked = await OptionRanker.RankAsync(
+            Options,
+            Value,
+            Label,
+            CurrentPagePath(),
+            MemorySubject,
+            ReferenceText,
+            MaxVisibleOptions);
+
+        if (!string.IsNullOrWhiteSpace(Value) &&
+            ranked.All(option => !option.Value.Equals(Value, StringComparison.OrdinalIgnoreCase)))
+        {
+            _rankedOptions.Add(new BuzzRankedOption(Value, "Current selection"));
+        }
+
+        _rankedOptions.AddRange(ranked);
+        _recommendedOption = _rankedOptions.FirstOrDefault();
+    }
+
+    private string CurrentPagePath()
+    {
+        var relative = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
+        return string.IsNullOrWhiteSpace(relative) ? "/" : $"/{relative}";
+    }
+}

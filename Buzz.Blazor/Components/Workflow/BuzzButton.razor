@@ -1,0 +1,106 @@
+<button
+    type="@ButtonType"
+    class="buzz-button buzz-button-@NormalizeVariant(Variant) buzz-button-@NormalizeSize(Size)"
+    disabled="@(Disabled || Loading)"
+    @onclick="HandleClickAsync">
+    @if (Loading)
+    {
+        <span class="buzz-button-spinner" aria-hidden="true"></span>
+    }
+    @if (!string.IsNullOrWhiteSpace(Icon))
+    {
+        <span class="buzz-button-icon" aria-hidden="true">@Icon</span>
+    }
+    <span>@Text</span>
+</button>
+
+@code {
+    /// <summary>
+    /// Button label text.
+    /// </summary>
+    [Parameter]
+    public string Text { get; set; } = "Buzz Button";
+
+    /// <summary>
+    /// Visual variant (<c>primary</c>, <c>secondary</c>, <c>outline</c>, or <c>danger</c>).
+    /// </summary>
+    [Parameter]
+    public string Variant { get; set; } = "primary";
+
+    /// <summary>
+    /// Button size (<c>sm</c>, <c>md</c>, or <c>lg</c>).
+    /// </summary>
+    [Parameter]
+    public string Size { get; set; } = "md";
+
+    /// <summary>
+    /// Native HTML button type attribute.
+    /// </summary>
+    [Parameter]
+    public string ButtonType { get; set; } = "button";
+
+    /// <summary>
+    /// Optional icon text/symbol rendered before the label.
+    /// </summary>
+    [Parameter]
+    public string? Icon { get; set; }
+
+    /// <summary>
+    /// Disables interaction when <see langword="true"/>.
+    /// </summary>
+    [Parameter]
+    public bool Disabled { get; set; }
+
+    /// <summary>
+    /// Shows loading state and prevents click execution.
+    /// </summary>
+    [Parameter]
+    public bool Loading { get; set; }
+
+    /// <summary>
+    /// Click callback raised when the button is activated.
+    /// </summary>
+    [Parameter]
+    public EventCallback OnClick { get; set; }
+
+    private async Task HandleClickAsync()
+    {
+        if (Disabled || Loading)
+        {
+            return;
+        }
+
+        await OnClick.InvokeAsync();
+    }
+
+    private static string NormalizeVariant(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return "primary";
+        }
+
+        return value.Trim().ToLowerInvariant() switch
+        {
+            "secondary" => "secondary",
+            "outline" => "outline",
+            "danger" => "danger",
+            _ => "primary"
+        };
+    }
+
+    private static string NormalizeSize(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return "md";
+        }
+
+        return value.Trim().ToLowerInvariant() switch
+        {
+            "sm" => "sm",
+            "lg" => "lg",
+            _ => "md"
+        };
+    }
+}

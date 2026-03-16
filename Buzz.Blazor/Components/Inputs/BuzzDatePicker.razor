@@ -1,0 +1,274 @@
+@using Buzz.Blazor.Models
+@using Buzz.Blazor.Services
+@inject IBuzzOptionRanker OptionRanker
+@inject NavigationManager NavigationManager
+
+<div class="buzz-date-picker">
+    <label class="buzz-date-picker-label" for="@_inputId">@Label</label>
+    <input
+        id="@_inputId"
+        class="buzz-date-picker-input"
+        type="date"
+        value="@Value"
+        min="@Min"
+        max="@Max"
+        disabled="@Disabled"
+        required="@Required"
+        aria-required="@Required"
+        aria-invalid="@HasErrorText"
+        aria-describedby="@ResolvedDescribedBy"
+        @onchange="HandleChangedAsync" />
+
+    @if (ShowQuickSuggestions && _suggestions.Count > 0)
+    {
+        <div class="buzz-date-picker-suggestions">
+            @foreach (var suggestion in _suggestions)
+            {
+                <button
+                    type="button"
+                    class="buzz-date-picker-suggestion"
+                    @onclick="() => SelectSuggestionAsync(suggestion.Value)">
+                    @FormatDate(suggestion.Value)
+                </button>
+            }
+        </div>
+    }
+
+    @if (ShowRecommendationHint && _recommendedOption is not null)
+    {
+        <p id="@_recommendationId" class="buzz-date-picker-recommendation">
+            Recommended: <strong>@FormatDate(_recommendedOption.Value)</strong>
+            @if (!string.IsNullOrWhiteSpace(_recommendedOption.Reason))
+            {
+                <span class="buzz-date-picker-recommendation-reason">(@_recommendedOption.Reason)</span>
+            }
+        </p>
+    }
+
+    @if (!string.IsNullOrWhiteSpace(HelperText))
+    {
+        <p id="@_helperTextId" class="buzz-date-picker-helper">@HelperText</p>
+    }
+
+    @if (HasErrorText)
+    {
+        <p id="@_errorTextId" class="buzz-date-picker-error">@ErrorText</p>
+    }
+</div>
+
+@code {
+    /// <summary>
+    /// Label shown above the date input.
+    /// </summary>
+    [Parameter]
+    public string Label { get; set; } = "Buzz Date Picker";
+
+    /// <summary>
+    /// Selected date value (typically <c>yyyy-MM-dd</c>).
+    /// </summary>
+    [Parameter]
+    public string Value { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Two-way binding callback for <see cref="Value"/>.
+    /// </summary>
+    [Parameter]
+    public EventCallback<string> ValueChanged { get; set; }
+
+    /// <summary>
+    /// Disables the input when <see langword="true"/>.
+    /// </summary>
+    [Parameter]
+    public bool Disabled { get; set; }
+
+    /// <summary>
+    /// Marks the input as required.
+    /// </summary>
+    [Parameter]
+    public bool Required { get; set; }
+
+    /// <summary>
+    /// Optional minimum allowed date value.
+    /// </summary>
+    [Parameter]
+    public string? Min { get; set; }
+
+    /// <summary>
+    /// Optional maximum allowed date value.
+    /// </summary>
+    [Parameter]
+    public string? Max { get; set; }
+
+    /// <summary>
+    /// Optional memory subject key used for personalized recommendations.
+    /// </summary>
+    [Parameter]
+    public string? MemorySubject { get; set; }
+
+    /// <summary>
+    /// Optional contextual text passed to recommendation services.
+    /// </summary>
+    [Parameter]
+    public string? ReferenceText { get; set; }
+
+    /// <summary>
+    /// Shows quick date suggestion chips when <see langword="true"/>.
+    /// </summary>
+    [Parameter]
+    public bool ShowQuickSuggestions { get; set; } = true;
+
+    /// <summary>
+    /// Shows recommendation hint text when available.
+    /// </summary>
+    [Parameter]
+    public bool ShowRecommendationHint { get; set; } = true;
+
+    /// <summary>
+    /// Maximum number of date suggestions to display.
+    /// </summary>
+    [Parameter]
+    public int SuggestionCount { get; set; } = 5;
+
+    /// <summary>
+    /// Helper text rendered below the control.
+    /// </summary>
+    [Parameter]
+    public string? HelperText { get; set; }
+
+    /// <summary>
+    /// Validation error text rendered below the control.
+    /// </summary>
+    [Parameter]
+    public string? ErrorText { get; set; }
+
+    /// <summary>
+    /// Additional element IDs to include in <c>aria-describedby</c>.
+    /// </summary>
+    [Parameter]
+    public string? DescribedBy { get; set; }
+
+    private readonly string _inputId = $"buzz-date-picker-{Guid.NewGuid():N}";
+    private readonly string _helperTextId = $"buzz-date-picker-helper-{Guid.NewGuid():N}";
+    private readonly string _errorTextId = $"buzz-date-picker-error-{Guid.NewGuid():N}";
+    private readonly string _recommendationId = $"buzz-date-picker-recommendation-{Guid.NewGuid():N}";
+    private readonly List<BuzzRankedOption> _suggestions = [];
+    private BuzzRankedOption? _recommendedOption;
+    private bool HasErrorText => !string.IsNullOrWhiteSpace(ErrorText);
+
+    private string? ResolvedDescribedBy
+    {
+        get
+        {
+            var ids = new List<string>();
+            if (!string.IsNullOrWhiteSpace(DescribedBy))
+            {
+                ids.Add(DescribedBy.Trim());
+            }
+
+            if (ShowRecommendationHint && _recommendedOption is not null)
+            {
+                ids.Add(_recommendationId);
+            }
+
+            if (!string.IsNullOrWhiteSpace(HelperText))
+            {
+                ids.Add(_helperTextId);
+            }
+
+            if (HasErrorText)
+            {
+                ids.Add(_errorTextId);
+            }
+
+            return ids.Count == 0 ? null : string.Join(" ", ids);
+        }
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await RefreshSuggestionsAsync();
+    }
+
+    private async Task HandleChangedAsync(ChangeEventArgs args)
+    {
+        var selected = args.Value?.ToString() ?? string.Empty;
+        await ValueChanged.InvokeAsync(selected);
+
+        if (!string.IsNullOrWhiteSpace(selected))
+        {
+            await OptionRanker.RememberSelectionAsync(
+                selected,
+                Label,
+                CurrentPagePath(),
+                MemorySubject,
+                ReferenceText);
+        }
+    }
+
+    private async Task SelectSuggestionAsync(string value)
+    {
+        await ValueChanged.InvokeAsync(value);
+        await OptionRanker.RememberSelectionAsync(
+            value,
+            Label,
+            CurrentPagePath(),
+            MemorySubject,
+            ReferenceText);
+    }
+
+    private async Task RefreshSuggestionsAsync()
+    {
+        _suggestions.Clear();
+        var options = BuildDateCandidates();
+        var ranked = await OptionRanker.RankAsync(
+            options,
+            Value,
+            Label,
+            CurrentPagePath(),
+            MemorySubject,
+            ReferenceText,
+            Math.Max(1, SuggestionCount));
+
+        _suggestions.AddRange(ranked.Where(option => IsValidDate(option.Value)));
+        _recommendedOption = _suggestions.FirstOrDefault();
+    }
+
+    private IReadOnlyList<string> BuildDateCandidates()
+    {
+        var today = DateTime.UtcNow.Date;
+        var candidates = new List<string>
+        {
+            today.ToString("yyyy-MM-dd"),
+            today.AddDays(1).ToString("yyyy-MM-dd"),
+            today.AddDays(2).ToString("yyyy-MM-dd"),
+            today.AddDays(3).ToString("yyyy-MM-dd"),
+            today.AddDays(7).ToString("yyyy-MM-dd"),
+            today.AddDays(14).ToString("yyyy-MM-dd"),
+            today.AddDays(30).ToString("yyyy-MM-dd")
+        };
+
+        if (!string.IsNullOrWhiteSpace(Value) && IsValidDate(Value))
+        {
+            candidates.Add(Value);
+        }
+
+        return candidates
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+    }
+
+    private static string FormatDate(string isoDate)
+    {
+        return DateTime.TryParse(isoDate, out var date)
+            ? date.ToString("ddd, MMM d, yyyy")
+            : isoDate;
+    }
+
+    private static bool IsValidDate(string? value) => DateTime.TryParse(value, out _);
+
+    private string CurrentPagePath()
+    {
+        var relative = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
+        return string.IsNullOrWhiteSpace(relative) ? "/" : $"/{relative}";
+    }
+}

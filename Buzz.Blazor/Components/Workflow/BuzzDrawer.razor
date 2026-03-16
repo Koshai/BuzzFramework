@@ -1,0 +1,65 @@
+@if (IsOpen)
+{
+    <div class="buzz-drawer-backdrop" @onclick="CloseAsync"></div>
+    <aside class="buzz-drawer @(PositionClass)" role="dialog" aria-modal="true" aria-label="@Title">
+        <header class="buzz-drawer-header">
+            <strong>@Title</strong>
+            <BuzzButton Text="Close" Variant="secondary" Size="sm" OnClick="CloseAsync" />
+        </header>
+
+        <section class="buzz-drawer-content">
+            @ChildContent
+        </section>
+
+        @if (Actions is not null)
+        {
+            <footer class="buzz-drawer-actions">
+                @Actions
+            </footer>
+        }
+    </aside>
+}
+
+@code {
+    /// <summary>
+    /// Controls whether the drawer is open.
+    /// </summary>
+    [Parameter]
+    public bool IsOpen { get; set; }
+
+    /// <summary>
+    /// Two-way binding callback for <see cref="IsOpen"/>.
+    /// </summary>
+    [Parameter]
+    public EventCallback<bool> IsOpenChanged { get; set; }
+
+    /// <summary>
+    /// Drawer header title text.
+    /// </summary>
+    [Parameter]
+    public string Title { get; set; } = "Drawer";
+
+    /// <summary>
+    /// Drawer side position. Supported values: left or right.
+    /// </summary>
+    [Parameter]
+    public string Position { get; set; } = "right";
+
+    /// <summary>
+    /// Main drawer content.
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// Optional footer actions content.
+    /// </summary>
+    [Parameter]
+    public RenderFragment? Actions { get; set; }
+
+    private string PositionClass => Position.Trim().ToLowerInvariant() == "left"
+        ? "is-left"
+        : "is-right";
+
+    private Task CloseAsync() => IsOpenChanged.InvokeAsync(false);
+}

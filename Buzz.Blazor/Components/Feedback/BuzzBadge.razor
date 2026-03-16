@@ -1,0 +1,34 @@
+<span class="buzz-badge buzz-badge-@NormalizeVariant(Variant)">
+    @Text
+</span>
+
+@code {
+    /// <summary>
+    /// Badge content text.
+    /// </summary>
+    [Parameter]
+    public string Text { get; set; } = "Badge";
+
+    /// <summary>
+    /// Badge style variant.
+    /// </summary>
+    [Parameter]
+    public string Variant { get; set; } = "neutral";
+
+    private static string NormalizeVariant(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return "neutral";
+        }
+
+        return value.Trim().ToLowerInvariant() switch
+        {
+            "success" => "success",
+            "warning" => "warning",
+            "danger" => "danger",
+            "info" => "info",
+            _ => "neutral"
+        };
+    }
+}

@@ -1,0 +1,53 @@
+<div class="buzz-skeleton buzz-skeleton-@NormalizeVariant(Variant) @(Animated ? "buzz-skeleton-animated" : string.Empty)"
+     style="@BuildStyle()"
+     aria-hidden="true"></div>
+
+@code {
+    /// <summary>
+    /// Skeleton style variant (text, rect, circle).
+    /// </summary>
+    [Parameter]
+    public string Variant { get; set; } = "text";
+
+    /// <summary>
+    /// CSS width value for the skeleton.
+    /// </summary>
+    [Parameter]
+    public string Width { get; set; } = "100%";
+
+    /// <summary>
+    /// CSS height value for the skeleton.
+    /// </summary>
+    [Parameter]
+    public string Height { get; set; } = "0.9rem";
+
+    /// <summary>
+    /// Border radius used for non-circle variants.
+    /// </summary>
+    [Parameter]
+    public string Radius { get; set; } = "8px";
+
+    /// <summary>
+    /// Enables shimmer animation.
+    /// </summary>
+    [Parameter]
+    public bool Animated { get; set; } = true;
+
+    private string BuildStyle()
+    {
+        if (NormalizeVariant(Variant) == "circle")
+        {
+            return $"width:{Width};height:{Height};border-radius:999px;";
+        }
+
+        return $"width:{Width};height:{Height};border-radius:{Radius};";
+    }
+
+    private static string NormalizeVariant(string? value) =>
+        value?.Trim().ToLowerInvariant() switch
+        {
+            "rect" => "rect",
+            "circle" => "circle",
+            _ => "text"
+        };
+}

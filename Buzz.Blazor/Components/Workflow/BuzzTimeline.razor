@@ -1,0 +1,168 @@
+@using Buzz.Blazor.Models
+@using Buzz.Core
+@using Microsoft.Extensions.Logging
+@inject IBuzzClient BuzzClient
+@inject ILogger<BuzzTimeline> Logger
+
+<div class="buzz-timeline">
+    @if (!string.IsNullOrWhiteSpace(Label))
+    {
+        <h3 class="buzz-timeline-label">@Label</h3>
+    }
+
+    @if (ShowRecommendationHint && !string.IsNullOrWhiteSpace(_recommendedEvent))
+    {
+        <p class="buzz-timeline-recommendation">
+            Recommended focus: <strong>@_recommendedEvent</strong>
+        </p>
+    }
+
+    @if (Items.Count == 0)
+    {
+        <p class="buzz-timeline-empty">No timeline events available.</p>
+    }
+    else
+    {
+        <ol class="buzz-timeline-track">
+            @for (var i = 0; i < OrderedItems.Count; i++)
+            {
+                var item = OrderedItems[i];
+                var isHighlighted = item.Title.Equals(_recommendedEvent, StringComparison.OrdinalIgnoreCase);
+                <li class="buzz-timeline-item @(isHighlighted ? "is-highlighted" : null)">
+                    <div class="buzz-timeline-dot buzz-timeline-dot-@NormalizeSeverity(item.Severity)"></div>
+                    <div class="buzz-timeline-content">
+                        <p class="buzz-timeline-title">@item.Title</p>
+                        <p class="buzz-timeline-time">@item.Timestamp.LocalDateTime.ToString("yyyy-MM-dd HH:mm")</p>
+                        <p class="buzz-timeline-detail">@item.Detail</p>
+                    </div>
+                </li>
+            }
+        </ol>
+    }
+</div>
+
+@code {
+    /// <summary>
+    /// Timeline heading label.
+    /// </summary>
+    [Parameter]
+    public string Label { get; set; } = "Buzz Timeline";
+
+    /// <summary>
+    /// Timeline items to render.
+    /// </summary>
+    [Parameter]
+    public IReadOnlyList<BuzzTimelineItem> Items { get; set; } = [];
+
+    /// <summary>
+    /// Shows AI recommendation hint.
+    /// </summary>
+    [Parameter]
+    public bool ShowRecommendationHint { get; set; } = true;
+
+    /// <summary>
+    /// Enables AI event recommendation.
+    /// </summary>
+    [Parameter]
+    public bool EnableAiRecommendedEvent { get; set; } = true;
+
+    /// <summary>
+    /// Automatically requests recommendation on initial load.
+    /// </summary>
+    [Parameter]
+    public bool AutoRecommendOnLoad { get; set; } = true;
+
+    /// <summary>
+    /// Context text sent to AI recommendation.
+    /// </summary>
+    [Parameter]
+    public string SourceText { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Maximum context characters sent to AI.
+    /// </summary>
+    [Parameter]
+    public int MaxInputCharacters { get; set; } = 1200;
+
+    /// <summary>
+    /// Sorts timeline in descending timestamp order when true.
+    /// </summary>
+    [Parameter]
+    public bool SortDescending { get; set; } = true;
+
+    private string? _recommendedEvent;
+    private bool _recommendedLoaded;
+
+    private IReadOnlyList<BuzzTimelineItem> OrderedItems =>
+        SortDescending
+            ? Items.OrderByDescending(item => item.Timestamp).ToList()
+            : Items.OrderBy(item => item.Timestamp).ToList();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (!EnableAiRecommendedEvent || !AutoRecommendOnLoad || _recommendedLoaded || Items.Count == 0)
+        {
+            return;
+        }
+
+        await TryLoadRecommendationAsync();
+        _recommendedLoaded = true;
+    }
+
+    private async Task TryLoadRecommendationAsync()
+    {
+        var source = (SourceText ?? string.Empty).Trim();
+        if (string.IsNullOrWhiteSpace(source))
+        {
+            return;
+        }
+
+        var constrainedInput = source.Length > MaxInputCharacters
+            ? source[..MaxInputCharacters]
+            : source;
+        var titles = OrderedItems.Select(item => item.Title.Trim()).Where(item => item.Length > 0).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+        if (titles.Count == 0)
+        {
+            return;
+        }
+
+        try
+        {
+            var response = await BuzzClient.GenerateAsync(
+                new BuzzRequest(
+                    constrainedInput,
+                    "Choose exactly one event title from the provided timeline titles that should be reviewed first. Return only the event title text and nothing else.",
+                    $"TimelineTitles: {string.Join(" | ", titles)}"));
+
+            var candidate = (response.OutputText ?? string.Empty).Trim();
+            var match = titles.FirstOrDefault(title => title.Equals(candidate, StringComparison.OrdinalIgnoreCase))
+                ?? titles.FirstOrDefault(title => candidate.Contains(title, StringComparison.OrdinalIgnoreCase));
+            if (string.IsNullOrWhiteSpace(match))
+            {
+                return;
+            }
+
+            _recommendedEvent = match;
+        }
+        catch (Exception ex)
+        {
+            Logger.LogWarning(ex, "BuzzTimeline recommendation generation failed.");
+        }
+    }
+
+    private static string NormalizeSeverity(string? severity)
+    {
+        if (string.IsNullOrWhiteSpace(severity))
+        {
+            return "info";
+        }
+
+        return severity.Trim().ToLowerInvariant() switch
+        {
+            "success" => "success",
+            "warning" => "warning",
+            "error" => "error",
+            _ => "info"
+        };
+    }
+}
