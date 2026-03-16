@@ -1,7 +1,9 @@
 @using Buzz.Blazor.Models
 @using Buzz.Core
+@using Buzz.Blazor.Services
 @using Microsoft.Extensions.Logging
 @inject IBuzzClient BuzzClient
+@inject IBuzzAiContextComposer AiContextComposer
 @inject ILogger<BuzzFormAssistant> Logger
 
 <div class="buzz-form-assistant">
@@ -165,6 +167,12 @@
     public string SourceText { get; set; } = string.Empty;
 
     /// <summary>
+    /// Subject key used to merge seed knowledge with live user memory.
+    /// </summary>
+    [Parameter]
+    public string AiContextSubject { get; set; } = "form-assistant";
+
+    /// <summary>
     /// Maximum input length sent to the AI provider.
     /// </summary>
     [Parameter]
@@ -222,7 +230,7 @@
             return;
         }
 
-        var context = BuildContextText();
+        var context = await BuildContextTextAsync(MessageDraft);
         if (string.IsNullOrWhiteSpace(context))
         {
             return;
@@ -269,7 +277,7 @@
                 new BuzzRequest(
                     Truncate(MessageDraft, MaxInputCharacters / 2),
                     RewriteInstruction,
-                    BuildContextText()));
+                    await BuildContextTextAsync(MessageDraft)));
             var rewritten = (response.OutputText ?? string.Empty).Trim();
             if (string.IsNullOrWhiteSpace(rewritten))
             {
@@ -290,13 +298,17 @@
         }
     }
 
-    private string BuildContextText()
+    private async Task<string> BuildContextTextAsync(string? userText)
     {
         var lines = Fields.Select(entry =>
             $"{entry.Label} ({(entry.Required ? "Required" : "Optional")}): {entry.Value ?? string.Empty}");
-        var core = string.Join('\n', lines);
-        var source = string.IsNullOrWhiteSpace(SourceText) ? string.Empty : $"\nContext: {SourceText}";
-        return Truncate(core + source, MaxInputCharacters);
+        var fieldSnapshot = string.Join('\n', lines);
+        return await AiContextComposer.ComposeAsync(
+            component: nameof(BuzzFormAssistant),
+            subject: AiContextSubject,
+            sourceText: fieldSnapshot + (string.IsNullOrWhiteSpace(SourceText) ? string.Empty : $"\nContext: {SourceText}"),
+            userText: userText,
+            maxCharacters: MaxInputCharacters);
     }
 
     private static string Truncate(string text, int limit)

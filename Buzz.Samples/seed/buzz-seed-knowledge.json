@@ -1,0 +1,46 @@
+{
+  "entries": [
+    {
+      "subject": "form-assistant",
+      "component": "BuzzFormAssistant",
+      "title": "Required fields first",
+      "text": "When risk insight is requested, prioritize missing required fields and blockers before optional details.",
+      "tags": [ "required", "risk", "validation" ]
+    },
+    {
+      "subject": "form-assistant",
+      "component": "BuzzFormAssistant",
+      "title": "Tone guidance",
+      "text": "Rewrite suggestions should stay concise, actionable, and user-friendly with no jargon.",
+      "tags": [ "rewrite", "tone", "clarity" ]
+    },
+    {
+      "subject": "smart-table",
+      "component": "BuzzSmartTable",
+      "title": "Operational analysis format",
+      "text": "Table insights should always provide trend, risk/anomaly, and recommended next action.",
+      "tags": [ "trend", "risk", "next-action" ]
+    },
+    {
+      "subject": "smart-table",
+      "component": "BuzzSmartTable",
+      "title": "Sort preference",
+      "text": "Prefer sorting by urgency, due date, or severity columns when available.",
+      "tags": [ "sorting", "priority", "date" ]
+    },
+    {
+      "subject": "sprint-planner",
+      "component": null,
+      "title": "Sprint priority policy",
+      "text": "High priority items due within 48 hours should be surfaced as top focus.",
+      "tags": [ "sprint", "priority", "deadline" ]
+    },
+    {
+      "subject": "sprint-planner",
+      "component": null,
+      "title": "Communication standard",
+      "text": "Summaries should support standups: what is done, at risk, and the immediate next step.",
+      "tags": [ "summary", "standup", "communication" ]
+    }
+  ]
+}

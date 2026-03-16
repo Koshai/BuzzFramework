@@ -80,6 +80,7 @@
 
         <details class="guide-nav-details" open="@_isDemoPagesNavOpen">
             <summary class="guide-nav-group">Demo Pages</summary>
+            <a href="#ai-context-model">AI Context Model</a>
             <a href="/tutorial-todo">Todo + AI Tutorial</a>
             <a href="/demo">Demo Hub</a>
             <a href="/demo-inputs">Inputs Demo</a>
@@ -121,6 +122,39 @@
             <BuzzList Items="@_guideDemoPageTips" Ordered="false" />
             <h3>Code used to display the component</h3>
             <pre><code>&lt;BuzzList Items="@@_guideDemoPageTips" Ordered="false" /&gt;</code></pre>
+        </section>
+
+        <section id="ai-context-model" class="guide-section">
+            <h2 class="guide-component-title">AI Context Model (Seed + Live Memory)</h2>
+            <h3>Purpose</h3>
+            <p>Delivers meaningful AI output from first deployment by combining baseline seed knowledge with progressively learned user memory.</p>
+            <h3>How to implement</h3>
+            <pre><code>{
+  "Buzz": {
+    "EnableAiContextEnrichment": true,
+    "EnableSeedKnowledgeBootstrap": true,
+    "SeedKnowledgeFilePath": "seed/buzz-seed-knowledge.json",
+    "SeedKnowledgeMaxMatchesPerRequest": 4,
+    "UserMemoryMaxMatchesPerRequest": 5,
+    "EnableSeedKnowledgeWarmupOnStartup": true
+  }
+}</code></pre>
+            <h3>Parameters to consider and effects</h3>
+            <ul>
+                <li><code>EnableAiContextEnrichment</code>: composes AI prompts from developer context, seed entries, and live memory.</li>
+                <li><code>EnableSeedKnowledgeBootstrap</code>: turns on seed lookup for cold-start quality.</li>
+                <li><code>SeedKnowledgeFilePath</code>: path to shipped JSON knowledge entries.</li>
+                <li><code>AiContextSubject</code> (component parameter): routes each request into the right domain memory bucket.</li>
+                <li>User/session memory naturally gains precedence over baseline defaults as usage grows.</li>
+            </ul>
+            <h3>Example usage (actual component)</h3>
+            <BuzzCodeBlock Title="Seed knowledge entry"
+                           Language="json"
+                           Code="@_guideSeedKnowledgeSnippet"
+                           ShowLineNumbers="false"
+                           EnableCopyButton="true" />
+            <h3>Code used to display the component</h3>
+            <pre><code>&lt;BuzzCodeBlock Title="Seed knowledge entry" Language="json" Code="@@_guideSeedKnowledgeSnippet" ShowLineNumbers="false" EnableCopyButton="true" /&gt;</code></pre>
         </section>
 
         <div class="guide-category-cards">
@@ -1112,6 +1146,7 @@
     MessageDraft="@_guideAssistantMessage"
     MessageDraftChanged="OnGuideAssistantMessageChanged"
     RewriteInstruction="Rewrite this message to be clear and user-friendly."
+    AiContextSubject="sprint-planner"
     SourceText="@_guideAccordionSource"
     MaxInputCharacters="1600" /&gt;</code></pre>
             <h3>Parameters to consider and effects</h3>
@@ -1120,6 +1155,7 @@
                 <li><code>EnableAiRiskInsight</code>: generates trend/risk/next-step guidance before submit.</li>
                 <li><code>MessageDraft</code>/<code>MessageDraftChanged</code>: supports AI-assisted rewrite loop.</li>
                 <li><code>ShowGenerateButtons</code>: allows manual AI generation control.</li>
+                <li><code>AiContextSubject</code>: links prompts to seed knowledge and live shared memory for domain-specific output.</li>
             </ul>
             <h3>Example usage (actual component)</h3>
             <BuzzFormAssistant
@@ -1132,6 +1168,7 @@
                 EnableAiRewriteForMessage="true"
                 MessageDraft="@_guideAssistantMessage"
                 MessageDraftChanged="OnGuideAssistantMessageChanged"
+                AiContextSubject="sprint-planner"
                 SourceText="@_guideAccordionSource" />
             <h3>Code used to display the component</h3>
             <pre><code>&lt;BuzzFormAssistant
@@ -1142,6 +1179,7 @@
     EnableAiRewriteForMessage="true"
     MessageDraft="@_guideAssistantMessage"
     MessageDraftChanged="OnGuideAssistantMessageChanged"
+    AiContextSubject="sprint-planner"
     SourceText="@_guideAccordionSource" /&gt;
 
 @@code {
@@ -1758,6 +1796,7 @@
     AutoRecommendSortOnLoad="true"
     EnableAiInsights="true"
     AutoGenerateAiInsightsOnLoad="true"
+    AiContextSubject="support-cases"
     SourceText="@_guideAccordionSource"
     MaxInputCharacters="1200" /&gt;</code></pre>
             <h3>Parameters to consider and effects</h3>
@@ -1769,6 +1808,7 @@
                 <li><code>ShowSummaryFooter</code>: renders aggregate row (sum/avg/min/max/count/distinct count).</li>
                 <li><code>ShowInsightsPanel</code>: displays missing values, duplicates, and per-column data quality summary.</li>
                 <li><code>ShowAiInsightsPanel</code> + <code>EnableAiInsights</code>: shows concise AI narrative (trend, risk, next action).</li>
+                <li><code>AiContextSubject</code>: aligns AI prompts with seed baseline and learned user-memory context.</li>
                 <li><code>ShowFilterPanel</code> + <code>EnableGlobalSearch</code> + <code>EnableGrouping</code>: adds column filters, search, and group-by analysis.</li>
                 <li><code>SavedViews</code> + <code>SavedViewsChanged</code>: lets users save/reload table states.</li>
                 <li><code>HighlightFirstRow</code>: visually emphasizes first row after sort.</li>
@@ -1791,6 +1831,7 @@
                 AutoRecommendSortOnLoad="true"
                 EnableAiInsights="true"
                 AutoGenerateAiInsightsOnLoad="true"
+                AiContextSubject="support-cases"
                 ShowRecommendationHint="true"
                 ShowRowCount="true"
                 HighlightFirstRow="true"
@@ -1813,6 +1854,7 @@
     AutoRecommendSortOnLoad="true"
     EnableAiInsights="true"
     AutoGenerateAiInsightsOnLoad="true"
+    AiContextSubject="support-cases"
     ShowRecommendationHint="true"
     ShowRowCount="true"
     HighlightFirstRow="true"
@@ -2132,6 +2174,16 @@
                 <p><strong>Escalation:</strong> @_guideSelect</p>
             </ChildContent>
         </BuzzCard>
+        """;
+    private const string _guideSeedKnowledgeSnippet =
+        """
+        {
+          "subject": "sprint-planner",
+          "component": "BuzzFormAssistant",
+          "title": "Sprint priority policy",
+          "text": "High-priority items due within 48 hours should be surfaced as top focus.",
+          "tags": ["priority", "deadline", "risk"]
+        }
         """;
 
     private readonly IReadOnlyList<string> _guideSelectOptions =

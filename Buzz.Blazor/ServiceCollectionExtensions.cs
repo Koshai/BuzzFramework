@@ -1,6 +1,7 @@
 using Buzz.Core;
 using Buzz.Blazor.Services;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Buzz.Blazor;
 
@@ -26,10 +27,12 @@ public static class ServiceCollectionExtensions
         }
 
         services.AddSingleton<IBuzzCaseMemoryStore, InMemoryBuzzCaseMemoryStore>();
+        services.TryAddSingleton<IBuzzSeedKnowledgeStore, JsonBuzzSeedKnowledgeStore>();
         services.AddScoped<IBuzzHistoryStore, LocalStorageBuzzHistoryStore>();
         services.AddScoped<IBuzzSuggestionService, BuzzSuggestionService>();
         services.AddScoped<IBuzzOptionRanker, BuzzOptionRanker>();
         services.AddScoped<IBuzzToggleAdvisor, BuzzToggleAdvisor>();
+        services.AddScoped<IBuzzAiContextComposer, BuzzAiContextComposer>();
         services.AddScoped<IBuzzClient, BuzzClient>();
         return services;
     }

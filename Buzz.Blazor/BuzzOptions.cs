@@ -53,4 +53,28 @@ public sealed class BuzzOptions
     /// Maximum entries retained per memory subject bucket.
     /// </summary>
     public int SharedCaseMemoryMaxEntriesPerSubject { get; set; } = 2000;
+    /// <summary>
+    /// Enables composition of AI prompts from seed knowledge and user memory.
+    /// </summary>
+    public bool EnableAiContextEnrichment { get; set; } = true;
+    /// <summary>
+    /// Enables loading baseline seed knowledge from a JSON file.
+    /// </summary>
+    public bool EnableSeedKnowledgeBootstrap { get; set; } = true;
+    /// <summary>
+    /// Relative or absolute path to the seed knowledge JSON file.
+    /// </summary>
+    public string SeedKnowledgeFilePath { get; set; } = "seed/buzz-seed-knowledge.json";
+    /// <summary>
+    /// Maximum number of seed entries included in one AI request context.
+    /// </summary>
+    public int SeedKnowledgeMaxMatchesPerRequest { get; set; } = 4;
+    /// <summary>
+    /// Maximum number of recent user-memory entries included in one AI request context.
+    /// </summary>
+    public int UserMemoryMaxMatchesPerRequest { get; set; } = 5;
+    /// <summary>
+    /// Enables startup warmup so seed knowledge is available before first user interaction.
+    /// </summary>
+    public bool EnableSeedKnowledgeWarmupOnStartup { get; set; } = true;
 }
