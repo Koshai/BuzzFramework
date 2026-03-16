@@ -1,9 +1,11 @@
 @using Buzz.Blazor.Models
+@using Buzz.Blazor.Services
 @using Buzz.Core
 @using System.Globalization
 @using System.Text
 @using Microsoft.Extensions.Logging
 @inject IBuzzClient BuzzClient
+@inject IBuzzAiContextComposer AiContextComposer
 @inject ILogger<BuzzSmartTable> Logger
 
 <div class="buzz-smart-table">
@@ -362,6 +364,12 @@
     /// </summary>
     [Parameter]
     public string SourceText { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Subject key used to merge seed knowledge with live user memory.
+    /// </summary>
+    [Parameter]
+    public string AiContextSubject { get; set; } = "smart-table";
 
     /// <summary>
     /// Maximum input characters sent to AI prompts.
@@ -1001,7 +1009,7 @@
             return;
         }
 
-        var insightInput = BuildInsightInput();
+        var insightInput = await BuildInsightInputAsync();
         if (string.IsNullOrWhiteSpace(insightInput))
         {
             return;
@@ -1033,14 +1041,9 @@
         }
     }
 
-    private string BuildInsightInput()
+    private async Task<string> BuildInsightInputAsync()
     {
-        var source = (SourceText ?? string.Empty).Trim();
         var builder = new StringBuilder();
-        if (!string.IsNullOrWhiteSpace(source))
-        {
-            builder.AppendLine($"Context: {Truncate(source, MaxInputCharacters / 2)}");
-        }
 
         builder.AppendLine($"Rows={Rows.Count}; MissingCells={MissingCellCount}; MissingPct={MissingPercentageText}; Duplicates={DuplicateRowCount}");
         builder.AppendLine("Columns:");
@@ -1063,7 +1066,13 @@
             builder.AppendLine(string.Join("; ", parts));
         }
 
-        return Truncate(builder.ToString(), MaxInputCharacters);
+        var userText = builder.ToString();
+        return await AiContextComposer.ComposeAsync(
+            component: nameof(BuzzSmartTable),
+            subject: AiContextSubject,
+            sourceText: SourceText,
+            userText: userText,
+            maxCharacters: MaxInputCharacters);
     }
 
     private static string Truncate(string text, int limit)
@@ -1078,17 +1087,24 @@
 
     private async Task TryLoadRecommendationAsync()
     {
-        var source = (SourceText ?? string.Empty).Trim();
-        if (string.IsNullOrWhiteSpace(source))
+        if (Columns.Count == 0)
         {
             return;
         }
 
-        var constrainedInput = source.Length > MaxInputCharacters
-            ? source[..MaxInputCharacters]
-            : source;
         var headers = Columns.Select(column => column.Header.Trim()).Where(header => header.Length > 0).ToList();
         if (headers.Count == 0)
+        {
+            return;
+        }
+
+        var recommendationContext = await AiContextComposer.ComposeAsync(
+            component: nameof(BuzzSmartTable),
+            subject: AiContextSubject,
+            sourceText: SourceText,
+            userText: $"ColumnHeaders: {string.Join(" | ", headers)}",
+            maxCharacters: MaxInputCharacters);
+        if (string.IsNullOrWhiteSpace(recommendationContext))
         {
             return;
         }
@@ -1097,7 +1113,7 @@
         {
             var response = await BuzzClient.GenerateAsync(
                 new BuzzRequest(
-                    constrainedInput,
+                    recommendationContext,
                     "Choose exactly one column header from the provided list that should be used as the initial sort for user clarity. Return only the column header text and nothing else.",
                     $"ColumnHeaders: {string.Join(" | ", headers)}"));
 

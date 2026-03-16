@@ -11,7 +11,7 @@
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <IsPackable>true</IsPackable>
     <PackageId>Buzz.Framework.Provider.Ollama</PackageId>
-    <Version>0.1.0-preview.1</Version>
+    <Version>0.1.0-preview.2</Version>
     <Authors>Buzz Framework Team</Authors>
     <Description>Ollama provider integration for Buzz Framework AI pipelines.</Description>
     <PackageTags>buzz;blazor;ai;ollama;provider</PackageTags>

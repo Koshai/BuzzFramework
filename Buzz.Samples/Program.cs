@@ -4,6 +4,7 @@ using Buzz.Core;
 using Buzz.Provider.Ollama;
 using Buzz.Provider.OpenAI;
 using Buzz.Samples.Services;
+using Buzz.Blazor.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 var openAiApiKey = builder.Configuration["Buzz:OpenAI:ApiKey"]
@@ -22,6 +23,12 @@ var aiCooldownSeconds = builder.Configuration.GetValue("Buzz:AiCooldownSeconds",
 var aiCacheTtlSeconds = builder.Configuration.GetValue("Buzz:AiCacheTtlSeconds", 180);
 var enableSharedCaseMemory = builder.Configuration.GetValue("Buzz:EnableSharedCaseMemory", true);
 var sharedCaseMemoryMaxEntriesPerSubject = builder.Configuration.GetValue("Buzz:SharedCaseMemoryMaxEntriesPerSubject", 2000);
+var enableAiContextEnrichment = builder.Configuration.GetValue("Buzz:EnableAiContextEnrichment", true);
+var enableSeedKnowledgeBootstrap = builder.Configuration.GetValue("Buzz:EnableSeedKnowledgeBootstrap", true);
+var seedKnowledgeFilePath = builder.Configuration["Buzz:SeedKnowledgeFilePath"] ?? "seed/buzz-seed-knowledge.json";
+var seedKnowledgeMaxMatchesPerRequest = builder.Configuration.GetValue("Buzz:SeedKnowledgeMaxMatchesPerRequest", 4);
+var userMemoryMaxMatchesPerRequest = builder.Configuration.GetValue("Buzz:UserMemoryMaxMatchesPerRequest", 5);
+var enableSeedKnowledgeWarmupOnStartup = builder.Configuration.GetValue("Buzz:EnableSeedKnowledgeWarmupOnStartup", true);
 var hasOpenAi = !string.IsNullOrWhiteSpace(openAiApiKey);
 var hasOllama = !string.IsNullOrWhiteSpace(ollamaBaseUrl);
 var defaultProvider = !string.IsNullOrWhiteSpace(configuredDefaultProvider)
@@ -42,6 +49,12 @@ builder.Services.AddBuzzFramework(options =>
     options.AiCacheTtlSeconds = aiCacheTtlSeconds;
     options.EnableSharedCaseMemory = enableSharedCaseMemory;
     options.SharedCaseMemoryMaxEntriesPerSubject = sharedCaseMemoryMaxEntriesPerSubject;
+    options.EnableAiContextEnrichment = enableAiContextEnrichment;
+    options.EnableSeedKnowledgeBootstrap = enableSeedKnowledgeBootstrap;
+    options.SeedKnowledgeFilePath = seedKnowledgeFilePath;
+    options.SeedKnowledgeMaxMatchesPerRequest = seedKnowledgeMaxMatchesPerRequest;
+    options.UserMemoryMaxMatchesPerRequest = userMemoryMaxMatchesPerRequest;
+    options.EnableSeedKnowledgeWarmupOnStartup = enableSeedKnowledgeWarmupOnStartup;
 });
 builder.Services.AddHttpClient("buzz-openai", client =>
 {
@@ -88,6 +101,13 @@ if (hasOllama)
 builder.Services.AddScoped<IBuzzProvider, MockBuzzProvider>();
 
 var app = builder.Build();
+
+if (enableSeedKnowledgeWarmupOnStartup)
+{
+    using var scope = app.Services.CreateScope();
+    var seedStore = scope.ServiceProvider.GetRequiredService<IBuzzSeedKnowledgeStore>();
+    await seedStore.WarmupAsync();
+}
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())

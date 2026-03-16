@@ -50,6 +50,19 @@
         </article>
     </section>
 
+    <section class="todo-tutorial-grid">
+        <article class="todo-tutorial-card">
+            <h2>Step 5: Bootstrap AI context from deployment day</h2>
+            <p>Ship a seed knowledge file and enable context enrichment so AI starts with domain guidance before user history grows.</p>
+            <BuzzCodeBlock Code="@_aiBootstrapSnippet" Language="json" ShowLineNumbers="false" EnableCopyButton="true" />
+        </article>
+        <article class="todo-tutorial-card">
+            <h2>Step 6: Add seed entries and subject keys</h2>
+            <p>Use <code>AiContextSubject</code> to map components to baseline domain references and later user-memory overrides.</p>
+            <BuzzCodeBlock Code="@_seedEntrySnippet" Language="json" ShowLineNumbers="false" EnableCopyButton="true" />
+        </article>
+    </section>
+
     <section class="todo-tutorial-card">
         <h2>Live Sprint Planner Demo</h2>
         <p>Use this as a blueprint for internal tools, release planning pages, or operations dashboards.</p>
@@ -212,7 +225,8 @@
         "Use AI suggestions in text/select/date components during task intake.",
         "Ask AI to rewrite vague tasks into clear, action-oriented titles.",
         "Generate priority recommendations based on deadlines and impact.",
-        "Produce daily standup summaries from open and completed tasks."
+        "Produce daily standup summaries from open and completed tasks.",
+        "Seed app-wide AI context at deployment and let live usage progressively override defaults."
     ];
 
     private readonly IReadOnlyList<string> _aiUseCases =
@@ -250,6 +264,27 @@
         "Inputs: title, priority, due date, done/open, assignee.\n" +
         "Ask: return 1) top 3 tasks, 2) risks, 3) next immediate action.\n" +
         "Tone: concise, action-oriented, no markdown.";
+
+    private readonly string _aiBootstrapSnippet =
+        "{\n" +
+        "  \"Buzz\": {\n" +
+        "    \"EnableAiContextEnrichment\": true,\n" +
+        "    \"EnableSeedKnowledgeBootstrap\": true,\n" +
+        "    \"SeedKnowledgeFilePath\": \"seed/buzz-seed-knowledge.json\",\n" +
+        "    \"SeedKnowledgeMaxMatchesPerRequest\": 4,\n" +
+        "    \"UserMemoryMaxMatchesPerRequest\": 5,\n" +
+        "    \"EnableSeedKnowledgeWarmupOnStartup\": true\n" +
+        "  }\n" +
+        "}";
+
+    private readonly string _seedEntrySnippet =
+        "{\n" +
+        "  \"subject\": \"sprint-planner\",\n" +
+        "  \"component\": \"BuzzFormAssistant\",\n" +
+        "  \"title\": \"Sprint priority policy\",\n" +
+        "  \"text\": \"High-priority items due within 48 hours should be surfaced as top focus.\",\n" +
+        "  \"tags\": [\"priority\", \"deadline\", \"risk\"]\n" +
+        "}";
 
     private readonly string _fullExampleSnippet =
         """
