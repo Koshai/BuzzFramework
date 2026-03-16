@@ -37,6 +37,11 @@ html, body {
     --buzz-radius-lg: 14px;
     --buzz-shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.05);
     --buzz-shadow-md: 0 8px 20px rgba(15, 23, 42, 0.09);
+    --buzz-motion-fast: 120ms;
+    --buzz-motion-normal: 180ms;
+    --buzz-motion-slow: 280ms;
+    --buzz-motion-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+    --buzz-motion-ease-emphasized: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 html[data-buzz-theme="azure"] {
@@ -167,7 +172,34 @@ html[data-buzz-theme="slate"] {
 body {
     background: var(--buzz-bg-canvas, #f8fafc);
     color: var(--buzz-text-primary, #0f172a);
-    transition: background-color 180ms ease, color 180ms ease;
+    transition: background-color var(--buzz-motion-normal) var(--buzz-motion-ease), color var(--buzz-motion-normal) var(--buzz-motion-ease);
+}
+
+.buzz-animate-fade-in {
+    animation: buzzFadeIn var(--buzz-motion-normal) var(--buzz-motion-ease) both;
+}
+
+.buzz-animate-scale-in {
+    animation: buzzScaleIn var(--buzz-motion-normal) var(--buzz-motion-ease-emphasized) both;
+}
+
+.buzz-animate-slide-up {
+    animation: buzzSlideUp var(--buzz-motion-slow) var(--buzz-motion-ease-emphasized) both;
+}
+
+@keyframes buzzFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes buzzScaleIn {
+    from { opacity: 0; transform: scale(0.98); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes buzzSlideUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 a, .btn-link {
@@ -225,4 +257,13 @@ h1:focus {
 
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
     text-align: start;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.001ms !important;
+        scroll-behavior: auto !important;
+    }
 }

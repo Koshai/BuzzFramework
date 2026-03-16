@@ -1,0 +1,311 @@
+@using Buzz.Blazor.Models
+@using Buzz.Core
+@using Microsoft.Extensions.Logging
+@inject IBuzzClient BuzzClient
+@inject ILogger<BuzzFormAssistant> Logger
+
+<div class="buzz-form-assistant">
+    @if (!string.IsNullOrWhiteSpace(Label))
+    {
+        <h3 class="buzz-form-assistant-label">@Label</h3>
+    }
+
+    @if (ShowCompletionScore)
+    {
+        <p class="buzz-form-assistant-meta">
+            Required completion: <strong>@CompletionPercent%</strong> (@RequiredFilledCount / @RequiredTotalCount)
+        </p>
+    }
+
+    @if (ShowChecklist)
+    {
+        @if (MissingRequiredFields.Count == 0)
+        {
+            <p class="buzz-form-assistant-ok">All required fields are complete.</p>
+        }
+        else
+        {
+            <div class="buzz-form-assistant-checklist">
+                <p class="buzz-form-assistant-checklist-title">Missing required fields</p>
+                <ul>
+                    @foreach (var field in MissingRequiredFields)
+                    {
+                        <li>@field.Label</li>
+                    }
+                </ul>
+            </div>
+        }
+    }
+
+    @if (EnableAiRiskInsight)
+    {
+        <div class="buzz-form-assistant-ai">
+            @if (ShowGenerateButtons)
+            {
+                <button type="button" class="buzz-form-assistant-button" @onclick="GenerateRiskInsightAsync">
+                    Generate Risk Insight
+                </button>
+            }
+
+            @if (_riskInsightLoading)
+            {
+                <p class="buzz-form-assistant-text">Analyzing form risk...</p>
+            }
+            else if (!string.IsNullOrWhiteSpace(_riskInsightText))
+            {
+                <p class="buzz-form-assistant-text">@_riskInsightText</p>
+            }
+            else if (!string.IsNullOrWhiteSpace(_riskInsightError))
+            {
+                <p class="buzz-form-assistant-error">@_riskInsightError</p>
+            }
+        </div>
+    }
+
+    @if (EnableAiRewriteForMessage)
+    {
+        <div class="buzz-form-assistant-rewrite">
+            <p class="buzz-form-assistant-checklist-title">Message draft rewrite</p>
+            <textarea
+                class="buzz-form-assistant-textarea"
+                rows="3"
+                value="@MessageDraft"
+                @oninput="HandleMessageDraftInput"></textarea>
+            @if (ShowGenerateButtons)
+            {
+                <button type="button" class="buzz-form-assistant-button" @onclick="RewriteMessageDraftAsync">
+                    Rewrite Message Draft
+                </button>
+            }
+
+            @if (_rewriteLoading)
+            {
+                <p class="buzz-form-assistant-text">Rewriting draft...</p>
+            }
+            else if (!string.IsNullOrWhiteSpace(_rewriteError))
+            {
+                <p class="buzz-form-assistant-error">@_rewriteError</p>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    /// <summary>
+    /// Section title displayed for the assistant.
+    /// </summary>
+    [Parameter]
+    public string Label { get; set; } = "Buzz Form Assistant";
+
+    /// <summary>
+    /// Field state list used to compute completion and risk context.
+    /// </summary>
+    [Parameter]
+    public IReadOnlyList<BuzzFormFieldState> Fields { get; set; } = [];
+
+    /// <summary>
+    /// Shows checklist of required fields.
+    /// </summary>
+    [Parameter]
+    public bool ShowChecklist { get; set; } = true;
+
+    /// <summary>
+    /// Shows completion percentage for required fields.
+    /// </summary>
+    [Parameter]
+    public bool ShowCompletionScore { get; set; } = true;
+
+    /// <summary>
+    /// Enables AI risk insight generation.
+    /// </summary>
+    [Parameter]
+    public bool EnableAiRiskInsight { get; set; } = true;
+
+    /// <summary>
+    /// Automatically generates risk insight during initial load.
+    /// </summary>
+    [Parameter]
+    public bool AutoGenerateRiskInsightOnLoad { get; set; } = false;
+
+    /// <summary>
+    /// Enables AI rewrite support for the draft message.
+    /// </summary>
+    [Parameter]
+    public bool EnableAiRewriteForMessage { get; set; } = true;
+
+    /// <summary>
+    /// Shows action buttons for AI features.
+    /// </summary>
+    [Parameter]
+    public bool ShowGenerateButtons { get; set; } = true;
+
+    /// <summary>
+    /// Current message draft text.
+    /// </summary>
+    [Parameter]
+    public string MessageDraft { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Two-way binding callback for <see cref="MessageDraft"/>.
+    /// </summary>
+    [Parameter]
+    public EventCallback<string> MessageDraftChanged { get; set; }
+
+    /// <summary>
+    /// Prompt instruction used for message rewrite.
+    /// </summary>
+    [Parameter]
+    public string RewriteInstruction { get; set; } =
+        "Rewrite this message to be clear, concise, and friendly for end users.";
+
+    /// <summary>
+    /// Additional context appended to AI prompts.
+    /// </summary>
+    [Parameter]
+    public string SourceText { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Maximum input length sent to the AI provider.
+    /// </summary>
+    [Parameter]
+    public int MaxInputCharacters { get; set; } = 1600;
+
+    /// <summary>
+    /// Fallback text shown when risk insight generation fails.
+    /// </summary>
+    [Parameter]
+    public string AiFallbackRiskInsight { get; set; } =
+        "AI risk insight is unavailable right now. Review missing fields and critical values before submit.";
+
+    /// <summary>
+    /// Fallback text shown when rewrite generation fails.
+    /// </summary>
+    [Parameter]
+    public string AiFallbackRewrite { get; set; } =
+        "AI rewrite is unavailable right now. Keep the draft concise and user-friendly.";
+
+    private bool _riskInsightLoaded;
+    private bool _riskInsightLoading;
+    private bool _rewriteLoading;
+    private string? _riskInsightText;
+    private string? _riskInsightError;
+    private string? _rewriteError;
+
+    private IReadOnlyList<BuzzFormFieldState> MissingRequiredFields =>
+        Fields.Where(entry => entry.Required && string.IsNullOrWhiteSpace(entry.Value)).ToList();
+
+    private int RequiredTotalCount => Fields.Count(entry => entry.Required);
+    private int RequiredFilledCount => Fields.Count(entry => entry.Required && !string.IsNullOrWhiteSpace(entry.Value));
+    private int CompletionPercent => RequiredTotalCount == 0
+        ? 100
+        : (int)Math.Round((RequiredFilledCount * 100.0) / RequiredTotalCount);
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (EnableAiRiskInsight && AutoGenerateRiskInsightOnLoad && !_riskInsightLoaded)
+        {
+            await GenerateRiskInsightAsync();
+            _riskInsightLoaded = true;
+        }
+    }
+
+    private async Task HandleMessageDraftInput(ChangeEventArgs args)
+    {
+        var value = args.Value?.ToString() ?? string.Empty;
+        await MessageDraftChanged.InvokeAsync(value);
+    }
+
+    private async Task GenerateRiskInsightAsync()
+    {
+        if (!EnableAiRiskInsight)
+        {
+            return;
+        }
+
+        var context = BuildContextText();
+        if (string.IsNullOrWhiteSpace(context))
+        {
+            return;
+        }
+
+        _riskInsightLoading = true;
+        _riskInsightError = null;
+
+        try
+        {
+            var response = await BuzzClient.GenerateAsync(
+                new BuzzRequest(
+                    context,
+                    "Analyze the form state and return three short bullet points: 1) completion quality, 2) risk or missing critical detail, 3) concrete next step before submit.",
+                    "Output plain text bullets only."));
+
+            var text = (response.OutputText ?? string.Empty).Trim();
+            _riskInsightText = string.IsNullOrWhiteSpace(text) ? AiFallbackRiskInsight : text;
+        }
+        catch (Exception ex)
+        {
+            Logger.LogWarning(ex, "BuzzFormAssistant risk insight generation failed.");
+            _riskInsightError = AiFallbackRiskInsight;
+        }
+        finally
+        {
+            _riskInsightLoading = false;
+        }
+    }
+
+    private async Task RewriteMessageDraftAsync()
+    {
+        if (!EnableAiRewriteForMessage || string.IsNullOrWhiteSpace(MessageDraft))
+        {
+            return;
+        }
+
+        _rewriteLoading = true;
+        _rewriteError = null;
+
+        try
+        {
+            var response = await BuzzClient.GenerateAsync(
+                new BuzzRequest(
+                    Truncate(MessageDraft, MaxInputCharacters / 2),
+                    RewriteInstruction,
+                    BuildContextText()));
+            var rewritten = (response.OutputText ?? string.Empty).Trim();
+            if (string.IsNullOrWhiteSpace(rewritten))
+            {
+                _rewriteError = AiFallbackRewrite;
+                return;
+            }
+
+            await MessageDraftChanged.InvokeAsync(rewritten);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogWarning(ex, "BuzzFormAssistant message rewrite failed.");
+            _rewriteError = AiFallbackRewrite;
+        }
+        finally
+        {
+            _rewriteLoading = false;
+        }
+    }
+
+    private string BuildContextText()
+    {
+        var lines = Fields.Select(entry =>
+            $"{entry.Label} ({(entry.Required ? "Required" : "Optional")}): {entry.Value ?? string.Empty}");
+        var core = string.Join('\n', lines);
+        var source = string.IsNullOrWhiteSpace(SourceText) ? string.Empty : $"\nContext: {SourceText}";
+        return Truncate(core + source, MaxInputCharacters);
+    }
+
+    private static string Truncate(string text, int limit)
+    {
+        if (string.IsNullOrWhiteSpace(text) || limit <= 0 || text.Length <= limit)
+        {
+            return text;
+        }
+
+        return text[..limit];
+    }
+}

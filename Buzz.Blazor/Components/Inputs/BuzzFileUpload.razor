@@ -1,0 +1,168 @@
+@using Buzz.Blazor.Models
+@using Buzz.Core
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.Extensions.Logging
+@inject IBuzzClient BuzzClient
+@inject ILogger<BuzzFileUpload> Logger
+
+<section class="buzz-file-upload">
+    <label class="buzz-file-upload-label">@Label</label>
+    <InputFile OnChange="HandleFilesChangedAsync" multiple="@AllowMultiple" accept="@Accept" />
+
+    @if (!string.IsNullOrWhiteSpace(_error))
+    {
+        <p class="buzz-file-upload-error">@_error</p>
+    }
+
+    @if (_files.Count > 0)
+    {
+        <BuzzList Items="@_files.Select(file => $"{file.Name} ({FormatSize(file.SizeBytes)})").ToList()" Ordered="false" />
+    }
+
+    @if (EnableAiInsight)
+    {
+        <BuzzStack Direction="horizontal" Gap="0.35rem" Align="center" Wrap="true">
+            <BuzzButton Text="@(_isGenerating ? "Analyzing..." : "Generate AI file insight")"
+                        Variant="outline"
+                        Size="sm"
+                        Loading="@_isGenerating"
+                        OnClick="GenerateAiInsightAsync" />
+        </BuzzStack>
+
+        @if (!string.IsNullOrWhiteSpace(_aiInsight))
+        {
+            <p class="buzz-file-upload-insight">@_aiInsight</p>
+        }
+    }
+</section>
+
+@code {
+    /// <summary>
+    /// Upload field label text.
+    /// </summary>
+    [Parameter]
+    public string Label { get; set; } = "Upload files";
+
+    /// <summary>
+    /// Allows selecting multiple files.
+    /// </summary>
+    [Parameter]
+    public bool AllowMultiple { get; set; } = true;
+
+    /// <summary>
+    /// Accepted MIME types or file extensions.
+    /// </summary>
+    [Parameter]
+    public string Accept { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Maximum number of files accepted per selection.
+    /// </summary>
+    [Parameter]
+    public int MaxFiles { get; set; } = 8;
+
+    /// <summary>
+    /// Maximum allowed file size per file in megabytes.
+    /// </summary>
+    [Parameter]
+    public int MaxFileSizeMb { get; set; } = 10;
+
+    /// <summary>
+    /// Enables AI insight generation from uploaded file metadata.
+    /// </summary>
+    [Parameter]
+    public bool EnableAiInsight { get; set; } = true;
+
+    /// <summary>
+    /// Additional context sent to AI insight generation.
+    /// </summary>
+    [Parameter]
+    public string SourceContext { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Callback invoked when uploaded file list changes.
+    /// </summary>
+    [Parameter]
+    public EventCallback<IReadOnlyList<BuzzUploadedFileItem>> FilesChanged { get; set; }
+
+    private readonly List<BuzzUploadedFileItem> _files = [];
+    private string _error = string.Empty;
+    private string _aiInsight = string.Empty;
+    private bool _isGenerating;
+
+    private async Task HandleFilesChangedAsync(InputFileChangeEventArgs args)
+    {
+        _error = string.Empty;
+        _aiInsight = string.Empty;
+        _files.Clear();
+
+        var files = args.GetMultipleFiles(MaxFiles + 4);
+        if (files.Count > MaxFiles)
+        {
+            _error = $"You can upload up to {MaxFiles} files.";
+            files = files.Take(MaxFiles).ToList();
+        }
+
+        var maxBytes = MaxFileSizeMb * 1024L * 1024L;
+        foreach (var file in files)
+        {
+            if (file.Size > maxBytes)
+            {
+                _error = $"Some files exceed {MaxFileSizeMb} MB and were skipped.";
+                continue;
+            }
+
+            _files.Add(new BuzzUploadedFileItem(file.Name, file.Size, file.ContentType));
+        }
+
+        await FilesChanged.InvokeAsync(_files.ToList());
+    }
+
+    private async Task GenerateAiInsightAsync()
+    {
+        if (_files.Count == 0)
+        {
+            _error = "Upload at least one file before requesting AI insight.";
+            return;
+        }
+
+        _isGenerating = true;
+        _error = string.Empty;
+        try
+        {
+            var payload = string.Join("\n", _files.Select(file =>
+                $"{file.Name} ({FormatSize(file.SizeBytes)} | {file.ContentType})"));
+
+            var response = await BuzzClient.GenerateAsync(new BuzzRequest(
+                payload,
+                "Review these uploaded file names and provide a short one-paragraph quality check and one recommendation. Return plain text only.",
+                SourceContext));
+
+            _aiInsight = response.OutputText?.Trim() ?? string.Empty;
+        }
+        catch (Exception ex)
+        {
+            Logger.LogWarning(ex, "BuzzFileUpload AI insight failed.");
+            _error = "AI insight is unavailable right now.";
+        }
+        finally
+        {
+            _isGenerating = false;
+        }
+    }
+
+    private static string FormatSize(long bytes)
+    {
+        if (bytes < 1024)
+        {
+            return $"{bytes} B";
+        }
+
+        if (bytes < 1024 * 1024)
+        {
+            return $"{bytes / 1024d:N1} KB";
+        }
+
+        return $"{bytes / (1024d * 1024d):N1} MB";
+    }
+}

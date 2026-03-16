@@ -1,0 +1,528 @@
+@page "/tutorial-todo"
+@rendermode InteractiveServer
+@using Buzz.Blazor.Models
+
+<PageTitle>Todo Tutorial - Buzz Framework</PageTitle>
+
+<div class="todo-tutorial-page">
+    <header class="todo-tutorial-hero">
+        <BuzzBadge Text="Hands-on Tutorial" Variant="info" />
+        <h1>Build a Sprint Planner with Buzz Components + AI</h1>
+        <p>This version goes beyond a basic list: task intake, prioritization, due dates, completion workflow, and delivery health insights.</p>
+    </header>
+
+    <DemoAiContextBanner Title="Suggested AI Context"
+                         Subtitle="Use this context in components that accept AI source text."
+                         SampleText="@_aiContextText" />
+
+    <section class="todo-tutorial-card">
+        <BuzzStepper Label="Implementation Steps"
+                     Steps="@_steps"
+                     AllowStepNavigation="true"
+                     ShowRecommendationHint="false"
+                     EnableAiRecommendedStep="true"
+                     SourceText="@_aiContextText" />
+    </section>
+
+    <section class="todo-tutorial-grid">
+        <article class="todo-tutorial-card">
+            <h2>Step 1: Define a richer model</h2>
+            <p>Include fields that support real work tracking: assignee, priority, due date, follow-up, and status.</p>
+            <BuzzCodeBlock Code="@_modelSnippet" Language="csharp" ShowLineNumbers="false" EnableCopyButton="true" />
+        </article>
+        <article class="todo-tutorial-card">
+            <h2>Step 2: Build an intake form</h2>
+            <p>Combine <code>BuzzTextBox</code>, <code>BuzzSelectBox</code>, <code>BuzzDatePicker</code>, and <code>BuzzCheckBox</code>.</p>
+            <BuzzCodeBlock Code="@_inputSnippet" Language="razor" ShowLineNumbers="false" EnableCopyButton="true" />
+        </article>
+    </section>
+
+    <section class="todo-tutorial-grid">
+        <article class="todo-tutorial-card">
+            <h2>Step 3: Add workflow + analytics</h2>
+            <p>Track completion with <code>BuzzProgress</code>, surface health with <code>BuzzAlert</code>, summarize with <code>BuzzDataPanel</code>.</p>
+            <BuzzCodeBlock Code="@_listSnippet" Language="razor" ShowLineNumbers="false" EnableCopyButton="true" />
+        </article>
+        <article class="todo-tutorial-card">
+            <h2>Step 4: Add AI support paths</h2>
+            <BuzzList Items="@_aiUsageSteps" Ordered="true" />
+            <BuzzCodeBlock Code="@_aiPromptSnippet" Language="text" ShowLineNumbers="false" EnableCopyButton="true" />
+        </article>
+    </section>
+
+    <section class="todo-tutorial-card">
+        <h2>Live Sprint Planner Demo</h2>
+        <p>Use this as a blueprint for internal tools, release planning pages, or operations dashboards.</p>
+
+        @if (HasAtRiskItems)
+        {
+            <BuzzAlert Title="Delivery Risk"
+                       Message="You have high-priority items that are due soon and still open."
+                       Variant="warning"
+                       Dismissible="false" />
+        }
+
+        <div class="todo-tutorial-form-grid">
+            <BuzzTextBox Label="Task Title"
+                         Placeholder="Ex: Prepare migration playbook"
+                         InputText="@_newTaskTitle"
+                         InputTextChanged="OnTaskTitleChanged"
+                         ReferenceText="@_aiContextText"
+                         MemorySubject="sprint-title" />
+
+            <BuzzTextBox Label="Assignee"
+                         Placeholder="Ex: Rohan"
+                         InputText="@_newTaskAssignee"
+                         InputTextChanged="OnAssigneeChanged"
+                         ReferenceText="@_aiContextText"
+                         MemorySubject="sprint-assignee" />
+
+            <BuzzSelectBox Label="Priority"
+                           Options="@_priorityOptions"
+                           Value="@_newTaskPriority"
+                           ValueChanged="OnPriorityChanged"
+                           ReferenceText="@_aiContextText"
+                           ShowRecommendationHint="true" />
+
+            <BuzzDatePicker Label="Due Date"
+                            Value="@_newTaskDueDate"
+                            ValueChanged="OnDueDateChanged"
+                            ReferenceText="@_aiContextText"
+                            ShowQuickSuggestions="true" />
+
+            <BuzzCheckBox Label="Needs follow-up note"
+                          Value="@_newTaskNeedsFollowUp"
+                          ValueChanged="OnNeedsFollowUpChanged"
+                          ShowRecommendationHint="false" />
+        </div>
+
+        <BuzzStack Direction="horizontal" Gap="0.45rem" Wrap="true" Align="center">
+            <BuzzButton Text="Add Task" Variant="primary" OnClick="AddTaskAsync" Disabled="@string.IsNullOrWhiteSpace(_newTaskTitle)" />
+            <BuzzButton Text="Seed Sample Data" Variant="outline" OnClick="SeedExampleTaskAsync" />
+            <BuzzButton Text="Clear Done" Variant="secondary" OnClick="ClearCompletedAsync" />
+        </BuzzStack>
+
+        <BuzzProgress Label="Sprint completion" Value="@CompletionPercent" Max="100" Variant="accent" ShowValueLabel="true" />
+
+        <BuzzDataPanel Title="Sprint Health"
+                       Subtitle="Current planning snapshot"
+                       PrimaryValue="@($"{CompletedCount}/{_tasks.Count} done")"
+                       Description="@($"{OpenHighPriorityCount} high-priority open · {NeedsFollowUpCount} need follow-up")"
+                       BadgeText="Planner"
+                       Variant="accent" />
+
+        @if (_tasks.Count == 0)
+        {
+            <BuzzEmptyState Title="No sprint tasks yet"
+                            Message="Add your first sprint task using the form above."
+                            ActionText="Add sample task"
+                            OnAction="SeedExampleTaskAsync" />
+        }
+        else
+        {
+            <div class="todo-tutorial-items">
+                @foreach (var item in _tasks.OrderBy(task => ParseDate(task.DueDate)))
+                {
+                    <BuzzCard Title="@item.Title"
+                              Subtitle="@($"Assignee: {item.Assignee} · Due: {FormatDate(item.DueDate)}")"
+                              EnableAiSummary="false">
+                        <BuzzStack Direction="horizontal" Gap="0.35rem" Wrap="true" Align="center">
+                            <BuzzBadge Text="@($"Priority: {item.Priority}")" Variant="@PriorityBadgeVariant(item.Priority)" />
+                            @if (item.NeedsFollowUp)
+                            {
+                                <BuzzBadge Text="Needs follow-up" Variant="warning" />
+                            }
+                            <BuzzBadge Text="@(item.IsDone ? "Done" : "Open")" Variant="@(item.IsDone ? "success" : "info")" />
+                        </BuzzStack>
+
+                        <div class="todo-tutorial-item-actions">
+                            <BuzzButton Text="@(item.IsDone ? "Reopen" : "Mark Done")"
+                                        Variant="outline"
+                                        Size="sm"
+                                        OnClick="() => ToggleDoneAsync(item.Id)" />
+                            <BuzzButton Text="Remove"
+                                        Variant="secondary"
+                                        Size="sm"
+                                        OnClick="() => RemoveTaskAsync(item.Id)" />
+                        </div>
+                    </BuzzCard>
+                }
+            </div>
+        }
+    </section>
+
+    <section class="todo-tutorial-grid">
+        <article class="todo-tutorial-card">
+            <h2>AI Use Cases for Todo Apps</h2>
+            <BuzzList Items="@_aiUseCases" Ordered="false" />
+        </article>
+        <article class="todo-tutorial-card">
+            <h2>Next Steps</h2>
+            <BuzzStack Direction="horizontal" Gap="0.45rem" Wrap="true" Align="center">
+                <BuzzButton Text="Open Developer Guide" Variant="primary" OnClick="OpenGuide" />
+                <BuzzButton Text="Open Demo Hub" Variant="outline" OnClick="OpenDemoHub" />
+                <BuzzButton Text="Open Inputs Demo" Variant="secondary" OnClick="OpenInputsDemo" />
+            </BuzzStack>
+        </article>
+    </section>
+
+    <section class="todo-tutorial-card">
+        <h2>Full Code Used (Core Sprint Planner Sample)</h2>
+        <p>Use this complete single-file sample as a starting point, then adapt fields and AI prompts for your domain.</p>
+        <BuzzCodeBlock Code="@_fullExampleSnippet"
+                       Language="razor"
+                       ShowLineNumbers="false"
+                       EnableCopyButton="true" />
+    </section>
+</div>
+
+@code {
+    [Inject] private NavigationManager Navigation { get; set; } = default!;
+
+    private string _newTaskTitle = string.Empty;
+    private string _newTaskAssignee = string.Empty;
+    private string _newTaskPriority = "Medium";
+    private string _newTaskDueDate = DateTime.UtcNow.Date.AddDays(2).ToString("yyyy-MM-dd");
+    private bool _newTaskNeedsFollowUp = true;
+
+    private readonly List<SprintTaskItem> _tasks =
+    [
+        new(Guid.NewGuid(), "Finalize migration checklist", "High", DateTime.UtcNow.Date.AddDays(1).ToString("yyyy-MM-dd"), true, false, "Mina"),
+        new(Guid.NewGuid(), "Update release notes", "Medium", DateTime.UtcNow.Date.AddDays(3).ToString("yyyy-MM-dd"), false, true, "Rohan"),
+        new(Guid.NewGuid(), "Collect QA sign-off", "High", DateTime.UtcNow.Date.ToString("yyyy-MM-dd"), true, false, "Alicia")
+    ];
+
+    private readonly IReadOnlyList<string> _priorityOptions = ["High", "Medium", "Low"];
+
+    private readonly string _aiContextText =
+        "Team context: product squad shipping a dashboard update this sprint.\n" +
+        "Constraints: limited engineering hours, high-priority customer tasks first, clear daily status summary required.";
+
+    private readonly IReadOnlyList<BuzzStepItem> _steps =
+    [
+        new("Define model", "Use a task model with priority, due date, assignee, and status.", true),
+        new("Build intake form", "Capture task details with Buzz inputs and selectors."),
+        new("Render task cards", "Show status and actions with cards, badges, and buttons."),
+        new("Add health analytics", "Track progress and risk signals using BuzzProgress and BuzzAlert."),
+        new("Layer AI guidance", "Use context-driven prompts for planning, ranking, and summaries.")
+    ];
+
+    private readonly IReadOnlyList<string> _aiUsageSteps =
+    [
+        "Use AI suggestions in text/select/date components during task intake.",
+        "Ask AI to rewrite vague tasks into clear, action-oriented titles.",
+        "Generate priority recommendations based on deadlines and impact.",
+        "Produce daily standup summaries from open and completed tasks."
+    ];
+
+    private readonly IReadOnlyList<string> _aiUseCases =
+    [
+        "Backlog refinement: improve clarity before implementation starts.",
+        "Risk spotting: detect likely spillover items before sprint end.",
+        "Priority coaching: suggest reordering when high-priority tasks are blocked.",
+        "Status communication: generate concise updates for leads and stakeholders."
+    ];
+
+    private readonly string _modelSnippet =
+        "private sealed record SprintTaskItem(\n" +
+        "    Guid Id,\n" +
+        "    string Title,\n" +
+        "    string Priority,\n" +
+        "    string DueDate,\n" +
+        "    bool NeedsFollowUp,\n" +
+        "    bool IsDone,\n" +
+        "    string Assignee);";
+
+    private readonly string _inputSnippet =
+        "<BuzzTextBox Label=\"Task Title\" @bind-InputText=\"_newTaskTitle\" />\n" +
+        "<BuzzSelectBox Label=\"Priority\" Options=\"@_priorityOptions\" @bind-Value=\"_newTaskPriority\" />\n" +
+        "<BuzzDatePicker Label=\"Due Date\" @bind-Value=\"_newTaskDueDate\" />\n" +
+        "<BuzzCheckBox Label=\"Needs follow-up note\" @bind-Value=\"_newTaskNeedsFollowUp\" />\n" +
+        "<BuzzButton Text=\"Add Task\" Variant=\"primary\" OnClick=\"AddTaskAsync\" />";
+
+    private readonly string _listSnippet =
+        "<BuzzProgress Label=\"Sprint completion\" Value=\"@CompletionPercent\" Max=\"100\" />\n" +
+        "<BuzzAlert Title=\"Delivery Risk\" Variant=\"warning\" IsVisible=\"@HasAtRiskItems\" />\n" +
+        "<BuzzDataPanel Title=\"Sprint Health\" PrimaryValue=\"@($\"{CompletedCount}/{_tasks.Count} done\")\" />";
+
+    private readonly string _aiPromptSnippet =
+        "Prompt: Re-rank sprint tasks for today.\n" +
+        "Inputs: title, priority, due date, done/open, assignee.\n" +
+        "Ask: return 1) top 3 tasks, 2) risks, 3) next immediate action.\n" +
+        "Tone: concise, action-oriented, no markdown.";
+
+    private readonly string _fullExampleSnippet =
+        """
+        @page "/sprint-planner"
+        @rendermode InteractiveServer
+
+        <h1>Sprint Planner</h1>
+
+        <BuzzTextBox Label="Task Title" InputText="@_newTaskTitle" InputTextChanged="OnTaskTitleChanged" />
+        <BuzzTextBox Label="Assignee" InputText="@_newTaskAssignee" InputTextChanged="OnAssigneeChanged" />
+        <BuzzSelectBox Label="Priority" Options="@_priorityOptions" Value="@_newTaskPriority" ValueChanged="OnPriorityChanged" />
+        <BuzzDatePicker Label="Due Date" Value="@_newTaskDueDate" ValueChanged="OnDueDateChanged" />
+        <BuzzCheckBox Label="Needs follow-up note" Value="@_newTaskNeedsFollowUp" ValueChanged="OnNeedsFollowUpChanged" />
+
+        <BuzzStack Direction="horizontal" Gap="0.45rem" Wrap="true" Align="center">
+            <BuzzButton Text="Add Task" Variant="primary" OnClick="AddTaskAsync" Disabled="@string.IsNullOrWhiteSpace(_newTaskTitle)" />
+            <BuzzButton Text="Clear Done" Variant="secondary" OnClick="ClearCompletedAsync" />
+        </BuzzStack>
+
+        <BuzzProgress Label="Sprint completion" Value="@CompletionPercent" Max="100" />
+        <BuzzDataPanel Title="Sprint Health"
+                       PrimaryValue="@($"{CompletedCount}/{_tasks.Count} done")"
+                       Description="@($"{OpenHighPriorityCount} high-priority open · {NeedsFollowUpCount} need follow-up")"
+                       BadgeText="Planner"
+                       Variant="accent" />
+
+        @if (HasAtRiskItems)
+        {
+            <BuzzAlert Title="Delivery Risk"
+                       Message="High-priority tasks are near due and still open."
+                       Variant="warning"
+                       Dismissible="false" />
+        }
+
+        @foreach (var item in _tasks.OrderBy(task => ParseDate(task.DueDate)))
+        {
+            <BuzzCard Title="@item.Title"
+                      Subtitle="@($"Assignee: {item.Assignee} · Due: {FormatDate(item.DueDate)}")"
+                      EnableAiSummary="false">
+                <BuzzStack Direction="horizontal" Gap="0.35rem" Wrap="true" Align="center">
+                    <BuzzBadge Text="@($"Priority: {item.Priority}")" Variant="@PriorityBadgeVariant(item.Priority)" />
+                    <BuzzBadge Text="@(item.IsDone ? "Done" : "Open")" Variant="@(item.IsDone ? "success" : "info")" />
+                </BuzzStack>
+                <BuzzStack Direction="horizontal" Gap="0.35rem" Wrap="true" Align="center">
+                    <BuzzButton Text="@(item.IsDone ? "Reopen" : "Mark Done")" Variant="outline" Size="sm" OnClick="() => ToggleDoneAsync(item.Id)" />
+                    <BuzzButton Text="Remove" Variant="secondary" Size="sm" OnClick="() => RemoveTaskAsync(item.Id)" />
+                </BuzzStack>
+            </BuzzCard>
+        }
+
+        @code {
+            private string _newTaskTitle = string.Empty;
+            private string _newTaskAssignee = string.Empty;
+            private string _newTaskPriority = "Medium";
+            private string _newTaskDueDate = DateTime.UtcNow.Date.AddDays(2).ToString("yyyy-MM-dd");
+            private bool _newTaskNeedsFollowUp = true;
+
+            private readonly IReadOnlyList<string> _priorityOptions = ["High", "Medium", "Low"];
+
+            private readonly List<SprintTaskItem> _tasks =
+            [
+                new(Guid.NewGuid(), "Finalize migration checklist", "High", DateTime.UtcNow.Date.AddDays(1).ToString("yyyy-MM-dd"), true, false, "Mina"),
+                new(Guid.NewGuid(), "Update release notes", "Medium", DateTime.UtcNow.Date.AddDays(3).ToString("yyyy-MM-dd"), false, true, "Rohan")
+            ];
+
+            private int CompletedCount => _tasks.Count(task => task.IsDone);
+            private int OpenHighPriorityCount => _tasks.Count(task => !task.IsDone && string.Equals(task.Priority, "High", StringComparison.OrdinalIgnoreCase));
+            private int NeedsFollowUpCount => _tasks.Count(task => task.NeedsFollowUp && !task.IsDone);
+            private bool HasAtRiskItems => _tasks.Any(task => !task.IsDone && string.Equals(task.Priority, "High", StringComparison.OrdinalIgnoreCase) && ParseDate(task.DueDate) <= DateTime.UtcNow.Date.AddDays(1));
+            private double CompletionPercent => _tasks.Count == 0 ? 0 : Math.Round((CompletedCount / (double)_tasks.Count) * 100, 2);
+
+            private Task OnTaskTitleChanged(string value) { _newTaskTitle = value; return Task.CompletedTask; }
+            private Task OnAssigneeChanged(string value) { _newTaskAssignee = value; return Task.CompletedTask; }
+            private Task OnPriorityChanged(string value) { _newTaskPriority = string.IsNullOrWhiteSpace(value) ? "Medium" : value; return Task.CompletedTask; }
+            private Task OnDueDateChanged(string value) { _newTaskDueDate = string.IsNullOrWhiteSpace(value) ? DateTime.UtcNow.Date.ToString("yyyy-MM-dd") : value; return Task.CompletedTask; }
+            private Task OnNeedsFollowUpChanged(bool value) { _newTaskNeedsFollowUp = value; return Task.CompletedTask; }
+
+            private Task AddTaskAsync()
+            {
+                var title = _newTaskTitle.Trim();
+                if (string.IsNullOrWhiteSpace(title)) return Task.CompletedTask;
+
+                _tasks.Insert(0, new SprintTaskItem(
+                    Guid.NewGuid(),
+                    title,
+                    _newTaskPriority,
+                    NormalizeDateForStorage(_newTaskDueDate),
+                    _newTaskNeedsFollowUp,
+                    false,
+                    string.IsNullOrWhiteSpace(_newTaskAssignee) ? "Unassigned" : _newTaskAssignee.Trim()));
+
+                _newTaskTitle = string.Empty;
+                _newTaskAssignee = string.Empty;
+                return Task.CompletedTask;
+            }
+
+            private Task ToggleDoneAsync(Guid id)
+            {
+                var idx = _tasks.FindIndex(t => t.Id == id);
+                if (idx < 0) return Task.CompletedTask;
+                _tasks[idx] = _tasks[idx] with { IsDone = !_tasks[idx].IsDone };
+                return Task.CompletedTask;
+            }
+
+            private Task RemoveTaskAsync(Guid id)
+            {
+                _tasks.RemoveAll(t => t.Id == id);
+                return Task.CompletedTask;
+            }
+
+            private Task ClearCompletedAsync()
+            {
+                _tasks.RemoveAll(t => t.IsDone);
+                return Task.CompletedTask;
+            }
+
+            private static string PriorityBadgeVariant(string priority) =>
+                priority.Trim().ToLowerInvariant() switch
+                {
+                    "high" => "danger",
+                    "medium" => "warning",
+                    _ => "info"
+                };
+
+            private static DateTime ParseDate(string value) =>
+                DateTime.TryParse(value, out var parsed) ? parsed.Date : DateTime.MaxValue;
+
+            private static string FormatDate(string value) =>
+                DateTime.TryParse(value, out var parsed) ? parsed.ToString("ddd, MMM d") : value;
+
+            private static string NormalizeDateForStorage(string value) =>
+                DateTime.TryParse(value, out var parsed) ? parsed.ToString("yyyy-MM-dd") : DateTime.UtcNow.Date.ToString("yyyy-MM-dd");
+
+            private sealed record SprintTaskItem(
+                Guid Id,
+                string Title,
+                string Priority,
+                string DueDate,
+                bool NeedsFollowUp,
+                bool IsDone,
+                string Assignee);
+        }
+        """;
+
+    private int CompletedCount => _tasks.Count(task => task.IsDone);
+    private int OpenHighPriorityCount => _tasks.Count(task => !task.IsDone && string.Equals(task.Priority, "High", StringComparison.OrdinalIgnoreCase));
+    private int NeedsFollowUpCount => _tasks.Count(task => task.NeedsFollowUp && !task.IsDone);
+    private bool HasAtRiskItems => _tasks.Any(task => !task.IsDone && string.Equals(task.Priority, "High", StringComparison.OrdinalIgnoreCase) && ParseDate(task.DueDate) <= DateTime.UtcNow.Date.AddDays(1));
+    private double CompletionPercent => _tasks.Count == 0 ? 0 : Math.Round((CompletedCount / (double)_tasks.Count) * 100, 2);
+
+    private Task OnTaskTitleChanged(string value)
+    {
+        _newTaskTitle = value;
+        return Task.CompletedTask;
+    }
+
+    private Task OnAssigneeChanged(string value)
+    {
+        _newTaskAssignee = value;
+        return Task.CompletedTask;
+    }
+
+    private Task OnPriorityChanged(string value)
+    {
+        _newTaskPriority = string.IsNullOrWhiteSpace(value) ? "Medium" : value;
+        return Task.CompletedTask;
+    }
+
+    private Task OnDueDateChanged(string value)
+    {
+        _newTaskDueDate = string.IsNullOrWhiteSpace(value)
+            ? DateTime.UtcNow.Date.ToString("yyyy-MM-dd")
+            : value;
+        return Task.CompletedTask;
+    }
+
+    private Task OnNeedsFollowUpChanged(bool value)
+    {
+        _newTaskNeedsFollowUp = value;
+        return Task.CompletedTask;
+    }
+
+    private Task AddTaskAsync()
+    {
+        var text = _newTaskTitle.Trim();
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            return Task.CompletedTask;
+        }
+
+        _tasks.Insert(0, new SprintTaskItem(
+            Guid.NewGuid(),
+            text,
+            _newTaskPriority,
+            NormalizeDateForStorage(_newTaskDueDate),
+            _newTaskNeedsFollowUp,
+            false,
+            string.IsNullOrWhiteSpace(_newTaskAssignee) ? "Unassigned" : _newTaskAssignee.Trim()));
+
+        _newTaskTitle = string.Empty;
+        _newTaskAssignee = string.Empty;
+        return Task.CompletedTask;
+    }
+
+    private Task SeedExampleTaskAsync()
+    {
+        _tasks.Add(new SprintTaskItem(
+            Guid.NewGuid(),
+            "Prepare rollback validation checklist",
+            "Medium",
+            DateTime.UtcNow.Date.AddDays(2).ToString("yyyy-MM-dd"),
+            true,
+            false,
+            "Kai"));
+        return Task.CompletedTask;
+    }
+
+    private Task ToggleDoneAsync(Guid id)
+    {
+        var index = _tasks.FindIndex(task => task.Id == id);
+        if (index < 0)
+        {
+            return Task.CompletedTask;
+        }
+
+        var current = _tasks[index];
+        _tasks[index] = current with { IsDone = !current.IsDone };
+        return Task.CompletedTask;
+    }
+
+    private Task RemoveTaskAsync(Guid id)
+    {
+        _tasks.RemoveAll(task => task.Id == id);
+        return Task.CompletedTask;
+    }
+
+    private Task ClearCompletedAsync()
+    {
+        _tasks.RemoveAll(task => task.IsDone);
+        return Task.CompletedTask;
+    }
+
+    private void OpenGuide() => Navigation.NavigateTo("/developer-guide");
+    private void OpenDemoHub() => Navigation.NavigateTo("/demo");
+    private void OpenInputsDemo() => Navigation.NavigateTo("/demo-inputs");
+
+    private static string PriorityBadgeVariant(string priority) =>
+        priority.Trim().ToLowerInvariant() switch
+        {
+            "high" => "danger",
+            "medium" => "warning",
+            _ => "info"
+        };
+
+    private static DateTime ParseDate(string value) =>
+        DateTime.TryParse(value, out var parsed) ? parsed.Date : DateTime.MaxValue;
+
+    private static string FormatDate(string value) =>
+        DateTime.TryParse(value, out var parsed)
+            ? parsed.ToString("ddd, MMM d")
+            : value;
+
+    private static string NormalizeDateForStorage(string value) =>
+        DateTime.TryParse(value, out var parsed)
+            ? parsed.ToString("yyyy-MM-dd")
+            : DateTime.UtcNow.Date.ToString("yyyy-MM-dd");
+
+    private sealed record SprintTaskItem(
+        Guid Id,
+        string Title,
+        string Priority,
+        string DueDate,
+        bool NeedsFollowUp,
+        bool IsDone,
+        string Assignee);
+}

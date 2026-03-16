@@ -1,0 +1,199 @@
+@using Buzz.Blazor.Models
+@using Buzz.Core
+@using Microsoft.Extensions.Logging
+@inject IBuzzClient BuzzClient
+@inject ILogger<BuzzTabs> Logger
+
+<div class="buzz-tabs">
+    @if (!string.IsNullOrWhiteSpace(Label))
+    {
+        <h3 class="buzz-tabs-label">@Label</h3>
+    }
+
+    @if (ShowRecommendationHint && !string.IsNullOrWhiteSpace(_recommendedTab))
+    {
+        <p class="buzz-tabs-recommendation">
+            Recommended tab: <strong>@_recommendedTab</strong>
+        </p>
+    }
+
+    <div class="buzz-tabs-header" role="tablist" aria-label="@Label">
+        @for (var i = 0; i < Tabs.Count; i++)
+        {
+            var tab = Tabs[i];
+            var isActive = IsActive(tab.Header);
+            var tabId = $"buzz-tab-{_instanceId}-{i}";
+            var panelId = $"buzz-tabpanel-{_instanceId}-{i}";
+            <button
+                id="@tabId"
+                type="button"
+                role="tab"
+                class="buzz-tab-button @(isActive ? "is-active" : null)"
+                aria-selected="@isActive"
+                aria-controls="@panelId"
+                @onclick="() => SelectTabAsync(tab.Header)">
+                @tab.Header
+            </button>
+        }
+    </div>
+
+    @for (var i = 0; i < Tabs.Count; i++)
+    {
+        var tab = Tabs[i];
+        var isActive = IsActive(tab.Header);
+        var tabId = $"buzz-tab-{_instanceId}-{i}";
+        var panelId = $"buzz-tabpanel-{_instanceId}-{i}";
+        @if (isActive)
+        {
+            <div id="@panelId" role="tabpanel" aria-labelledby="@tabId" class="buzz-tab-panel">
+                @tab.Content
+            </div>
+        }
+    }
+</div>
+
+@code {
+    /// <summary>
+    /// Accessible label for the tab set.
+    /// </summary>
+    [Parameter]
+    public string Label { get; set; } = "Buzz Tabs";
+
+    /// <summary>
+    /// Tab definitions to render.
+    /// </summary>
+    [Parameter]
+    public IReadOnlyList<BuzzTabItem> Tabs { get; set; } = [];
+
+    /// <summary>
+    /// Active tab header value for two-way binding.
+    /// </summary>
+    [Parameter]
+    public string ActiveTab { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Two-way binding callback for <see cref="ActiveTab"/>.
+    /// </summary>
+    [Parameter]
+    public EventCallback<string> ActiveTabChanged { get; set; }
+
+    /// <summary>
+    /// Shows AI recommendation hint text.
+    /// </summary>
+    [Parameter]
+    public bool ShowRecommendationHint { get; set; } = true;
+
+    /// <summary>
+    /// Enables AI tab recommendation.
+    /// </summary>
+    [Parameter]
+    public bool EnableAiRecommendedTab { get; set; } = true;
+
+    /// <summary>
+    /// Automatically requests AI recommendation on load.
+    /// </summary>
+    [Parameter]
+    public bool AutoRecommendOnLoad { get; set; } = true;
+
+    /// <summary>
+    /// Context text sent to AI recommendation.
+    /// </summary>
+    [Parameter]
+    public string SourceText { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Maximum context characters sent to AI.
+    /// </summary>
+    [Parameter]
+    public int MaxInputCharacters { get; set; } = 1200;
+
+    private readonly string _instanceId = Guid.NewGuid().ToString("N");
+    private string _currentTab = string.Empty;
+    private string? _recommendedTab;
+    private bool _recommendedLoaded;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        InitializeCurrentTab();
+
+        if (!EnableAiRecommendedTab || !AutoRecommendOnLoad || _recommendedLoaded || Tabs.Count == 0)
+        {
+            return;
+        }
+
+        await TryLoadRecommendationAsync();
+        _recommendedLoaded = true;
+    }
+
+    private void InitializeCurrentTab()
+    {
+        if (!string.IsNullOrWhiteSpace(ActiveTab))
+        {
+            _currentTab = ActiveTab.Trim();
+            return;
+        }
+
+        if (!string.IsNullOrWhiteSpace(_currentTab))
+        {
+            return;
+        }
+
+        var initial = Tabs.FirstOrDefault(item => item.IsInitiallyActive)?.Header
+            ?? Tabs.FirstOrDefault()?.Header
+            ?? string.Empty;
+        _currentTab = initial;
+    }
+
+    private bool IsActive(string header) =>
+        header.Equals(_currentTab, StringComparison.OrdinalIgnoreCase);
+
+    private async Task SelectTabAsync(string header)
+    {
+        _currentTab = header;
+        await ActiveTabChanged.InvokeAsync(header);
+    }
+
+    private async Task TryLoadRecommendationAsync()
+    {
+        var source = (SourceText ?? string.Empty).Trim();
+        if (string.IsNullOrWhiteSpace(source))
+        {
+            return;
+        }
+
+        var constrainedInput = source.Length > MaxInputCharacters
+            ? source[..MaxInputCharacters]
+            : source;
+
+        var headers = Tabs.Select(item => item.Header.Trim()).Where(item => item.Length > 0).ToList();
+        if (headers.Count == 0)
+        {
+            return;
+        }
+
+        try
+        {
+            var response = await BuzzClient.GenerateAsync(
+                new BuzzRequest(
+                    constrainedInput,
+                    "Choose exactly one best matching tab header from the provided list. Return only the tab header text and nothing else.",
+                    $"TabHeaders: {string.Join(" | ", headers)}"));
+
+            var candidate = (response.OutputText ?? string.Empty).Trim();
+            var match = headers.FirstOrDefault(header => header.Equals(candidate, StringComparison.OrdinalIgnoreCase))
+                ?? headers.FirstOrDefault(header => candidate.Contains(header, StringComparison.OrdinalIgnoreCase));
+            if (string.IsNullOrWhiteSpace(match))
+            {
+                return;
+            }
+
+            _recommendedTab = match;
+            _currentTab = match;
+            await ActiveTabChanged.InvokeAsync(match);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogWarning(ex, "BuzzTabs recommendation generation failed.");
+        }
+    }
+}

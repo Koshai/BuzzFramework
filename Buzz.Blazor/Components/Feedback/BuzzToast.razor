@@ -1,0 +1,313 @@
+@using Buzz.Core
+@using Microsoft.Extensions.Logging
+@implements IDisposable
+@inject IBuzzClient BuzzClient
+@inject ILogger<BuzzToast> Logger
+
+@if (IsVisible)
+{
+    <aside class="buzz-toast @SeverityClass" role="status" aria-live="polite">
+        <div class="buzz-toast-header">
+            <strong class="buzz-toast-title">@Title</strong>
+            @if (ShowCloseButton)
+            {
+                <button type="button" class="buzz-toast-close" @onclick="CloseAsync" aria-label="Close toast">x</button>
+            }
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(ResolvedMessage))
+        {
+            <p class="buzz-toast-message">@ResolvedMessage</p>
+        }
+
+        @if (ShouldShowAiSection)
+        {
+            <div class="buzz-toast-ai">
+                @if (!AutoGenerateAiWhenEmpty)
+                {
+                    <button
+                        type="button"
+                        class="buzz-toast-ai-button"
+                        @onclick="GenerateFriendlyMessageAsync"
+                        disabled="@_isGenerating">
+                        @(_isGenerating ? "Explaining..." : "Explain with AI")
+                    </button>
+                }
+                else if (_isGenerating)
+                {
+                    <p class="buzz-toast-message">Generating a user-friendly message...</p>
+                }
+
+                @if (!string.IsNullOrWhiteSpace(_aiError))
+                {
+                    <p class="buzz-toast-ai-error">@_aiError</p>
+                }
+            </div>
+        }
+    </aside>
+}
+
+@code {
+    /// <summary>
+    /// Toast title text.
+    /// </summary>
+    [Parameter]
+    public string Title { get; set; } = "Buzz Toast";
+
+    /// <summary>
+    /// Primary message shown in the toast.
+    /// </summary>
+    [Parameter]
+    public string Message { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Controls toast visibility.
+    /// </summary>
+    [Parameter]
+    public bool IsVisible { get; set; }
+
+    /// <summary>
+    /// Two-way binding callback for <see cref="IsVisible"/>.
+    /// </summary>
+    [Parameter]
+    public EventCallback<bool> IsVisibleChanged { get; set; }
+
+    /// <summary>
+    /// Visual severity style (for example: info, success, warning, error).
+    /// </summary>
+    [Parameter]
+    public string Severity { get; set; } = "info";
+
+    /// <summary>
+    /// Enables AI-generated fallback message when <see cref="Message"/> is empty.
+    /// </summary>
+    [Parameter]
+    public bool EnableAiMessageWhenEmpty { get; set; } = false;
+
+    /// <summary>
+    /// Automatically generates AI fallback message on show.
+    /// </summary>
+    [Parameter]
+    public bool AutoGenerateAiWhenEmpty { get; set; } = true;
+
+    /// <summary>
+    /// Enables automatic hide timer.
+    /// </summary>
+    [Parameter]
+    public bool AutoHide { get; set; } = true;
+
+    /// <summary>
+    /// Default auto-hide delay in milliseconds.
+    /// </summary>
+    [Parameter]
+    public int AutoHideMilliseconds { get; set; } = 4500;
+
+    /// <summary>
+    /// Uses adaptive auto-hide delay based on message length.
+    /// </summary>
+    [Parameter]
+    public bool UseAdaptiveAutoHide { get; set; } = false;
+
+    /// <summary>
+    /// Minimum adaptive auto-hide delay in milliseconds.
+    /// </summary>
+    [Parameter]
+    public int AdaptiveMinMilliseconds { get; set; } = 2500;
+
+    /// <summary>
+    /// Maximum adaptive auto-hide delay in milliseconds.
+    /// </summary>
+    [Parameter]
+    public int AdaptiveMaxMilliseconds { get; set; } = 10000;
+
+    /// <summary>
+    /// Base adaptive auto-hide delay in milliseconds.
+    /// </summary>
+    [Parameter]
+    public int AdaptiveBaseMilliseconds { get; set; } = 1200;
+
+    /// <summary>
+    /// Estimated reading time per word in milliseconds for adaptive mode.
+    /// </summary>
+    [Parameter]
+    public int AdaptiveWordReadMilliseconds { get; set; } = 280;
+
+    /// <summary>
+    /// Shows dismiss button on the toast.
+    /// </summary>
+    [Parameter]
+    public bool ShowCloseButton { get; set; } = true;
+
+    /// <summary>
+    /// Source context provided to AI fallback generation.
+    /// </summary>
+    [Parameter]
+    public string SourceText { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Fallback message used when AI generation is unavailable.
+    /// </summary>
+    [Parameter]
+    public string AiFallbackMessage { get; set; } = "We could not generate a user-friendly explanation right now.";
+
+    private bool _isGenerating;
+    private string? _aiError;
+    private string? _generatedMessage;
+    private bool _wasVisible;
+    private CancellationTokenSource? _autoHideCts;
+
+    private string SeverityClass => Severity.Trim().ToLowerInvariant() switch
+    {
+        "success" => "buzz-toast-success",
+        "warning" => "buzz-toast-warning",
+        "error" => "buzz-toast-error",
+        _ => "buzz-toast-info"
+    };
+
+    private bool HasDeveloperMessage => !string.IsNullOrWhiteSpace(Message);
+
+    private bool ShouldShowAiSection =>
+        !HasDeveloperMessage && EnableAiMessageWhenEmpty;
+
+    private string? ResolvedMessage =>
+        HasDeveloperMessage
+            ? Message
+            : _generatedMessage;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (IsVisible && !_wasVisible)
+        {
+            _aiError = null;
+            _generatedMessage = null;
+
+            if (AutoHide && AutoHideMilliseconds > 0)
+            {
+                StartAutoHideTimer();
+            }
+
+            if (ShouldShowAiSection && AutoGenerateAiWhenEmpty)
+            {
+                await GenerateFriendlyMessageAsync();
+            }
+        }
+
+        if (!IsVisible && _wasVisible)
+        {
+            CancelAutoHideTimer();
+        }
+
+        _wasVisible = IsVisible;
+    }
+
+    private void StartAutoHideTimer()
+    {
+        CancelAutoHideTimer();
+        _autoHideCts = new CancellationTokenSource();
+        var token = _autoHideCts.Token;
+        var hideDelay = ResolveAutoHideDelayMilliseconds();
+
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await Task.Delay(hideDelay, token);
+                if (!token.IsCancellationRequested)
+                {
+                    await InvokeAsync(async () => await IsVisibleChanged.InvokeAsync(false));
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                // no-op
+            }
+        }, token);
+    }
+
+    private void CancelAutoHideTimer()
+    {
+        _autoHideCts?.Cancel();
+        _autoHideCts?.Dispose();
+        _autoHideCts = null;
+    }
+
+    private async Task CloseAsync()
+    {
+        CancelAutoHideTimer();
+        await IsVisibleChanged.InvokeAsync(false);
+    }
+
+    private async Task GenerateFriendlyMessageAsync()
+    {
+        var source = SourceText?.Trim() ?? string.Empty;
+        if (string.IsNullOrWhiteSpace(source))
+        {
+            _generatedMessage = AiFallbackMessage;
+            _aiError = "Source text is required for AI explanation mode.";
+            return;
+        }
+
+        _aiError = null;
+        _isGenerating = true;
+        try
+        {
+            var response = await BuzzClient.GenerateAsync(
+                new BuzzRequest(
+                    source,
+                    "Explain this outcome to an end user in one short, plain-language toast sentence.",
+                    $"Severity: {Severity}"));
+
+            var refined = response.OutputText?.Trim();
+            _generatedMessage = string.IsNullOrWhiteSpace(refined)
+                ? AiFallbackMessage
+                : refined;
+
+            if (IsVisible && AutoHide && AutoHideMilliseconds > 0)
+            {
+                StartAutoHideTimer();
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogWarning(ex, "BuzzToast AI explanation failed.");
+            _generatedMessage = AiFallbackMessage;
+            _aiError = "AI explanation is unavailable right now.";
+
+            if (IsVisible && AutoHide && AutoHideMilliseconds > 0)
+            {
+                StartAutoHideTimer();
+            }
+        }
+        finally
+        {
+            _isGenerating = false;
+        }
+    }
+
+    private int ResolveAutoHideDelayMilliseconds()
+    {
+        if (!UseAdaptiveAutoHide)
+        {
+            return Math.Max(500, AutoHideMilliseconds);
+        }
+
+        var text = ResolvedMessage?.Trim() ?? string.Empty;
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            return Math.Max(500, AdaptiveMinMilliseconds);
+        }
+
+        var words = text
+            .Split([' ', '\t', '\r', '\n'], StringSplitOptions.RemoveEmptyEntries)
+            .Length;
+        var estimated = AdaptiveBaseMilliseconds + (words * Math.Max(50, AdaptiveWordReadMilliseconds));
+        var minMs = Math.Max(500, AdaptiveMinMilliseconds);
+        var maxMs = Math.Max(minMs, AdaptiveMaxMilliseconds);
+        return Math.Clamp(estimated, minMs, maxMs);
+    }
+
+    public void Dispose()
+    {
+        CancelAutoHideTimer();
+    }
+}

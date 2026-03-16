@@ -1,0 +1,114 @@
+<nav class="buzz-pagination" aria-label="@AriaLabel">
+    <BuzzStack Direction="horizontal" Gap="0.28rem" Wrap="true" Align="center">
+        @if (ShowEdgeButtons)
+        {
+            <BuzzButton Text="First" Variant="secondary" Size="sm" Disabled="@(CurrentPage <= 1)" OnClick="GoFirstAsync" />
+        }
+
+        <BuzzButton Text="Prev" Variant="secondary" Size="sm" Disabled="@(CurrentPage <= 1)" OnClick="GoPreviousAsync" />
+
+        @foreach (var page in VisiblePages)
+        {
+            var pageText = page.ToString();
+            var isActive = page == CurrentPage;
+            <BuzzButton Text="@pageText"
+                        Variant="@(isActive ? "primary" : "outline")"
+                        Size="sm"
+                        Disabled="@isActive"
+                        OnClick="() => GoToPageAsync(page)" />
+        }
+
+        <BuzzButton Text="Next" Variant="secondary" Size="sm" Disabled="@(CurrentPage >= TotalPages)" OnClick="GoNextAsync" />
+
+        @if (ShowEdgeButtons)
+        {
+            <BuzzButton Text="Last" Variant="secondary" Size="sm" Disabled="@(CurrentPage >= TotalPages)" OnClick="GoLastAsync" />
+        }
+    </BuzzStack>
+</nav>
+
+@code {
+    /// <summary>
+    /// Accessible label for the pagination navigation.
+    /// </summary>
+    [Parameter]
+    public string AriaLabel { get; set; } = "Pagination";
+
+    /// <summary>
+    /// Current selected page (1-based).
+    /// </summary>
+    [Parameter]
+    public int CurrentPage { get; set; } = 1;
+
+    /// <summary>
+    /// Two-way binding callback for <see cref="CurrentPage"/>.
+    /// </summary>
+    [Parameter]
+    public EventCallback<int> CurrentPageChanged { get; set; }
+
+    /// <summary>
+    /// Total number of pages.
+    /// </summary>
+    [Parameter]
+    public int TotalPages { get; set; } = 1;
+
+    /// <summary>
+    /// Maximum number of numbered page buttons shown at once.
+    /// </summary>
+    [Parameter]
+    public int MaxVisiblePages { get; set; } = 5;
+
+    /// <summary>
+    /// Shows First and Last navigation buttons.
+    /// </summary>
+    [Parameter]
+    public bool ShowEdgeButtons { get; set; } = true;
+
+    private IReadOnlyList<int> VisiblePages
+    {
+        get
+        {
+            var safeTotal = Math.Max(1, TotalPages);
+            var safeCurrent = Math.Clamp(CurrentPage, 1, safeTotal);
+            var span = Math.Max(1, MaxVisiblePages);
+            var half = span / 2;
+
+            var start = Math.Max(1, safeCurrent - half);
+            var end = Math.Min(safeTotal, start + span - 1);
+
+            if (end - start + 1 < span)
+            {
+                start = Math.Max(1, end - span + 1);
+            }
+
+            var pages = new List<int>(capacity: end - start + 1);
+            for (var page = start; page <= end; page++)
+            {
+                pages.Add(page);
+            }
+
+            return pages;
+        }
+    }
+
+    private Task GoFirstAsync() => GoToPageAsync(1);
+
+    private Task GoPreviousAsync() => GoToPageAsync(CurrentPage - 1);
+
+    private Task GoNextAsync() => GoToPageAsync(CurrentPage + 1);
+
+    private Task GoLastAsync() => GoToPageAsync(TotalPages);
+
+    private async Task GoToPageAsync(int page)
+    {
+        var safeTotal = Math.Max(1, TotalPages);
+        var next = Math.Clamp(page, 1, safeTotal);
+        if (next == CurrentPage)
+        {
+            return;
+        }
+
+        CurrentPage = next;
+        await CurrentPageChanged.InvokeAsync(CurrentPage);
+    }
+}

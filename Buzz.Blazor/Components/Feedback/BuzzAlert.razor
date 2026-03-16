@@ -1,0 +1,119 @@
+@if (IsVisible)
+{
+    <div class="buzz-alert buzz-alert-@NormalizeVariant(Variant)" role="@ResolveRole()" aria-live="polite">
+        @if (ShowIcon)
+        {
+            <span class="buzz-alert-icon" aria-hidden="true">@ResolveIcon()</span>
+        }
+
+        <div class="buzz-alert-content">
+            @if (!string.IsNullOrWhiteSpace(Title))
+            {
+                <strong class="buzz-alert-title">@Title</strong>
+            }
+
+            @if (!string.IsNullOrWhiteSpace(Message))
+            {
+                <div class="buzz-alert-message">@Message</div>
+            }
+
+            @ChildContent
+        </div>
+
+        @if (Dismissible)
+        {
+            <button type="button" class="buzz-alert-close" @onclick="DismissAsync" aria-label="Dismiss alert">x</button>
+        }
+    </div>
+}
+
+@code {
+    /// <summary>
+    /// Alert title text.
+    /// </summary>
+    [Parameter]
+    public string Title { get; set; } = "Info";
+
+    /// <summary>
+    /// Alert message body.
+    /// </summary>
+    [Parameter]
+    public string Message { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Visual variant (<c>info</c>, <c>success</c>, <c>warning</c>, or <c>danger</c>).
+    /// </summary>
+    [Parameter]
+    public string Variant { get; set; } = "info";
+
+    /// <summary>
+    /// Displays a variant icon when <see langword="true"/>.
+    /// </summary>
+    [Parameter]
+    public bool ShowIcon { get; set; } = true;
+
+    /// <summary>
+    /// Shows dismiss button when <see langword="true"/>.
+    /// </summary>
+    [Parameter]
+    public bool Dismissible { get; set; }
+
+    /// <summary>
+    /// Controls visibility of the alert.
+    /// </summary>
+    [Parameter]
+    public bool IsVisible { get; set; } = true;
+
+    /// <summary>
+    /// Two-way binding callback for <see cref="IsVisible"/>.
+    /// </summary>
+    [Parameter]
+    public EventCallback<bool> IsVisibleChanged { get; set; }
+
+    /// <summary>
+    /// Callback invoked after the alert is dismissed.
+    /// </summary>
+    [Parameter]
+    public EventCallback OnDismiss { get; set; }
+
+    /// <summary>
+    /// Optional custom content rendered under the message.
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    private async Task DismissAsync()
+    {
+        IsVisible = false;
+        await IsVisibleChanged.InvokeAsync(IsVisible);
+        await OnDismiss.InvokeAsync();
+    }
+
+    private string ResolveRole() =>
+        NormalizeVariant(Variant) == "danger" ? "alert" : "status";
+
+    private string ResolveIcon() =>
+        NormalizeVariant(Variant) switch
+        {
+            "success" => "check",
+            "warning" => "!",
+            "danger" => "x",
+            _ => "i"
+        };
+
+    private static string NormalizeVariant(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return "info";
+        }
+
+        return value.Trim().ToLowerInvariant() switch
+        {
+            "success" => "success",
+            "warning" => "warning",
+            "danger" => "danger",
+            _ => "info"
+        };
+    }
+}
