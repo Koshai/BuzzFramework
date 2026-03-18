@@ -3,21 +3,27 @@
 
 <PageTitle>Demo Hub</PageTitle>
 
-<h1>Buzz Demo Hub</h1>
-<p>Use these focused pages instead of one long demo screen.</p>
+<div class="demo-hub-page">
+    <header class="demo-hub-hero">
+        <h1>Components and Experience Demos</h1>
+        <p>Browse focused pages to evaluate building blocks the same way teams evaluate mature Blazor UI ecosystems.</p>
+    </header>
 
-<DemoAiContextBanner SampleText="@_sampleText" />
+    <DemoAiContextBanner Title="Try AI Context Here"
+                         Subtitle="Use this sample context while validating component AI behavior."
+                         SampleText="@_sampleText" />
 
-<section class="demo-hub-grid">
-    @foreach (var item in _demoPages)
-    {
-        <article class="demo-hub-card">
-            <h2>@item.Title</h2>
-            <p>@item.Description</p>
-            <a class="demo-hub-link" href="@item.Href">Open page</a>
-        </article>
-    }
-</section>
+    <section class="demo-hub-grid">
+        @foreach (var item in _demoPages)
+        {
+            <article class="demo-hub-card">
+                <h2>@item.Title</h2>
+                <p>@item.Description</p>
+                <a class="demo-hub-link" href="@item.Href">Open page</a>
+            </article>
+        }
+    </section>
+</div>
 
 @code {
     private readonly string _sampleText =
@@ -27,7 +33,7 @@
 
     private readonly IReadOnlyList<DemoPageLink> _demoPages =
     [
-        new("Todo + AI Tutorial", "Step-by-step guide for building a Todo app with practical AI usage.", "/tutorial-todo"),
+        new("Medical Triage Tutorial", "Beginner-friendly, step-by-step guide with full final code.", "/tutorial-medical"),
         new("Inputs", "Text, select, date, and AI-assisted field suggestions.", "/demo-inputs"),
         new("Feedback", "Alerts, banners, toasts, and card-level AI summaries.", "/demo-feedback"),
         new("Workflow", "Command palette, date ranges, and smart table analysis.", "/demo-workflow"),

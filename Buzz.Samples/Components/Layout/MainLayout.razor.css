@@ -10,30 +10,33 @@
 article {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 1rem;
+    padding: 1.2rem 1rem 2rem;
 }
 
 .buzz-navbar-doc-link {
     color: var(--buzz-text-primary, #0f172a);
     text-decoration: none;
-    font-size: 0.76rem;
+    font-size: 0.72rem;
+    font-weight: 700;
     border: 1px solid var(--buzz-border, #d0d7de);
     border-radius: 999px;
-    padding: 0.2rem 0.48rem;
+    padding: 0.28rem 0.6rem;
     background: var(--buzz-surface, #ffffff);
+    transition: transform var(--buzz-motion-fast) var(--buzz-motion-ease), border-color var(--buzz-motion-fast) var(--buzz-motion-ease);
 }
 
 .buzz-navbar-doc-link:hover {
     border-color: var(--buzz-accent, #2563eb);
     color: var(--buzz-accent, #2563eb);
+    transform: translateY(-1px);
 }
 
 .buzz-theme-indicator {
-    font-size: 0.75rem;
+    font-size: 0.72rem;
     color: var(--buzz-text-muted, #64748b);
     border: 1px solid var(--buzz-border, #d0d7de);
     border-radius: 999px;
-    padding: 0.18rem 0.45rem;
+    padding: 0.2rem 0.45rem;
     background: var(--buzz-surface, #ffffff);
 }
 
@@ -49,6 +52,32 @@ article {
     color: var(--buzz-text-primary, #0f172a);
     font-size: 0.78rem;
     padding: 0.24rem 0.6rem;
+}
+
+.buzz-theme-apply-button {
+    border: 1px solid var(--buzz-accent, #2563eb);
+    border-radius: 999px;
+    background: var(--buzz-accent-soft, #dbeafe);
+    color: var(--buzz-text-primary, #0f172a);
+    font-size: 0.76rem;
+    font-weight: 700;
+    padding: 0.26rem 0.62rem;
+    transition: transform var(--buzz-motion-fast, 120ms) var(--buzz-motion-ease, ease), filter var(--buzz-motion-fast, 120ms) var(--buzz-motion-ease, ease);
+}
+
+.buzz-theme-apply-button:hover:not(:disabled) {
+    transform: translateY(-1px);
+    filter: brightness(0.98);
+}
+
+.buzz-theme-apply-button:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.buzz-theme-apply-button:focus-visible {
+    outline: 2px solid var(--buzz-focus-ring, rgba(37, 99, 235, 0.25));
+    outline-offset: 2px;
 }
 
 #blazor-error-ui {

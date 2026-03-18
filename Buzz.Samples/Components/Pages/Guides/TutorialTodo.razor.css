@@ -1,82 +1,66 @@
-.todo-tutorial-page {
+.medical-tutorial-page {
     display: grid;
-    gap: 1rem;
+    gap: 1.1rem;
 }
 
-.todo-tutorial-hero h1 {
-    margin: 0.45rem 0 0.35rem;
-    font-size: clamp(1.45rem, 2.5vw, 2rem);
+.medical-tutorial-hero {
+    border: 1px solid var(--buzz-border, #d0d7de);
+    border-radius: 16px;
+    background: linear-gradient(140deg, var(--buzz-accent-soft, #dbeafe), var(--buzz-surface, #ffffff));
+    padding: 1.05rem;
 }
 
-.todo-tutorial-hero p {
+.medical-tutorial-hero h1 {
+    margin: 0.4rem 0 0.3rem;
+    font-size: clamp(1.45rem, 2.6vw, 2rem);
+}
+
+.medical-tutorial-hero p {
     margin: 0;
     color: var(--buzz-text-muted, #64748b);
-    max-inline-size: 72ch;
+    max-inline-size: 80ch;
 }
 
-.todo-tutorial-grid {
+.medical-tutorial-grid {
     display: grid;
-    gap: 0.9rem;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 0.95rem;
+    grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
 }
 
-.todo-tutorial-card {
+.medical-tutorial-card {
     border: 1px solid var(--buzz-border, #d0d7de);
     border-radius: var(--buzz-radius-lg, 14px);
     background: var(--buzz-surface, #ffffff);
     box-shadow: var(--buzz-shadow-sm, 0 1px 2px rgba(15, 23, 42, 0.05));
     padding: 1rem;
     display: grid;
-    gap: 0.6rem;
-    animation: todo-tutorial-card-in var(--buzz-motion-normal, 180ms) var(--buzz-motion-ease, ease);
+    gap: 0.65rem;
+    animation: medical-tutorial-card-in var(--buzz-motion-normal, 180ms) var(--buzz-motion-ease, ease);
 }
 
-.todo-tutorial-card h2 {
+.medical-tutorial-card h2 {
     margin: 0;
     font-size: 1.02rem;
 }
 
-.todo-tutorial-card p {
+.medical-tutorial-card p {
     margin: 0;
     color: var(--buzz-text-muted, #64748b);
 }
 
-.todo-tutorial-add-row {
-    display: grid;
-    gap: 0.6rem;
-    grid-template-columns: 1fr auto;
-    align-items: end;
-}
-
-.todo-tutorial-form-grid {
+.medical-tutorial-form-grid {
     display: grid;
     gap: 0.7rem;
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
 }
 
-.todo-tutorial-items {
-    display: grid;
-    gap: 0.7rem;
-}
-
-.todo-tutorial-item-actions {
-    margin-top: 0.6rem;
-    display: flex;
-    gap: 0.45rem;
-    flex-wrap: wrap;
-}
-
 @media (max-width: 720px) {
-    .todo-tutorial-add-row {
-        grid-template-columns: 1fr;
-    }
-
-    .todo-tutorial-form-grid {
+    .medical-tutorial-form-grid {
         grid-template-columns: 1fr;
     }
 }
 
-@keyframes todo-tutorial-card-in {
+@keyframes medical-tutorial-card-in {
     from { opacity: 0; transform: translateY(4px); }
     to { opacity: 1; transform: translateY(0); }
 }

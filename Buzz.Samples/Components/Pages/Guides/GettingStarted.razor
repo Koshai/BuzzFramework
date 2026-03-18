@@ -7,8 +7,8 @@
 <div class="gs-page">
     <header class="gs-hero">
         <BuzzBadge Text="Onboarding" Variant="info" />
-        <h1>Getting Started</h1>
-        <p>From zero to first implementation in a practical, developer-friendly flow.</p>
+        <h1>Getting Started with Buzz</h1>
+        <p>From zero to a working production-style page in a beginner-friendly sequence.</p>
     </header>
 
     <section class="gs-card">
@@ -44,11 +44,12 @@
     </section>
 
     <section class="gs-cta">
-        <h2>Next Stop: Installation and Demos</h2>
-        <p>Once setup is complete, validate behavior against focused demos and the full developer guide.</p>
+        <h2>Next Stop: Installation, Components, and Tutorial</h2>
+        <p>After setup, validate behavior in component demos, then complete the medical triage tutorial end-to-end.</p>
         <BuzzStack Direction="horizontal" Gap="0.45rem" Wrap="true" Align="center">
             <BuzzButton Text="Open Installation" Variant="primary" OnClick="OpenInstallation" />
-            <BuzzButton Text="Open Demo Hub" Variant="outline" OnClick="OpenDemoHub" />
+            <BuzzButton Text="Open Components" Variant="outline" OnClick="OpenDemoHub" />
+            <BuzzButton Text="Medical Tutorial" Variant="outline" OnClick="OpenMedicalTutorial" />
             <BuzzButton Text="Open Developer Guide" Variant="secondary" OnClick="OpenGuide" />
         </BuzzStack>
     </section>
@@ -94,12 +95,14 @@
 
     private readonly IReadOnlyList<string> _nextSteps =
     [
-        "Open Demo Hub for category-focused examples.",
+        "Open Components for category-focused examples.",
+        "Follow Medical Tutorial for a beginner-friendly real-world implementation.",
         "Use Developer Guide for parameter-level implementation details.",
         "When ready, move to Installation page for package/references setup."
     ];
 
     private void OpenInstallation() => Navigation.NavigateTo("/installation");
     private void OpenDemoHub() => Navigation.NavigateTo("/demo");
+    private void OpenMedicalTutorial() => Navigation.NavigateTo("/tutorial-medical");
     private void OpenGuide() => Navigation.NavigateTo("/developer-guide");
 }

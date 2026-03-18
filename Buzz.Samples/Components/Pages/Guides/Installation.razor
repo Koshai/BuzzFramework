@@ -27,7 +27,7 @@
         <article class="install-card">
             <h2>NuGet Package (release phase)</h2>
             <BuzzCodeBlock Code="@_nugetSnippet" Language="bash" ShowLineNumbers="false" EnableCopyButton="true" />
-            <p class="install-note">Use this command after package publishing is enabled.</p>
+            <p class="install-note">Use <code>BuzzLocal</code> feed for local validation, then switch to your published feed for team use.</p>
         </article>
     </section>
 
@@ -69,7 +69,9 @@
         "dotnet add reference ../Buzz.Blazor/Buzz.Blazor.csproj";
 
     private readonly string _nugetSnippet =
-        "dotnet add package Buzz.Blazor --version <version>";
+        "dotnet add package Buzz.Framework.Core --version 0.1.0-preview.2\n" +
+        "dotnet add package Buzz.Framework.Blazor --version 0.1.0-preview.2\n" +
+        "dotnet add package Buzz.Framework.Provider.OpenAI --version 0.1.0-preview.2";
 
     private readonly string _serviceSetupSnippet =
         "builder.Services.AddBuzzFramework(options =>\\n" +
@@ -88,13 +90,15 @@
     private readonly IReadOnlyList<string> _referenceLinks =
     [
         "Developer Guide: /developer-guide",
-        "Demo Hub: /demo",
+        "Components: /demo",
+        "Medical Tutorial: /tutorial-medical",
         "Accessibility Checklist: /accessibility-checklist"
     ];
 
     private readonly IReadOnlyList<string> _nextMoves =
     [
         "Run Getting Started flow for first implementation pass.",
+        "Complete Medical Tutorial for full beginner workflow + final full code.",
         "Use Developer Guide for per-component APIs and examples.",
         "Move to packaging phase after UI and accessibility sign-off."
     ];

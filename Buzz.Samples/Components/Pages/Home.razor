@@ -6,110 +6,74 @@
 <PageTitle>Buzz Framework</PageTitle>
 
 <div class="home-page">
-    <BuzzHero Badge="Blazor + AI UI Framework"
-              Title="Modern, AI-ready Blazor UI for production teams"
-              Subtitle="Build beautiful support and product experiences faster with reusable components, strong theming, and practical AI assistance."
-              PrimaryCtaText="Get Started"
-              SecondaryCtaText="Open Demo Hub"
+    <BuzzHero Badge="Buzz Framework 2026"
+              Title="Build modern Blazor products with a single, AI-ready design system"
+              Subtitle="A component-first framework for production UIs: consistent APIs, accessible defaults, five themes, and practical AI assistance."
+              PrimaryCtaText="Start Building"
+              SecondaryCtaText="Explore Components"
               OnPrimaryCta="OpenGettingStarted"
               OnSecondaryCta="OpenDemoHub"
               EnableAiTagline="true"
               SourceContext="@_heroSource" />
 
-    <section class="home-trust-row">
-        <BuzzBadge Text="Native Blazor" Variant="info" />
-        <BuzzBadge Text="Accessible Patterns" Variant="success" />
-        <BuzzBadge Text="5 Global Themes" Variant="warning" />
-        <BuzzBadge Text="AI-Enhanced Workflows" Variant="danger" />
+    <section class="home-proof-strip">
+        <BuzzBadge Text="Native Blazor Components" Variant="info" />
+        <BuzzBadge Text="Accessibility-First Defaults" Variant="success" />
+        <BuzzBadge Text="5 Production Themes" Variant="warning" />
+        <BuzzBadge Text="Seed + Live AI Context" Variant="danger" />
     </section>
 
-    <section class="home-metrics-grid">
-        <BuzzStatCard Label="Components"
-                      Value="50+"
-                      TrendText="Growing"
-                      Description="Inputs, layout, workflow, and feedback primitives."
-                      Variant="accent" />
-        <BuzzStatCard Label="Theme Presets"
-                      Value="5"
-                      TrendText="System-wide"
-                      Description="Consistent token-based styling across library and samples."
-                      Variant="success" />
-        <BuzzStatCard Label="Demo Experiences"
-                      Value="6"
-                      TrendText="Focused pages"
-                      Description="Category-specific demo flows for faster evaluation."
-                      Variant="warning" />
-        <BuzzStatCard Label="In-app Documentation"
-                      Value="1"
-                      TrendText="Always available"
-                      Description="Developer Guide with examples and copy-ready snippets."
-                      Variant="neutral" />
+    <section class="home-metrics-grid buzz-animate-slide-up">
+        <BuzzStatCard Label="Reusable Components" Value="50+" TrendText="Growing" Description="Inputs, feedback, data, layout, and workflow blocks." Variant="accent" />
+        <BuzzStatCard Label="Theme Sets" Value="5" TrendText="System-wide" Description="Azure, Emerald, Violet, Coral, and Slate palettes." Variant="success" />
+        <BuzzStatCard Label="Guided Demo Pages" Value="6" TrendText="Focused" Description="Category pages to evaluate behavior quickly." Variant="warning" />
+        <BuzzStatCard Label="In-App Docs" Value="1" TrendText="Always available" Description="Comprehensive guide with usage snippets." Variant="neutral" />
     </section>
 
-    <section class="home-panel-grid">
+    <section class="home-panel buzz-animate-scale-in">
+        <h2>Framework Experience</h2>
+        <p>Buzz.Samples now behaves like a component library website: quick onboarding, production references, and guided implementation paths.</p>
+        <div class="home-feature-grid">
+            @foreach (var feature in _frameworkFeatures)
+            {
+                <BuzzCard Title="@feature.Title" Subtitle="@feature.Subtitle" EnableAiSummary="false">
+                    <BuzzStack Direction="horizontal" Gap="0.4rem" Wrap="true" Align="center">
+                        <BuzzBadge Text="@feature.Tag" Variant="info" />
+                        <BuzzButton Text="Open" Variant="outline" Size="sm" OnClick="() => OpenRoute(feature.Path)" />
+                    </BuzzStack>
+                </BuzzCard>
+            }
+        </div>
+    </section>
+
+    <section class="home-showcase-grid buzz-animate-fade-in">
         <article class="home-panel">
-            <h2>Start Building in Minutes</h2>
-            <p>Use a clean setup path, then move directly into interactive demos and implementation docs.</p>
-            <BuzzStack Direction="horizontal" Gap="0.45rem" Wrap="true" Align="center">
-                <BuzzButton Text="Getting Started" Variant="primary" OnClick="OpenGettingStarted" />
-                <BuzzButton Text="Installation" Variant="outline" OnClick="OpenInstallation" />
-                <BuzzButton Text="Developer Guide" Variant="secondary" OnClick="OpenGuide" />
-            </BuzzStack>
+            <h2>Why Teams Choose Buzz</h2>
+            <BuzzList Items="@_valuePropositionPoints" Ordered="false" />
         </article>
-
         <article class="home-panel">
-            <h2>Core Components Spotlight</h2>
-            <div class="home-core-components-grid">
-                @foreach (var item in _coreComponents)
-                {
-                    <BuzzCard Title="@item.Name" Subtitle="@item.Description" EnableAiSummary="false">
-                        <BuzzStack Direction="horizontal" Gap="0.4rem" Align="center" Wrap="true">
-                            <BuzzBadge Text="@item.Group" Variant="info" />
-                            <BuzzButton Text="Open demo"
-                                        Variant="outline"
-                                        Size="sm"
-                                        OnClick="() => OpenRoute(item.DemoPath)" />
-                        </BuzzStack>
-                    </BuzzCard>
-                }
-            </div>
+            <h2>AI Model in Practice</h2>
+            <BuzzList Items="@_aiModelPoints" Ordered="false" />
+            <BuzzCodeBlock Code="@_aiPatternSnippet" Language="text" ShowLineNumbers="false" EnableCopyButton="true" />
         </article>
     </section>
 
-    <section class="home-showcase-grid">
-        <BuzzCard Title="Developer-first Experience"
-                  Subtitle="Clear path from onboarding to production usage."
-                  EnableAiSummary="false">
-            <BuzzList Items="@_developerExperiencePoints" Ordered="false" />
-        </BuzzCard>
-
-        <BuzzCard Title="Workflow-aware Components"
-                  Subtitle="Designed for support operations and product dashboards."
-                  EnableAiSummary="false">
-            <BuzzList Items="@_workflowPoints" Ordered="false" />
-        </BuzzCard>
-    </section>
-
-    <section class="home-panel-grid">
-        <article class="home-panel">
-            <h2>Recommended Demo Flow</h2>
+    <section class="home-panel-grid buzz-animate-slide-up">
+        <section class="home-panel">
+            <h2>Recommended Evaluation Flow</h2>
             <BuzzList Items="@_recommendedDemoFlow" Ordered="true" />
-        </article>
-
-        <article class="home-panel">
-            <h2>Quick Install</h2>
-            <BuzzCodeBlock Code="@_quickInstallSnippet"
-                           Language="bash"
-                           ShowLineNumbers="false"
-                           EnableCopyButton="true" />
-            <p class="home-muted">NuGet packaging is the final phase. The sample currently uses project reference integration.</p>
-        </article>
+        </section>
+        <section class="home-panel">
+            <h2>Quick Start Commands</h2>
+            <BuzzCodeBlock Code="@_quickInstallSnippet" Language="bash" ShowLineNumbers="false" EnableCopyButton="true" />
+            <p class="home-muted">Use local packages from <code>BuzzLocal</code> for isolated validation in new apps.</p>
+        </section>
     </section>
 
     <section class="home-pricing-block">
         <div class="home-pricing-header">
             <h2>Adoption Paths</h2>
-            <p>Pick the track that matches where your team is today.</p>
+            <p>Move from trial to production with clear checkpoints.</p>
         </div>
         <BuzzPricingTable Plans="@_adoptionPlans" OnPlanSelected="OnPlanSelectedAsync" />
         @if (!string.IsNullOrWhiteSpace(_selectedPlan))
@@ -120,7 +84,7 @@
 
     <section class="home-panel">
         <h2>Frequently Asked Questions</h2>
-        <BuzzAccordion Label="Buzz FAQ"
+        <BuzzAccordion Label="Framework FAQ"
                        Sections="@_faqSections"
                        AllowMultipleOpen="false"
                        ShowRecommendationHint="false"
@@ -130,11 +94,11 @@
 
     <section class="home-cta-strip">
         <article class="home-cta-content">
-            <h2>Ready to evaluate Buzz in your app?</h2>
-            <p>Open guided docs, try live demos, then move to packaging when you are confident with the UI system.</p>
+            <h2>Ready to ship your first Buzz-based product page?</h2>
+            <p>Start with Getting Started, validate in Components, then follow the beginner Medical Triage tutorial end-to-end.</p>
             <BuzzStack Direction="horizontal" Gap="0.5rem" Wrap="true" Align="center">
-                <BuzzButton Text="View Getting Started" Variant="primary" OnClick="OpenGettingStarted" />
-                <BuzzButton Text="Open Demo Hub" Variant="outline" OnClick="OpenDemoHub" />
+                <BuzzButton Text="Getting Started" Variant="primary" OnClick="OpenGettingStarted" />
+                <BuzzButton Text="Medical Tutorial" Variant="outline" OnClick="OpenMedicalTutorial" />
                 <BuzzButton Text="Developer Guide" Variant="secondary" OnClick="OpenGuide" />
             </BuzzStack>
         </article>
@@ -143,56 +107,66 @@
 
 @code {
     private readonly string _heroSource =
-        "Audience: Blazor teams building internal tools, support consoles, and customer-facing portals.\n" +
-        "Priorities: modern visuals, accessibility, practical AI suggestions, and consistent theming.";
+        "Audience: product engineering teams evaluating modern Blazor component systems.\n" +
+        "Priorities: high consistency, accessibility, theme flexibility, and practical AI assistance from day one.";
 
-    private readonly IReadOnlyList<CoreComponentItem> _coreComponents =
+    private readonly IReadOnlyList<FrameworkFeatureItem> _frameworkFeatures =
     [
-        new("BuzzTextBox", "Input", "AI-assisted text input with memory-based suggestions.", "/demo-inputs"),
-        new("BuzzAlert", "Feedback", "Status messaging with severity variants and dismiss support.", "/demo-feedback"),
-        new("BuzzSmartTable", "Workflow", "Data analysis table with sorting, summaries, and AI insights.", "/demo-workflow"),
-        new("BuzzHero", "Marketing", "Landing-page hero with optional AI-generated tagline.", "/demo-marketing")
+        new("Component Library", "Evaluate categorized components and behavior-specific demos.", "Components", "/demo"),
+        new("Developer Guide", "Read parameter-level references and copy-ready snippets.", "Documentation", "/developer-guide"),
+        new("Medical Triage Tutorial", "Beginner walkthrough with complete code at the final step.", "Tutorial", "/tutorial-medical"),
+        new("Installation", "Set up package references, providers, and AI context bootstrap.", "Setup", "/installation")
     ];
 
-    private readonly IReadOnlyList<string> _developerExperiencePoints =
+    private readonly IReadOnlyList<string> _valuePropositionPoints =
     [
-        "Live demos grouped by intent: inputs, feedback, workflow, and marketing.",
-        "Implementation snippets with copy actions for fast experimentation.",
-        "Clear progression: landing -> getting started -> installation -> full guide."
+        "Single design language across demos, docs, and production components.",
+        "Consistent APIs across inputs, workflows, and data-heavy components.",
+        "Built-in support for accessible interaction and keyboard-first navigation.",
+        "Five curated themes applied globally with one selector."
     ];
 
-    private readonly IReadOnlyList<string> _workflowPoints =
+    private readonly IReadOnlyList<string> _aiModelPoints =
     [
-        "Smart table insights for numerical and categorical analysis.",
-        "Command palette and guided form patterns for faster operations.",
-        "Status-driven components for alerts, banners, toasts, and confirmations."
+        "Seed knowledge provides useful first-run suggestions at deployment time.",
+        "Live user memory improves relevance as usage data accumulates.",
+        "Component context is explicit with subject keys for predictable AI behavior.",
+        "Fallback text ensures UX continuity when provider calls fail."
     ];
+
+    private readonly string _aiPatternSnippet =
+        "AI context precedence:\n" +
+        "1) User/session context\n" +
+        "2) Developer-provided source context\n" +
+        "3) Seed knowledge defaults\n" +
+        "4) Component baseline behavior";
 
     private readonly IReadOnlyList<string> _recommendedDemoFlow =
     [
-        "Open Demo Hub and choose a focused page.",
-        "Try Inputs and Feedback pages for baseline UI behavior.",
-        "Use Workflow demo for SmartTable + AI insights.",
-        "Check Developer Guide for implementation details."
+        "Open Components and review Inputs, Feedback, Workflow, and Marketing pages.",
+        "Switch all five themes and confirm readability and contrast consistency.",
+        "Open Developer Guide for implementation details and parameter effects.",
+        "Run Medical Tutorial to complete a beginner-friendly real use case."
     ];
 
     private readonly string _quickInstallSnippet =
-        "dotnet add reference ../Buzz.Blazor/Buzz.Blazor.csproj\n" +
-        "dotnet run --project Buzz.Samples/Buzz.Samples.csproj";
+        "dotnet add package Buzz.Framework.Core --version 0.1.0-preview.2\n" +
+        "dotnet add package Buzz.Framework.Blazor --version 0.1.0-preview.2\n" +
+        "dotnet add package Buzz.Framework.Provider.OpenAI --version 0.1.0-preview.2";
 
     private readonly IReadOnlyList<BuzzPricingPlan> _adoptionPlans =
     [
-        new("Evaluate", "Free", "today", ["Use sample app", "Explore demos", "Validate accessibility"], false, "Start Evaluation"),
-        new("Build", "Team", "phase", ["Implement components", "Tune themes", "Wire AI options"], true, "Start Building"),
-        new("Ship", "Release", "phase", ["Finalize docs", "Package via NuGet", "Publish release notes"], false, "Prepare Release")
+        new("Explore", "Free", "phase", ["Use samples", "Review component behavior", "Validate accessibility"], false, "Start Exploring"),
+        new("Build", "Team", "phase", ["Implement core screens", "Apply brand themes", "Enable AI context"], true, "Begin Building"),
+        new("Release", "Production", "phase", ["Package with NuGet", "Harden configs", "Ship docs and examples"], false, "Prepare Release")
     ];
 
     private readonly IReadOnlyList<BuzzAccordionItem> _faqSections =
     [
-        new("Can I use Buzz without AI?", "Yes. AI capabilities are optional per component and can be disabled by configuration.", true),
-        new("Does theming apply to the whole app?", "Yes. Theme tokens are applied at document level, so components and page surfaces update together."),
-        new("Where should I start as a new developer?", "Start with Getting Started, run the demo hub pages, then use Developer Guide for component-specific implementation."),
-        new("When will NuGet packaging be available?", "Packaging is the final phase after visual consistency, accessibility checks, and release-readiness validation.")
+        new("Can we use Buzz without AI?", "Yes. AI is optional and can be toggled per component and per environment.", true),
+        new("Are themes global?", "Yes. Theme tokens apply to the whole site so component surfaces stay visually consistent."),
+        new("Where should beginners start?", "Use Getting Started first, then follow the Medical Tutorial from Step 1 to final full code."),
+        new("How should we validate before release?", "Run demos across all five themes, complete accessibility checks, and verify fallback behavior for AI-disabled scenarios.")
     ];
 
     private string _selectedPlan = string.Empty;
@@ -200,6 +174,7 @@
     private void OpenGettingStarted() => Navigation.NavigateTo("/getting-started");
     private void OpenInstallation() => Navigation.NavigateTo("/installation");
     private void OpenGuide() => Navigation.NavigateTo("/developer-guide");
+    private void OpenMedicalTutorial() => Navigation.NavigateTo("/tutorial-medical");
     private void OpenDemoHub() => Navigation.NavigateTo("/demo");
     private Task OpenRoute(string path)
     {
@@ -213,5 +188,5 @@
         return Task.CompletedTask;
     }
 
-    private sealed record CoreComponentItem(string Name, string Group, string Description, string DemoPath);
+    private sealed record FrameworkFeatureItem(string Title, string Subtitle, string Tag, string Path);
 }

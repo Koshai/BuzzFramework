@@ -44,7 +44,8 @@ html, body {
     --buzz-motion-ease-emphasized: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-html[data-buzz-theme="azure"] {
+html[data-buzz-theme="azure"],
+.page[data-buzz-theme="azure"] {
     --buzz-surface: #ffffff;
     --buzz-bg-canvas: #f8fafc;
     --buzz-text-primary: #0f172a;
@@ -69,7 +70,8 @@ html[data-buzz-theme="azure"] {
     --buzz-focus-ring: rgba(37, 99, 235, 0.25);
 }
 
-html[data-buzz-theme="emerald"] {
+html[data-buzz-theme="emerald"],
+.page[data-buzz-theme="emerald"] {
     --buzz-surface: #f8fffb;
     --buzz-bg-canvas: #effcf3;
     --buzz-text-primary: #052e16;
@@ -94,7 +96,8 @@ html[data-buzz-theme="emerald"] {
     --buzz-focus-ring: rgba(16, 185, 129, 0.25);
 }
 
-html[data-buzz-theme="violet"] {
+html[data-buzz-theme="violet"],
+.page[data-buzz-theme="violet"] {
     --buzz-surface: #fcfaff;
     --buzz-bg-canvas: #f6f2ff;
     --buzz-text-primary: #3b0764;
@@ -119,7 +122,8 @@ html[data-buzz-theme="violet"] {
     --buzz-focus-ring: rgba(124, 58, 237, 0.25);
 }
 
-html[data-buzz-theme="coral"] {
+html[data-buzz-theme="coral"],
+.page[data-buzz-theme="coral"] {
     --buzz-surface: #fffaf8;
     --buzz-bg-canvas: #fff3ee;
     --buzz-text-primary: #4a1d12;
@@ -144,7 +148,8 @@ html[data-buzz-theme="coral"] {
     --buzz-focus-ring: rgba(249, 115, 22, 0.25);
 }
 
-html[data-buzz-theme="slate"] {
+html[data-buzz-theme="slate"],
+.page[data-buzz-theme="slate"] {
     --buzz-surface: #f8fafc;
     --buzz-bg-canvas: #f1f5f9;
     --buzz-text-primary: #0f172a;
@@ -257,6 +262,29 @@ h1:focus {
 
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
     text-align: start;
+}
+
+html, body {
+    margin: 0;
+    font-family: Inter, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+body {
+    background:
+        radial-gradient(circle at 0% 0%, color-mix(in srgb, var(--buzz-accent-soft, #dbeafe) 38%, transparent) 0%, transparent 36%),
+        var(--buzz-bg-canvas, #f8fafc);
+}
+
+h1, h2, h3 {
+    letter-spacing: -0.01em;
+}
+
+a {
+    text-underline-offset: 3px;
+}
+
+.content > * {
+    animation: buzzFadeIn var(--buzz-motion-normal) var(--buzz-motion-ease) both;
 }
 
 @media (prefers-reduced-motion: reduce) {

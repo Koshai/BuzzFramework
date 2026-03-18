@@ -1,14 +1,29 @@
+.demo-hub-page {
+    display: grid;
+    gap: 1rem;
+}
+
+.demo-hub-hero h1 {
+    margin: 0 0 0.35rem;
+}
+
+.demo-hub-hero p {
+    margin: 0;
+    color: var(--buzz-text-muted, #64748b);
+}
+
 .demo-hub-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 0.75rem;
+    gap: 0.85rem;
 }
 
 .demo-hub-card {
     border: 1px solid var(--buzz-border, #d0d7de);
-    border-radius: 12px;
+    border-radius: 14px;
     background: var(--buzz-surface, #ffffff);
-    padding: 0.85rem;
+    padding: 0.95rem;
+    box-shadow: var(--buzz-shadow-sm, 0 1px 2px rgba(15, 23, 42, 0.05));
 }
 
 .demo-hub-card h2 {
@@ -26,4 +41,8 @@
     color: var(--buzz-accent, #2563eb);
     text-decoration: none;
     font-weight: 600;
+}
+
+.demo-hub-link:hover {
+    text-decoration: underline;
 }

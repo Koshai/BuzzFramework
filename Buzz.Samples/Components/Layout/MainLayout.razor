@@ -2,20 +2,25 @@
 @using Buzz.Blazor.Models
 @inject IJSRuntime JS
 
-<div class="page">
+<div class="page" data-buzz-theme="@_activeTheme">
     <BuzzNavBar BrandText="Buzz Framework"
                 BrandHref="/"
                 Links="@_primaryLinks">
         <Actions>
             <label class="buzz-theme-label" for="buzz-theme-select">Theme</label>
-            <select id="buzz-theme-select" class="buzz-theme-select" value="@_activeTheme" @onchange="OnThemeChanged">
+            <select id="buzz-theme-select" class="buzz-theme-select" @bind="_selectedTheme">
                 @foreach (var option in _themeItems)
                 {
                     <option value="@option.Value">@option.Text</option>
                 }
             </select>
+            <button type="button"
+                    class="buzz-theme-apply-button"
+                    @onclick="ApplySelectedThemeAsync">
+                Apply
+            </button>
             <span class="buzz-theme-indicator">@_activeThemeLabel</span>
-            <a class="buzz-navbar-doc-link" href="/getting-started">Getting Started</a>
+            <a class="buzz-navbar-doc-link" href="/getting-started">Start Building</a>
         </Actions>
     </BuzzNavBar>
 
@@ -41,29 +46,23 @@
     private readonly IReadOnlyList<BuzzNavLink> _primaryLinks =
     [
         new("Home", "/", true),
+        new("Components", "/demo"),
         new("Getting Started", "/getting-started"),
         new("Installation", "/installation"),
-        new("Todo Tutorial", "/tutorial-todo"),
-        new("Demo Hub", "/demo"),
-        new("Inputs", "/demo-inputs"),
-        new("Feedback", "/demo-feedback"),
-        new("Workflow", "/demo-workflow"),
-        new("Marketing", "/demo-marketing"),
+        new("Medical Tutorial", "/tutorial-medical"),
         new("Developer Guide", "/developer-guide"),
-        new("Accessibility Checklist", "/accessibility-checklist")
+        new("Accessibility", "/accessibility-checklist")
     ];
 
     private readonly IReadOnlyList<BuzzNavLink> _footerLinks =
     [
         new("Home", "/"),
+        new("Components", "/demo"),
         new("Getting Started", "/getting-started"),
         new("Installation", "/installation"),
-        new("Todo Tutorial", "/tutorial-todo"),
-        new("Demo Hub", "/demo"),
+        new("Medical Tutorial", "/tutorial-medical"),
         new("Developer Guide", "/developer-guide"),
-        new("Inputs", "/demo-inputs"),
-        new("Feedback", "/demo-feedback"),
-        new("Accessibility Checklist", "/accessibility-checklist")
+        new("Accessibility", "/accessibility-checklist")
     ];
 
     private readonly IReadOnlyList<BuzzMenuItem> _themeItems =
@@ -76,6 +75,7 @@
     ];
 
     private string _activeTheme = "azure";
+    private string _selectedTheme = "azure";
     private string _activeThemeLabel = "Azure Pulse";
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -85,14 +85,20 @@
             return;
         }
 
-        var stored = await JS.InvokeAsync<string>("buzzTheme.getStoredTheme");
+        var stored = _activeTheme;
+        try
+        {
+            stored = await JS.InvokeAsync<string>("buzzTheme.getStoredTheme");
+        }
+        catch
+        {
+            // Keep the in-memory fallback if JS interop is unavailable.
+        }
+
         await ApplyThemeAsync(stored);
     }
 
-    private async Task OnThemeChanged(ChangeEventArgs args)
-    {
-        await ApplyThemeAsync(args.Value?.ToString());
-    }
+    private Task ApplySelectedThemeAsync() => ApplyThemeAsync(_selectedTheme);
 
     private async Task ApplyThemeAsync(string? requestedTheme)
     {
@@ -101,15 +107,29 @@
         if (match is null)
         {
             _activeTheme = "azure";
+            _selectedTheme = "azure";
             _activeThemeLabel = "Azure Pulse";
-            await JS.InvokeAsync<string>("buzzTheme.apply", _activeTheme);
-            await InvokeAsync(StateHasChanged);
+            await TryApplyThemeToDocumentAsync(_activeTheme);
+            StateHasChanged();
             return;
         }
 
         _activeTheme = match.Value;
+        _selectedTheme = match.Value;
         _activeThemeLabel = match.Text;
-        await JS.InvokeAsync<string>("buzzTheme.apply", _activeTheme);
-        await InvokeAsync(StateHasChanged);
+        await TryApplyThemeToDocumentAsync(_activeTheme);
+        StateHasChanged();
+    }
+
+    private async Task TryApplyThemeToDocumentAsync(string theme)
+    {
+        try
+        {
+            await JS.InvokeAsync<string>("buzzTheme.apply", theme);
+        }
+        catch
+        {
+            // Page-level data-buzz-theme still updates visual theme if JS fails.
+        }
     }
 }
