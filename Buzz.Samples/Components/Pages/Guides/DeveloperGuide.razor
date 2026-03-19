@@ -4,7 +4,7 @@
 @using Microsoft.JSInterop
 @inject IJSRuntime JS
 
-<PageTitle>Buzz Developer Guide</PageTitle>
+<PageTitle>BuzzBlazor Developer Guide</PageTitle>
 
 <div class="guide-layout">
     <aside class="guide-nav">
@@ -92,7 +92,7 @@
     </aside>
 
     <main class="guide-content">
-        <h1>Buzz Framework Developer Guide</h1>
+        <h1>BuzzBlazor Developer Guide</h1>
         <p>
             Every section follows the same format:
             <strong>component name</strong>,
@@ -1416,10 +1416,10 @@
             <p>Provides a consistent site footer with brand, links, and legal metadata.</p>
             <h3>How to implement</h3>
             <pre><code>&lt;BuzzFooter
-    BrandText="Buzz Framework"
+    BrandText="BuzzBlazor"
     Description="AI-ready Blazor components for modern web development."
     Links="@_guideFooterLinks"
-    Copyright="@($"Copyright {DateTime.UtcNow.Year} Buzz Framework")" /&gt;</code></pre>
+    Copyright="@($"Copyright {DateTime.UtcNow.Year} BuzzBlazor")" /&gt;</code></pre>
             <h3>Parameters to consider and effects</h3>
             <ul>
                 <li><code>BrandText</code>/<code>Description</code>: footer identity and context.</li>
@@ -1427,12 +1427,12 @@
                 <li><code>Copyright</code>: legal copy section.</li>
             </ul>
             <h3>Example usage (actual component)</h3>
-            <BuzzFooter BrandText="Buzz Framework"
+            <BuzzFooter BrandText="BuzzBlazor"
                         Description="AI-ready Blazor components for modern web development."
                         Links="@_guideFooterLinks"
-                        Copyright="@($"Copyright {DateTime.UtcNow.Year} Buzz Framework")" />
+                        Copyright="@($"Copyright {DateTime.UtcNow.Year} BuzzBlazor")" />
             <h3>Code used to display the component</h3>
-            <pre><code>&lt;BuzzFooter BrandText="Buzz Framework" Description="AI-ready Blazor components for modern web development." Links="@_guideFooterLinks" Copyright="@($"Copyright {DateTime.UtcNow.Year} Buzz Framework")" /&gt;</code></pre>
+            <pre><code>&lt;BuzzFooter BrandText="BuzzBlazor" Description="AI-ready Blazor components for modern web development." Links="@_guideFooterLinks" Copyright="@($"Copyright {DateTime.UtcNow.Year} BuzzBlazor")" /&gt;</code></pre>
         </section>
 
         <section id="buzzsidenav" class="guide-section">

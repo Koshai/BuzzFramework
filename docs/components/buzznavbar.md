@@ -5,7 +5,7 @@
 ## Basic usage
 
 ```razor
-<BuzzNavBar BrandText="Buzz Framework"
+<BuzzNavBar BrandText="BuzzBlazor"
             BrandHref="/"
             Links="@NavLinks">
     <Actions>

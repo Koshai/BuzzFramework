@@ -3,10 +3,10 @@
 @using Buzz.Blazor.Models
 @inject NavigationManager Navigation
 
-<PageTitle>Buzz Framework</PageTitle>
+<PageTitle>BuzzBlazor</PageTitle>
 
 <div class="home-page">
-    <BuzzHero Badge="Buzz Framework 2026"
+    <BuzzHero Badge="BuzzBlazor 2026"
               Title="Build modern Blazor products with a single, AI-ready design system"
               Subtitle="A component-first framework for production UIs: consistent APIs, accessible defaults, five themes, and practical AI assistance."
               PrimaryCtaText="Start Building"
@@ -94,7 +94,7 @@
 
     <section class="home-cta-strip">
         <article class="home-cta-content">
-            <h2>Ready to ship your first Buzz-based product page?</h2>
+            <h2>Ready to ship your first BuzzBlazor-based product page?</h2>
             <p>Start with Getting Started, validate in Components, then follow the beginner Medical Triage tutorial end-to-end.</p>
             <BuzzStack Direction="horizontal" Gap="0.5rem" Wrap="true" Align="center">
                 <BuzzButton Text="Getting Started" Variant="primary" OnClick="OpenGettingStarted" />
@@ -150,9 +150,9 @@
     ];
 
     private readonly string _quickInstallSnippet =
-        "dotnet add package Buzz.Framework.Core --version 0.1.0-preview.2\n" +
-        "dotnet add package Buzz.Framework.Blazor --version 0.1.0-preview.2\n" +
-        "dotnet add package Buzz.Framework.Provider.OpenAI --version 0.1.0-preview.2";
+        "dotnet add package BuzzBlazor.Core --version 0.1.0-preview.2\n" +
+        "dotnet add package BuzzBlazor --version 0.1.0-preview.2\n" +
+        "dotnet add package BuzzBlazor.Provider.OpenAI --version 0.1.0-preview.2";
 
     private readonly IReadOnlyList<BuzzPricingPlan> _adoptionPlans =
     [

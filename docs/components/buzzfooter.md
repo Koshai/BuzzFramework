@@ -6,10 +6,10 @@
 
 ```razor
 <BuzzFooter
-    BrandText="Buzz Framework"
+    BrandText="BuzzBlazor"
     Description="AI-ready Blazor components for modern web development."
     Links="@FooterLinks"
-    Copyright="@($"Copyright {DateTime.UtcNow.Year} Buzz Framework")" />
+    Copyright="@($"Copyright {DateTime.UtcNow.Year} BuzzBlazor")" />
 ```
 
 ## Parameters and effects

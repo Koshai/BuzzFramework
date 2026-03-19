@@ -6,10 +6,10 @@
     <Nullable>enable</Nullable>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <IsPackable>true</IsPackable>
-    <PackageId>Buzz.Framework.Core</PackageId>
+    <PackageId>BuzzBlazor.Core</PackageId>
     <Version>0.1.0-preview.2</Version>
     <Authors>Syed Rubayyat Akbar</Authors>
-    <Description>Core abstractions and contracts used by the Buzz Framework component ecosystem.</Description>
+    <Description>Core abstractions and contracts used by the BuzzBlazor component ecosystem.</Description>
     <PackageTags>buzz;blazor;ai;framework;core</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageProjectUrl>https://github.com/Koshai/BuzzFramework</PackageProjectUrl>

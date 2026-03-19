@@ -10,10 +10,10 @@
     <Nullable>enable</Nullable>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <IsPackable>true</IsPackable>
-    <PackageId>Buzz.Framework.Provider.OpenAI</PackageId>
+    <PackageId>BuzzBlazor.Provider.OpenAI</PackageId>
     <Version>0.1.0-preview.2</Version>
     <Authors>Syed Rubayyat Akbar</Authors>
-    <Description>OpenAI provider integration for Buzz Framework AI pipelines.</Description>
+    <Description>OpenAI provider integration for BuzzBlazor AI pipelines.</Description>
     <PackageTags>buzz;blazor;ai;openai;provider</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageProjectUrl>https://github.com/Koshai/BuzzFramework</PackageProjectUrl>

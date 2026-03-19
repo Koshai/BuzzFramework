@@ -2,7 +2,7 @@
 setlocal
 
 set CONFIGURATION=Release
-set VERSION=0.1.0-preview.1
+set VERSION=0.1.0-preview.2
 set OUTPUT=.artifacts\nuget
 
 if not "%~1"=="" set CONFIGURATION=%~1

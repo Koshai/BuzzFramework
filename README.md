@@ -1,56 +1,71 @@
-# Buzz Framework
+# BuzzBlazor
 
-Buzz Framework is a Blazor component ecosystem focused on reusable UI, accessibility, theming, and practical AI-assisted UX patterns.
+BuzzBlazor is an open-source Blazor component ecosystem focused on reusable UI, accessibility, theming, and practical AI-assisted UX patterns.
 
-## Projects
+## Packages
 
-- `Buzz.Core` - provider abstractions and request/response contracts
-- `Buzz.Blazor` - reusable component library
-- `Buzz.Provider.OpenAI` - OpenAI provider implementation
-- `Buzz.Provider.Ollama` - Ollama provider implementation
-- `Buzz.Samples` - reference site and in-app developer guide
+NuGet package IDs:
 
-## Local NuGet Packages
+- `BuzzBlazor` (UI components)
+- `BuzzBlazor.Core` (core contracts and abstractions)
+- `BuzzBlazor.Provider.OpenAI` (OpenAI provider integration)
+- `BuzzBlazor.Provider.Ollama` (Ollama provider integration)
 
-Package IDs:
+Current preview line:
 
-- `Buzz.Framework.Core`
-- `Buzz.Framework.Blazor`
-- `Buzz.Framework.Provider.OpenAI`
-- `Buzz.Framework.Provider.Ollama`
+- `0.1.0-preview.2`
 
-Build local packages:
+## Quick Start (NuGet Consumer)
 
-```powershell
-tools\pack-local.cmd Release 0.1.0-preview.2
-```
-
-Packages are produced in:
-
-```text
-.artifacts/nuget
-```
-
-Register/update local feed:
+1. Create a Blazor app (`Blazor Web App` in Visual Studio, or `dotnet new blazor`).
+2. Install packages:
 
 ```powershell
-tools\add-local-feed.cmd
+dotnet add package BuzzBlazor --version 0.1.0-preview.2
+dotnet add package BuzzBlazor.Core --version 0.1.0-preview.2
+dotnet add package BuzzBlazor.Provider.OpenAI --version 0.1.0-preview.2
+```
+
+3. Register the framework in `Program.cs`:
+
+```csharp
+builder.Services.AddBuzzFramework(options =>
+{
+    options.DefaultProviderName = "openai";
+    options.ProviderFailoverOrder = ["openai", "ollama", "mock"];
+    options.EnableAiSuggestions = true;
+});
+```
+
+4. Use components in a page:
+
+```razor
+<BuzzTextBox Label="Issue Summary" @bind-InputText="_summary" />
+<BuzzCard Title="Case Overview" EnableAiSummary="true" SourceText="@_summary" />
 ```
 
 ## AI Context Bootstrap (Cold Start)
 
-Buzz supports seed-first AI behavior so components can provide relevant output on day one:
+BuzzBlazor supports seed-first AI behavior so components can provide useful output from initial deployment:
 
-- seed knowledge JSON loaded at startup
-- component subject keys (for example `AiContextSubject`) to route context
-- live user memory progressively takes precedence over baseline seed context
+- Seed knowledge loaded at startup
+- Component subject keys (for example `AiContextSubject`) to route context
+- Live user memory progressively taking precedence over seed defaults
 
-Sample seed file path in `Buzz.Samples`:
+Sample seed file path:
 
 ```text
 Buzz.Samples/seed/buzz-seed-knowledge.json
 ```
 
-## GitHub Readiness
+## Sample Site (Temporary Hosting)
 
-This repository includes a root `.gitignore` with common .NET, IDE, package, and local artifact exclusions (including `.artifacts/` and local config patterns).
+- Repository: [https://github.com/Koshai/BuzzFramework](https://github.com/Koshai/BuzzFramework)
+- Temporary URL target: `https://buzzblazor-samples.onrender.com`
+
+Render deploy (free tier):
+
+1. Connect repository to Render.
+2. Choose Blueprint deploy.
+3. Render uses `render.yaml` and `Buzz.Samples/Dockerfile`.
+4. After first deploy, update the URL here if Render assigns a different domain.

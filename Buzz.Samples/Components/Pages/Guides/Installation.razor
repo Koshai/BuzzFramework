@@ -2,7 +2,7 @@
 @rendermode InteractiveServer
 @using Buzz.Blazor.Models
 
-<PageTitle>Installation - Buzz Framework</PageTitle>
+<PageTitle>Installation - BuzzBlazor</PageTitle>
 
 <div class="install-page">
     <header class="install-hero">
@@ -69,9 +69,9 @@
         "dotnet add reference ../Buzz.Blazor/Buzz.Blazor.csproj";
 
     private readonly string _nugetSnippet =
-        "dotnet add package Buzz.Framework.Core --version 0.1.0-preview.2\n" +
-        "dotnet add package Buzz.Framework.Blazor --version 0.1.0-preview.2\n" +
-        "dotnet add package Buzz.Framework.Provider.OpenAI --version 0.1.0-preview.2";
+        "dotnet add package BuzzBlazor.Core --version 0.1.0-preview.2\n" +
+        "dotnet add package BuzzBlazor --version 0.1.0-preview.2\n" +
+        "dotnet add package BuzzBlazor.Provider.OpenAI --version 0.1.0-preview.2";
 
     private readonly string _serviceSetupSnippet =
         "builder.Services.AddBuzzFramework(options =>\\n" +

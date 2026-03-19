@@ -1,4 +1,4 @@
-# Buzz Framework Docs
+# BuzzBlazor Docs
 
 This folder contains documentation for developers integrating Buzz UI components.
 
