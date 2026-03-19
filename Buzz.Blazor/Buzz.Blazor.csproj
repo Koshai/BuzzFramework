@@ -8,11 +8,20 @@
     <IsPackable>true</IsPackable>
     <PackageId>Buzz.Framework.Blazor</PackageId>
     <Version>0.1.0-preview.2</Version>
-    <Authors>Buzz Framework Team</Authors>
+    <Authors>Syed Rubayyat Akbar</Authors>
     <Description>Reusable Blazor UI components with AI-ready interaction patterns and theme support.</Description>
     <PackageTags>buzz;blazor;components;ui;ai</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <RepositoryUrl>https://example.com/buzz-framework</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/Koshai/BuzzFramework</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/Koshai/BuzzFramework</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
   </PropertyGroup>
 
 

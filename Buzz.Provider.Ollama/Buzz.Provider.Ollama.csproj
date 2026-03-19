@@ -12,11 +12,20 @@
     <IsPackable>true</IsPackable>
     <PackageId>Buzz.Framework.Provider.Ollama</PackageId>
     <Version>0.1.0-preview.2</Version>
-    <Authors>Buzz Framework Team</Authors>
+    <Authors>Syed Rubayyat Akbar</Authors>
     <Description>Ollama provider integration for Buzz Framework AI pipelines.</Description>
     <PackageTags>buzz;blazor;ai;ollama;provider</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <RepositoryUrl>https://example.com/buzz-framework</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/Koshai/BuzzFramework</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/Koshai/BuzzFramework</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
   </PropertyGroup>
 
   <ItemGroup>
