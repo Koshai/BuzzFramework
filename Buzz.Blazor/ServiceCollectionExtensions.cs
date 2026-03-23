@@ -1,5 +1,6 @@
 using Buzz.Core;
 using Buzz.Blazor.Services;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
@@ -10,6 +11,36 @@ namespace Buzz.Blazor;
 /// </summary>
 public static class ServiceCollectionExtensions
 {
+    /// <summary>
+    /// Registers core Buzz services with options bound from configuration.
+    /// </summary>
+    /// <param name="services">Target service collection.</param>
+    /// <param name="configuration">Application configuration. Buzz options are bound from the "Buzz" section.</param>
+    /// <param name="configure">Optional delegate to override or supplement bound values.</param>
+    /// <returns>The same service collection for chaining.</returns>
+    /// <example>
+    /// <code>
+    /// builder.Services.AddBuzzFramework(builder.Configuration);
+    /// // Or with overrides:
+    /// builder.Services.AddBuzzFramework(builder.Configuration, o => o.DefaultProviderName = "ollama");
+    /// </code>
+    /// </example>
+    public static IServiceCollection AddBuzzFramework(
+        this IServiceCollection services,
+        IConfiguration configuration,
+        Action<BuzzOptions>? configure = null)
+    {
+        var builder = services.AddOptions<BuzzOptions>()
+            .Bind(configuration.GetSection("Buzz"));
+
+        if (configure is not null)
+        {
+            builder.Configure(configure);
+        }
+
+        return AddBuzzFrameworkCore(services);
+    }
+
     /// <summary>
     /// Registers core Buzz services required by AI-assisted components.
     /// </summary>
@@ -26,6 +57,11 @@ public static class ServiceCollectionExtensions
             services.Configure(configure);
         }
 
+        return AddBuzzFrameworkCore(services);
+    }
+
+    private static IServiceCollection AddBuzzFrameworkCore(IServiceCollection services)
+    {
         services.AddSingleton<IBuzzCaseMemoryStore, InMemoryBuzzCaseMemoryStore>();
         services.TryAddSingleton<IBuzzSeedKnowledgeStore, JsonBuzzSeedKnowledgeStore>();
         services.AddScoped<IBuzzHistoryStore, LocalStorageBuzzHistoryStore>();

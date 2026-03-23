@@ -1,3 +1,5 @@
+using Microsoft.Extensions.Configuration;
+
 namespace Buzz.Blazor;
 
 /// <summary>
@@ -8,6 +10,8 @@ public sealed class BuzzOptions
     /// <summary>
     /// Preferred provider name used for first attempt selection.
     /// </summary>
+    /// <remarks>Binds from appsettings "Buzz:DefaultProvider" when using configuration.</remarks>
+    [ConfigurationKeyName("DefaultProvider")]
     public string DefaultProviderName { get; set; } = "mock";
     /// <summary>
     /// Enables failover attempts when the preferred provider fails.

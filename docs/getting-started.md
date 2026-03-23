@@ -4,7 +4,21 @@ This guide shows how to run Buzz with Blazor, configure providers, and start usi
 
 ## 1) Add Services
 
-In your app startup (`Program.cs`), register Buzz:
+In your app startup (`Program.cs`), register Buzz.
+
+**Option A: Bind from configuration** (recommended)
+
+```csharp
+builder.Services.AddBuzzFramework(builder.Configuration);
+```
+
+Options are bound from the `Buzz` section in `appsettings.json`. You can override in code:
+
+```csharp
+builder.Services.AddBuzzFramework(builder.Configuration, o => o.DefaultProviderName = "ollama");
+```
+
+**Option B: Configure in code**
 
 ```csharp
 builder.Services.AddBuzzFramework(options =>
@@ -33,9 +47,9 @@ Buzz supports OpenAI (online), Ollama (offline/local), and mock fallback.
 
 ## 3) Core Buzz Settings
 
-Settings are loaded into `BuzzOptions`.
+When using configuration binding, these map to the `Buzz` section. Settings are loaded into `BuzzOptions`.
 
-- `DefaultProviderName`: first provider to try.
+- `DefaultProvider` (config) / `DefaultProviderName` (code): first provider to try.
 - `ProviderFailoverOrder`: fallback order.
 - `EnableProviderFailover`: fallback on provider failure.
 - `EnableAiSuggestions`: turns AI enrichment on/off.
