@@ -8,7 +8,7 @@ public sealed class OpenAiBuzzOptions
     /// <summary>
     /// OpenAI API key.
     /// </summary>
-    public string ApiKey { get; init; } = string.Empty;
+    public string ApiKey { get; set; } = string.Empty;
     /// <summary>
     /// Target OpenAI model name.
     /// </summary>

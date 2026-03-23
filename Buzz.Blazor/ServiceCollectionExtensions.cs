@@ -1,3 +1,4 @@
+using Buzz.Blazor.Providers;
 using Buzz.Core;
 using Buzz.Blazor.Services;
 using Microsoft.Extensions.Configuration;
@@ -70,6 +71,18 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IBuzzToggleAdvisor, BuzzToggleAdvisor>();
         services.AddScoped<IBuzzAiContextComposer, BuzzAiContextComposer>();
         services.AddScoped<IBuzzClient, BuzzClient>();
+        return services;
+    }
+
+    /// <summary>
+    /// Registers the mock Buzz provider for testing and fallback when no real AI is configured.
+    /// </summary>
+    /// <param name="services">Target service collection.</param>
+    /// <returns>The same service collection for chaining.</returns>
+    /// <remarks>Echoes input as output. Use when OpenAI/Ollama are unavailable or for development.</remarks>
+    public static IServiceCollection AddBuzzMock(this IServiceCollection services)
+    {
+        services.AddScoped<IBuzzProvider, MockBuzzProvider>();
         return services;
     }
 }

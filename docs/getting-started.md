@@ -30,20 +30,28 @@ builder.Services.AddBuzzFramework(options =>
 
 ## 2) Configure Providers
 
-Buzz supports OpenAI (online), Ollama (offline/local), and mock fallback.
+Buzz supports OpenAI (online), Ollama (offline/local), and mock fallback. Use the provider extensions for easy registration:
+
+```csharp
+// Config-based (from appsettings Buzz:OpenAI, Buzz:Ollama)
+if (!string.IsNullOrWhiteSpace(config["Buzz:OpenAI:ApiKey"] ?? Environment.GetEnvironmentVariable("OPENAI_API_KEY")))
+    builder.Services.AddBuzzOpenAI(config);
+if (!string.IsNullOrWhiteSpace(config["Buzz:Ollama:BaseUrl"]))
+    builder.Services.AddBuzzOllama(config);
+builder.Services.AddBuzzMock();  // Always register as fallback
+```
 
 ### OpenAI
 
-- Set environment variable:
-  - PowerShell: `$env:OPENAI_API_KEY = "sk-..."`
+- Set environment variable: `$env:OPENAI_API_KEY = "sk-..."`
 - Or set `Buzz:OpenAI:ApiKey` in app settings.
+- Requires `BuzzBlazor.Provider.OpenAI` package.
 
 ### Ollama
 
 - Run Ollama locally.
-- Configure:
-  - `Buzz:Ollama:BaseUrl` (default: `http://localhost:11434/api/`)
-  - `Buzz:Ollama:Model` (default: `llama3.1:8b`)
+- Configure in appsettings: `Buzz:Ollama:BaseUrl` (default: `http://localhost:11434/api/`), `Buzz:Ollama:Model` (default: `llama3.1:8b`).
+- Requires `BuzzBlazor.Provider.Ollama` package.
 
 ## 3) Core Buzz Settings
 
