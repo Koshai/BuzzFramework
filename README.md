@@ -58,10 +58,10 @@ Sample seed file path:
 Buzz.Samples/seed/buzz-seed-knowledge.json
 ```
 
-## Sample Site (Temporary Hosting)
+## Site (Hosting)
 
 - Repository: [https://github.com/Koshai/BuzzFramework](https://github.com/Koshai/BuzzFramework)
-- Temporary URL target: `https://buzzblazor-samples.onrender.com`
+- URL: [https://www.buzzblazor.com](https://www.buzzblazor.com/)
 
 Render deploy (free tier):
 
