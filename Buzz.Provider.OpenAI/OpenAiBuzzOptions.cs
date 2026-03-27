@@ -13,4 +13,13 @@ public sealed class OpenAiBuzzOptions
     /// Target OpenAI model name.
     /// </summary>
     public string Model { get; init; } = "gpt-4o-mini";
+    /// <summary>
+    /// Upper bound for completion tokens generated per request.
+    /// </summary>
+    public int MaxOutputTokens { get; init; } = 220;
+    /// <summary>
+    /// Sampling temperature for generation.
+    /// </summary>
+    public double Temperature { get; init; } = 0.2;
 }
+

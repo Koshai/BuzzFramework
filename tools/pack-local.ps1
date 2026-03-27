@@ -1,6 +1,6 @@
 param(
     [string]$Configuration = "Release",
-    [string]$Version = "0.1.0-preview.2",
+    [string]$Version = "0.1.0-preview.3",
     [string]$Output = ".artifacts/nuget"
 )
 
@@ -37,3 +37,4 @@ foreach ($project in $projects) {
 
 Write-Host ""
 Write-Host "Done. Packages created in: $outputPath"
+

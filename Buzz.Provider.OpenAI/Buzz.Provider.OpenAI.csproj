@@ -15,7 +15,7 @@
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <IsPackable>true</IsPackable>
     <PackageId>BuzzBlazor.Provider.OpenAI</PackageId>
-    <Version>0.1.0-preview.2</Version>
+    <Version>0.1.0-preview.3</Version>
     <Authors>Syed Rubayyat Akbar</Authors>
     <Description>OpenAI provider integration for BuzzBlazor AI pipelines.</Description>
     <PackageTags>buzz;blazor;ai;openai;provider</PackageTags>
@@ -37,3 +37,4 @@
   </ItemGroup>
 
 </Project>
+

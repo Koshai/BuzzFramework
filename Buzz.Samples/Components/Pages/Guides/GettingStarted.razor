@@ -70,11 +70,15 @@
     ];
 
     private readonly string _setupSnippet =
-        "builder.Services.AddBuzzFramework(options =>\\n" +
+        "builder.Services.AddBuzzFramework(builder.Configuration, options =>\\n" +
         "{\\n" +
         "    options.DefaultProviderName = \\\"openai\\\";\\n" +
         "    options.ProviderFailoverOrder = [\\\"openai\\\", \\\"ollama\\\", \\\"mock\\\"];\\n" +
         "    options.EnableAiSuggestions = true;\\n" +
+        "    options.AiMaxPromptCharacters = 1800;\\n" +
+        "    options.AiMaxUserInputCharacters = 350;\\n" +
+        "    options.AiMaxRequestsPerDay = 400;\\n" +
+        "    options.AiBudgetExceededBehavior = \\\"fallback-mock\\\";\\n" +
         "});";
 
     private readonly string _pageSnippet =

@@ -1,6 +1,7 @@
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Buzz.Core;
 
 namespace Buzz.Provider.OpenAI;
@@ -58,7 +59,9 @@ public sealed class OpenAiBuzzProvider : IBuzzProvider
             [
                 new ChatMessage("system", "You are Buzz, a concise writing assistant."),
                 new ChatMessage("user", prompt)
-            ]);
+            ],
+            Math.Max(32, _options.MaxOutputTokens),
+            Math.Clamp(_options.Temperature, 0, 2));
 
         var message = new HttpRequestMessage(HttpMethod.Post, "chat/completions");
         message.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _options.ApiKey);
@@ -66,7 +69,12 @@ public sealed class OpenAiBuzzProvider : IBuzzProvider
         return message;
     }
 
-    private sealed record ChatCompletionsRequest(string Model, IReadOnlyList<ChatMessage> Messages);
+    private sealed record ChatCompletionsRequest(
+        string Model,
+        IReadOnlyList<ChatMessage> Messages,
+        [property: JsonPropertyName("max_tokens")]
+        int MaxTokens,
+        double Temperature);
 
     private sealed record ChatMessage(string Role, string Content);
 

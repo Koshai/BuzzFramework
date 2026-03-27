@@ -7,7 +7,7 @@
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <IsPackable>true</IsPackable>
     <PackageId>BuzzBlazor.Core</PackageId>
-    <Version>0.1.0-preview.2</Version>
+    <Version>0.1.0-preview.3</Version>
     <Authors>Syed Rubayyat Akbar</Authors>
     <Description>Core abstractions and contracts used by the BuzzBlazor component ecosystem.</Description>
     <PackageTags>buzz;blazor;ai;framework;core</PackageTags>
@@ -29,3 +29,4 @@
   </ItemGroup>
 
 </Project>
+

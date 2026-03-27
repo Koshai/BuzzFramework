@@ -229,9 +229,10 @@ internal sealed class BuzzSuggestionService : IBuzzSuggestionService
 
         try
         {
-            var prompt = BuildAiSuggestionPrompt(currentText, label, pagePath, maxResults);
+            var boundedInput = Truncate(currentText, Math.Max(50, _options.AiMaxUserInputCharacters));
+            var prompt = BuildAiSuggestionPrompt(boundedInput, label, pagePath, maxResults);
             var response = await _buzzClient.GenerateAsync(
-                new BuzzRequest(currentText, prompt, $"Field label: {label}. Page path: {NormalizePagePath(pagePath)}."),
+                new BuzzRequest(boundedInput, prompt, Truncate($"Field label: {label}. Page path: {NormalizePagePath(pagePath)}.", Math.Max(100, _options.AiMaxPromptCharacters / 3))),
                 cancellationToken);
 
             var parsed = ParseAiSuggestions(response.OutputText, maxResults);
@@ -343,6 +344,16 @@ internal sealed class BuzzSuggestionService : IBuzzSuggestionService
             "Return only suggestions, one per line, no numbering.";
     }
 
+    private static string Truncate(string text, int maxLength)
+    {
+        if (string.IsNullOrWhiteSpace(text) || maxLength <= 0 || text.Length <= maxLength)
+        {
+            return text;
+        }
+
+        return text[..maxLength];
+    }
+
     private static List<string> ParseAiSuggestions(string output, int maxResults)
     {
         return output
@@ -368,3 +379,4 @@ internal sealed class BuzzSuggestionService : IBuzzSuggestionService
         IReadOnlyList<string> Suggestions,
         DateTimeOffset ExpiresAtUtc);
 }
+

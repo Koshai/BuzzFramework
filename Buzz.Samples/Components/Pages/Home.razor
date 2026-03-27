@@ -150,9 +150,10 @@
     ];
 
     private readonly string _quickInstallSnippet =
-        "dotnet add package BuzzBlazor.Core --version 0.1.0-preview.2\n" +
-        "dotnet add package BuzzBlazor --version 0.1.0-preview.2\n" +
-        "dotnet add package BuzzBlazor.Provider.OpenAI --version 0.1.0-preview.2";
+        "dotnet add package BuzzBlazor.Core --version 0.1.0-preview.3\n" +
+        "dotnet add package BuzzBlazor --version 0.1.0-preview.3\n" +
+        "dotnet add package BuzzBlazor.Provider.OpenAI --version 0.1.0-preview.3\n" +
+        "dotnet add package BuzzBlazor.Provider.Ollama --version 0.1.0-preview.3";
 
     private readonly IReadOnlyList<BuzzPricingPlan> _adoptionPlans =
     [
@@ -190,3 +191,4 @@
 
     private sealed record FrameworkFeatureItem(string Title, string Subtitle, string Tag, string Path);
 }
+

@@ -28,7 +28,8 @@ internal sealed class BuzzAiContextComposer : IBuzzAiContextComposer
         int maxCharacters,
         CancellationToken cancellationToken = default)
     {
-        var safeMax = Math.Max(400, maxCharacters);
+        var maxByRequest = Math.Max(400, maxCharacters);
+        var safeMax = Math.Min(maxByRequest, Math.Max(400, _options.AiMaxPromptCharacters));
         var builder = new StringBuilder();
         var normalizedComponent = string.IsNullOrWhiteSpace(component) ? "unknown" : component.Trim();
         var normalizedSubject = string.IsNullOrWhiteSpace(subject) ? "general" : subject.Trim();
@@ -114,3 +115,4 @@ internal sealed class BuzzAiContextComposer : IBuzzAiContextComposer
         return text[..maxLength];
     }
 }
+

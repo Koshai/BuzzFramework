@@ -67,7 +67,13 @@ public static class ServiceCollectionExtensions
             var client = factory.CreateClient("buzz-openai");
             var options = sp.GetRequiredService<IOptions<OpenAiBuzzOptions>>().Value;
             var apiKey = options.ApiKey ?? Environment.GetEnvironmentVariable("OPENAI_API_KEY") ?? string.Empty;
-            var resolvedOptions = new OpenAiBuzzOptions { ApiKey = apiKey, Model = options.Model };
+            var resolvedOptions = new OpenAiBuzzOptions
+            {
+                ApiKey = apiKey,
+                Model = options.Model,
+                MaxOutputTokens = options.MaxOutputTokens,
+                Temperature = options.Temperature
+            };
             return new OpenAiBuzzProvider(client, resolvedOptions);
         });
 

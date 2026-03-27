@@ -50,6 +50,24 @@ public sealed class BuzzOptions
     /// </summary>
     public int AiCacheTtlSeconds { get; set; } = 180;
     /// <summary>
+    /// Hard cap for AI prompt/context payload length to reduce token spend.
+    /// </summary>
+    public int AiMaxPromptCharacters { get; set; } = 1800;
+    /// <summary>
+    /// Maximum user-input characters included in AI suggestion prompts.
+    /// </summary>
+    public int AiMaxUserInputCharacters { get; set; } = 350;
+    /// <summary>
+    /// Maximum AI generation requests allowed per UTC day.
+    /// Set to 0 or less to disable daily request limits.
+    /// </summary>
+    public int AiMaxRequestsPerDay { get; set; } = 0;
+    /// <summary>
+    /// Behavior when the daily AI request budget is exceeded.
+    /// Supported values: <c>throw</c>, <c>fallback-mock</c>.
+    /// </summary>
+    public string AiBudgetExceededBehavior { get; set; } = "throw";
+    /// <summary>
     /// Enables in-memory shared case memory across components.
     /// </summary>
     public bool EnableSharedCaseMemory { get; set; } = true;
@@ -82,3 +100,4 @@ public sealed class BuzzOptions
     /// </summary>
     public bool EnableSeedKnowledgeWarmupOnStartup { get; set; } = true;
 }
+

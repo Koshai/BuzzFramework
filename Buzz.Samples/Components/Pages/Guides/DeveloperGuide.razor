@@ -136,7 +136,15 @@
     "SeedKnowledgeFilePath": "seed/buzz-seed-knowledge.json",
     "SeedKnowledgeMaxMatchesPerRequest": 4,
     "UserMemoryMaxMatchesPerRequest": 5,
-    "EnableSeedKnowledgeWarmupOnStartup": true
+    "EnableSeedKnowledgeWarmupOnStartup": true,
+    "AiMaxPromptCharacters": 1800,
+    "AiMaxUserInputCharacters": 350,
+    "AiMaxRequestsPerDay": 400,
+    "AiBudgetExceededBehavior": "fallback-mock",
+    "OpenAI": {
+      "MaxOutputTokens": 220,
+      "Temperature": 0.2
+    }
   }
 }</code></pre>
             <h3>Parameters to consider and effects</h3>
@@ -144,6 +152,9 @@
                 <li><code>EnableAiContextEnrichment</code>: composes AI prompts from developer context, seed entries, and live memory.</li>
                 <li><code>EnableSeedKnowledgeBootstrap</code>: turns on seed lookup for cold-start quality.</li>
                 <li><code>SeedKnowledgeFilePath</code>: path to shipped JSON knowledge entries.</li>
+                <li><code>AiMaxPromptCharacters</code> + <code>AiMaxUserInputCharacters</code>: reduce token usage by bounding prompt/input size.</li>
+                <li><code>AiMaxRequestsPerDay</code> + <code>AiBudgetExceededBehavior</code>: enforce daily budget with optional mock fallback.</li>
+                <li><code>OpenAI:MaxOutputTokens</code> + <code>OpenAI:Temperature</code>: cap completion size and control output verbosity.</li>
                 <li><code>AiContextSubject</code> (component parameter): routes each request into the right domain memory bucket.</li>
                 <li>User/session memory naturally gains precedence over baseline defaults as usage grows.</li>
             </ul>

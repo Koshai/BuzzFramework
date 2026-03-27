@@ -69,15 +69,20 @@
         "dotnet add reference ../Buzz.Blazor/Buzz.Blazor.csproj";
 
     private readonly string _nugetSnippet =
-        "dotnet add package BuzzBlazor.Core --version 0.1.0-preview.2\n" +
-        "dotnet add package BuzzBlazor --version 0.1.0-preview.2\n" +
-        "dotnet add package BuzzBlazor.Provider.OpenAI --version 0.1.0-preview.2";
+        "dotnet add package BuzzBlazor.Core --version 0.1.0-preview.3\n" +
+        "dotnet add package BuzzBlazor --version 0.1.0-preview.3\n" +
+        "dotnet add package BuzzBlazor.Provider.OpenAI --version 0.1.0-preview.3\n" +
+        "dotnet add package BuzzBlazor.Provider.Ollama --version 0.1.0-preview.3";
 
     private readonly string _serviceSetupSnippet =
-        "builder.Services.AddBuzzFramework(options =>\\n" +
+        "builder.Services.AddBuzzFramework(builder.Configuration, options =>\\n" +
         "{\\n" +
         "    options.DefaultProviderName = \\\"openai\\\";\\n" +
         "    options.ProviderFailoverOrder = [\\\"openai\\\", \\\"ollama\\\", \\\"mock\\\"];\\n" +
+        "    options.AiMaxPromptCharacters = 1800;\\n" +
+        "    options.AiMaxUserInputCharacters = 350;\\n" +
+        "    options.AiMaxRequestsPerDay = 400;\\n" +
+        "    options.AiBudgetExceededBehavior = \\\"fallback-mock\\\";\\n" +
         "});";
 
     private readonly IReadOnlyList<string> _validationChecklist =
@@ -103,3 +108,4 @@
         "Move to packaging phase after UI and accessibility sign-off."
     ];
 }
+

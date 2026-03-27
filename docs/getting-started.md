@@ -45,13 +45,26 @@ builder.Services.AddBuzzMock();  // Always register as fallback
 
 - Set environment variable: `$env:OPENAI_API_KEY = "sk-..."`
 - Or set `Buzz:OpenAI:ApiKey` in app settings.
+- Set `DefaultProvider` to `"openai"` and ensure OpenAI is registered before Ollama to try it first.
+- Model defaults to `gpt-4o-mini`; override via `Buzz:OpenAI:Model`.
+- Control cost with `Buzz:OpenAI:MaxOutputTokens` and `Buzz:OpenAI:Temperature`.
 - Requires `BuzzBlazor.Provider.OpenAI` package.
 
 ### Ollama
 
 - Run Ollama locally.
-- Configure in appsettings: `Buzz:Ollama:BaseUrl` (default: `http://localhost:11434/api/`), `Buzz:Ollama:Model` (default: `llama3.1:8b`).
+- Configure in appsettings: `Buzz:Ollama:BaseUrl` (default: `http://localhost:11434/api/`), `Buzz:Ollama:Model` (any installed model, default: `llama3.2:latest`).
+- Use any model you have pulled: `llama3.2:latest`, `mistral`, `phi`, etc. The model name is passed directly to Ollama.
 - Requires `BuzzBlazor.Provider.Ollama` package.
+
+## Provider prioritization
+
+The first provider to try is `DefaultProviderName` (config: `Buzz:DefaultProvider`). If that provider fails or is not registered, Buzz uses `ProviderFailoverOrder` to try the next provider.
+
+- Set `DefaultProvider` to `"openai"` to prefer OpenAI when an API key is available.
+- Set to `"ollama"` to prefer local Ollama.
+- Set to `"mock"` for development without AI.
+- The configured default is only used if that provider is registered. Otherwise, Buzz picks the first available provider (openai → ollama → mock).
 
 ## 3) Core Buzz Settings
 
@@ -65,8 +78,21 @@ When using configuration binding, these map to the `Buzz` section. Settings are 
 - `AiMaxLocalResultsBeforeSkip`: skip AI when local suggestions are strong.
 - `AiCooldownSeconds`: minimum time between AI calls per textbox context.
 - `AiCacheTtlSeconds`: cache AI suggestion results.
+- `AiMaxPromptCharacters`: hard cap for composed AI context/prompt size.
+- `AiMaxUserInputCharacters`: max input chars sent for AI suggestions.
+- `AiMaxRequestsPerDay`: hard cap on total AI generation requests per UTC day (`0` disables limit).
+- `AiBudgetExceededBehavior`: when budget is exceeded (`throw` or `fallback-mock`).
 - `EnableSharedCaseMemory`: enables shared subject memory.
 - `SharedCaseMemoryMaxEntriesPerSubject`: cap per subject.
+
+### Cost-Safe Defaults (Recommended)
+
+- Keep `AiMaxPromptCharacters` around `1200-2000` for daily use.
+- Keep `AiMaxUserInputCharacters` around `250-500`.
+- Set `Buzz:OpenAI:MaxOutputTokens` around `120-300` for short assistant outputs.
+- Prefer lower `Temperature` (for example `0.1-0.3`) to reduce verbose drift.
+- Set `AiMaxRequestsPerDay` to a practical budget (for example `200-500`) during development.
+- Use `AiBudgetExceededBehavior: "fallback-mock"` in development to keep UI functional when budget is reached.
 
 ## 4) Run the Sample
 
@@ -119,6 +145,7 @@ In development config:
 
 - set logging level for `Buzz.Blazor` to `Debug`
 - watch provider attempts, failover logs, and suggestion logs in terminal
+- to verify OpenAI: set `DefaultProvider` to `"openai"`, set `OPENAI_API_KEY`, and ensure OpenAI is registered (AddBuzzOpenAI). Buzz will try OpenAI first; check logs for "Buzz provider attempt: openai"
 
 ## 6) Design Tokens (2026-ready)
 

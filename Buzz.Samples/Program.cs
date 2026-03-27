@@ -12,9 +12,8 @@ var hasOpenAi = !string.IsNullOrWhiteSpace(openAiApiKey);
 var ollamaBaseUrl = config["Buzz:Ollama:BaseUrl"];
 var hasOllama = !string.IsNullOrWhiteSpace(ollamaBaseUrl);
 var configuredDefaultProvider = config["Buzz:DefaultProvider"];
-var defaultProvider = !string.IsNullOrWhiteSpace(configuredDefaultProvider)
-    ? configuredDefaultProvider
-    : hasOpenAi ? "openai" : hasOllama ? "ollama" : "mock";
+// Only use configured default if that provider is available; otherwise pick first available.
+var defaultProvider = ResolveDefaultProvider(configuredDefaultProvider, hasOpenAi, hasOllama);
 
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
@@ -57,3 +56,15 @@ app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
 app.Run();
+
+static string ResolveDefaultProvider(string? configured, bool hasOpenAi, bool hasOllama)
+{
+    var available = configured switch
+    {
+        "openai" when hasOpenAi => "openai",
+        "ollama" when hasOllama => "ollama",
+        "mock" => "mock",
+        _ => null
+    };
+    return available ?? (hasOpenAi ? "openai" : hasOllama ? "ollama" : "mock");
+}

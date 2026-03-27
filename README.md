@@ -1,71 +1,90 @@
 # BuzzBlazor
 
-BuzzBlazor is an open-source Blazor component ecosystem focused on reusable UI, accessibility, theming, and practical AI-assisted UX patterns.
+BuzzBlazor is a Blazor component framework focused on reusable UI, accessibility, theming, and practical AI-assisted UX patterns.
+
+- Website: [https://www.buzzblazor.com](https://www.buzzblazor.com)
+- Repository: [https://github.com/Koshai/BuzzFramework](https://github.com/Koshai/BuzzFramework)
 
 ## Packages
 
 NuGet package IDs:
 
-- `BuzzBlazor` (UI components)
-- `BuzzBlazor.Core` (core contracts and abstractions)
-- `BuzzBlazor.Provider.OpenAI` (OpenAI provider integration)
-- `BuzzBlazor.Provider.Ollama` (Ollama provider integration)
+- `BuzzBlazor`
+- `BuzzBlazor.Core`
+- `BuzzBlazor.Provider.OpenAI`
+- `BuzzBlazor.Provider.Ollama`
 
 Current preview line:
 
-- `0.1.0-preview.2`
+- `0.1.0-preview.3`
 
-## Quick Start (NuGet Consumer)
+## Installation
 
-1. Create a Blazor app (`Blazor Web App` in Visual Studio, or `dotnet new blazor`).
+1. Create a Blazor app (`Blazor Web App` in Visual Studio or `dotnet new blazor`).
 2. Install packages:
 
 ```powershell
-dotnet add package BuzzBlazor --version 0.1.0-preview.2
-dotnet add package BuzzBlazor.Core --version 0.1.0-preview.2
-dotnet add package BuzzBlazor.Provider.OpenAI --version 0.1.0-preview.2
+dotnet add package BuzzBlazor --version 0.1.0-preview.3
+dotnet add package BuzzBlazor.Core --version 0.1.0-preview.3
+dotnet add package BuzzBlazor.Provider.OpenAI --version 0.1.0-preview.3
+dotnet add package BuzzBlazor.Provider.Ollama --version 0.1.0-preview.3
 ```
 
-3. Register the framework in `Program.cs`:
+## Basic Setup
+
+Register Buzz and providers in `Program.cs`:
 
 ```csharp
-builder.Services.AddBuzzFramework(options =>
+builder.Services.AddBuzzFramework(builder.Configuration, options =>
 {
     options.DefaultProviderName = "openai";
     options.ProviderFailoverOrder = ["openai", "ollama", "mock"];
-    options.EnableAiSuggestions = true;
+
+    // Cost controls
+    options.AiMaxPromptCharacters = 1800;
+    options.AiMaxUserInputCharacters = 350;
+    options.AiMaxRequestsPerDay = 400;
+    options.AiBudgetExceededBehavior = "fallback-mock";
 });
+
+if (!string.IsNullOrWhiteSpace(builder.Configuration["Buzz:OpenAI:ApiKey"]
+    ?? Environment.GetEnvironmentVariable("OPENAI_API_KEY")))
+{
+    builder.Services.AddBuzzOpenAI(builder.Configuration);
+}
+
+if (!string.IsNullOrWhiteSpace(builder.Configuration["Buzz:Ollama:BaseUrl"]))
+{
+    builder.Services.AddBuzzOllama(builder.Configuration);
+}
+
+builder.Services.AddBuzzMock();
 ```
 
-4. Use components in a page:
+## Provider Behavior
 
-```razor
-<BuzzTextBox Label="Issue Summary" @bind-InputText="_summary" />
-<BuzzCard Title="Case Overview" EnableAiSummary="true" SourceText="@_summary" />
-```
+Provider selection order is:
 
-## AI Context Bootstrap (Cold Start)
+1. `Buzz:DefaultProvider`
+2. `Buzz:ProviderFailoverOrder`
+3. any remaining registered providers
 
-BuzzBlazor supports seed-first AI behavior so components can provide useful output from initial deployment:
+This makes it easy to prefer OpenAI or Ollama while keeping a safe fallback.
 
-- Seed knowledge loaded at startup
-- Component subject keys (for example `AiContextSubject`) to route context
-- Live user memory progressively taking precedence over seed defaults
+## Cost Controls (Recommended)
 
-Sample seed file path:
+For daily development, use these practical defaults:
 
-```text
-Buzz.Samples/seed/buzz-seed-knowledge.json
-```
+- `AiMaxPromptCharacters`: `1200-2000`
+- `AiMaxUserInputCharacters`: `250-500`
+- `AiMaxRequestsPerDay`: `200-500`
+- `AiBudgetExceededBehavior`: `fallback-mock`
+- `Buzz:OpenAI:MaxOutputTokens`: `120-300`
+- `Buzz:OpenAI:Temperature`: `0.1-0.3`
 
-## Sample Site (Temporary Hosting)
+## Learn More
 
-- Repository: [https://github.com/Koshai/BuzzFramework](https://github.com/Koshai/BuzzFramework)
-- Temporary URL target: `https://buzzblazor-samples.onrender.com`
+- Website docs and examples: [https://www.buzzblazor.com](https://www.buzzblazor.com)
+- In-repo docs: `docs/`
+- Sample app source: `Buzz.Samples/`
 
-Render deploy (free tier):
-
-1. Connect repository to Render.
-2. Choose Blueprint deploy.
-3. Render uses `render.yaml` and `Buzz.Samples/Dockerfile`.
-4. After first deploy, update the URL here if Render assigns a different domain.
